@@ -11,7 +11,7 @@ from datetime import datetime
 
 from pydantic import ValidationError
 
-from . import pensions, store
+from . import pensions, store, tracing
 from .classify.base import Classifier, ClassifierError
 from .models import RawItem
 from .normalize import to_silver
@@ -39,12 +39,33 @@ def ingest(con, raw: RawItem, classifier: Classifier) -> Outcome:
     store.upsert_silver(con, item, linked.pension_id, linked.reason)
     if linked.pension_id is None:
         return Outcome(item.item_id, None, "unlinked")
-    cached = store.get_classification(con, item.item_id)
+    tag = f"{classifier.name}:{classifier.version}"
+    cached = store.get_classification(con, item.item_id, tag)
     if cached is not None:      # redelivery: no second model call, no second row
         return Outcome(item.item_id, linked.pension_id, "cached", cached.signal_type)
-    result = classifier.classify(item.headline, pensions.ALL[linked.pension_id].name)
-    store.upsert_classification(con, item.item_id, result, f"{classifier.name}:{classifier.version}")
+    result = _classify_traced(classifier, item, linked.pension_id, tag)
+    store.upsert_classification(con, item.item_id, result, tag)
     return Outcome(item.item_id, linked.pension_id, "classified", result.signal_type)
+
+
+def _classify_traced(classifier: Classifier, item, pension_id: str, tag: str):
+    """One classified item = one observation: a generation for the model, a span for keyword rules."""
+    is_model = classifier.name == "claude"
+    extra = {"model": classifier.model} if is_model else {}
+    meta = {"classifier": tag, "prompt_version": getattr(classifier, "prompt_version", classifier.version),
+            "item_id": item.item_id, "pension_id": pension_id, "outlet": item.outlet or "",
+            "published_at": item.published_at.isoformat(), "link": str(item.canonical_link)}
+    with tracing.observe("classify-headline", as_type="generation" if is_model else "span",
+                         input={"headline": item.headline, "pension": pensions.ALL[pension_id].name},
+                         metadata=meta, **extra) as obs:
+        try:
+            result = classifier.classify(item.headline, pensions.ALL[pension_id].name)
+        except ClassifierError as exc:
+            obs.update(level="ERROR", status_message=str(exc)[:200])
+            raise
+        usage = getattr(classifier, "last_usage", None)
+        obs.update(output=result.model_dump(), **({"usage_details": usage} if is_model and usage else {}))
+    return result
 
 
 def process_one(con, raw: RawItem, classifier: Classifier, as_of: datetime, path: str) -> Outcome:
@@ -76,8 +97,10 @@ def process_many(con, raws: list[RawItem], classifier: Classifier, as_of: dateti
             touched.add(out.pension_id)
         if out.item_id:
             available.setdefault(out.item_id, raw.fetched_at)
-    for pid in sorted(touched):
-        store.rebuild_pension(con, pid, as_of)
+    with tracing.observe("score-pensions", input={"pensions": sorted(touched), "as_of": as_of.isoformat()}) as obs:
+        verdicts = [store.rebuild_pension(con, pid, as_of) for pid in sorted(touched)]
+        obs.update(output={"verdicts": [{k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()}
+                                        for r in verdicts]})
     store.record_latency(con, list(available), available, path)
     counts["pensions_rebuilt"] = len(touched)
     return counts

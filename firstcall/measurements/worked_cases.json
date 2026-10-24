@@ -3,29 +3,43 @@
   "case": "wsib_2022",
   "pension": "wsib",
   "items_in_corpus": 101,
-  "items_linked": 7,
+  "items_linked": 8,
   "signals": [
    {
     "date": "2022-03-17",
     "type": "leadership_change",
     "confidence": 0.7,
+    "completed": false,
     "headline": "Washington State Investment Board names new CIO",
     "outlet": "Pensions & Investments",
     "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPS0dNYmx3eDBKM0xiTE1UdnhoYXJVRUJ1WjdnVU1lZlVnWUxPMjhGUEZWdDhuT0xmUHZnTVRBNWZPdW95NXBpZ204MjZ3b1RpY2k3STlhU3ZUTDB2UnZDb1dGeEhpWVRVb3htZmRZY2Foc2h0RjZkaUpaNExpd0xydnlHYXlqWWZiU1JpQk01ZUY"
    },
    {
+    "date": "2022-04-20",
+    "type": "sale_or_advisor",
+    "confidence": 0.85,
+    "completed": false,
+    "headline": "As philosophies change, Washington State gears up for first secondaries sale",
+    "outlet": "Buyouts",
+    "link": "https://privateequityinternational.com/as-philosophies-change-washington-state-gears-up-for-first-secondaries-sale"
+   },
+   {
     "date": "2024-01-31",
     "type": "sale_or_advisor",
     "confidence": 0.85,
+    "completed": false,
     "headline": "Washington pension system shops large PE portfolio as secondaries surge",
     "outlet": "Secondaries Investor",
     "link": "https://pei-secondariesinvestor.com/washington-pension-system-shops-large-pe-portfolio-as-secondaries-surges"
    }
   ],
   "first_non_sale_signal": "2022-03-17",
-  "first_prepare": null,
+  "first_prepare": "2022-04-20",
   "first_sale_report": "2022-04-20",
-  "first_sale_signal_detected": "2024-01-31",
+  "first_sale_signal_detected": "2022-04-20",
+  "first_closed_sale_evidence": null,
+  "weeks_from_first_sale_signal_to_ground_truth": 0.0,
+  "rulebook_version": 2,
   "peak_score_before_sale": 0.13,
   "peak_date": "2022-03-17",
   "weeks_of_warning": 0.0,
@@ -307,262 +321,262 @@
    ],
    [
     "2022-04-25",
-    0.098,
-    "WATCH"
+    0.601,
+    "PREPARE"
    ],
    [
     "2022-05-02",
-    0.093,
+    0.581,
     "WATCH"
    ],
    [
     "2022-05-09",
-    0.088,
+    0.561,
     "WATCH"
    ],
    [
     "2022-05-16",
-    0.084,
+    0.542,
     "WATCH"
    ],
    [
     "2022-05-23",
-    0.08,
+    0.523,
     "WATCH"
    ],
    [
     "2022-05-30",
-    0.076,
+    0.504,
     "WATCH"
    ],
    [
     "2022-06-06",
-    0.072,
+    0.485,
     "WATCH"
    ],
    [
     "2022-06-13",
-    0.068,
+    0.467,
     "WATCH"
    ],
    [
     "2022-06-20",
-    0.065,
+    0.449,
     "WATCH"
    ],
    [
     "2022-06-27",
-    0.062,
+    0.432,
     "WATCH"
    ],
    [
     "2022-07-04",
-    0.058,
+    0.415,
     "WATCH"
    ],
    [
     "2022-07-11",
-    0.055,
+    0.398,
     "WATCH"
    ],
    [
     "2022-07-18",
-    0.053,
+    0.382,
     "WATCH"
    ],
    [
     "2022-07-25",
-    0.05,
+    0.366,
     "WATCH"
    ],
    [
     "2022-08-01",
-    0.047,
+    0.35,
     "WATCH"
    ],
    [
     "2022-08-08",
-    0.045,
+    0.336,
     "WATCH"
    ],
    [
     "2022-08-15",
-    0.043,
+    0.321,
     "WATCH"
    ],
    [
     "2022-08-22",
-    0.04,
+    0.307,
     "WATCH"
    ],
    [
     "2022-08-29",
-    0.038,
+    0.294,
     "WATCH"
    ],
    [
     "2022-09-05",
-    0.036,
+    0.281,
     "WATCH"
    ],
    [
     "2022-09-12",
-    0.034,
+    0.268,
     "WATCH"
    ],
    [
     "2022-09-19",
-    0.033,
+    0.256,
     "WATCH"
    ],
    [
     "2022-09-26",
-    0.031,
+    0.244,
     "WATCH"
    ],
    [
     "2022-10-03",
-    0.029,
+    0.233,
     "WATCH"
    ],
    [
     "2022-10-10",
-    0.028,
+    0.223,
     "WATCH"
    ],
    [
     "2022-10-17",
-    0.026,
+    0.212,
     "WATCH"
    ],
    [
     "2022-10-24",
-    0.025,
+    0.202,
     "WATCH"
    ],
    [
     "2022-10-31",
-    0.024,
+    0.193,
     "WATCH"
    ],
    [
     "2022-11-07",
-    0.023,
+    0.184,
     "WATCH"
    ],
    [
     "2022-11-14",
-    0.021,
+    0.175,
     "WATCH"
    ],
    [
     "2022-11-21",
-    0.02,
+    0.167,
     "WATCH"
    ],
    [
     "2022-11-28",
-    0.019,
+    0.158,
     "WATCH"
    ],
    [
     "2022-12-05",
-    0.018,
+    0.151,
     "WATCH"
    ],
    [
     "2022-12-12",
-    0.017,
+    0.144,
     "WATCH"
    ],
    [
     "2022-12-19",
-    0.016,
+    0.137,
     "WATCH"
    ],
    [
     "2022-12-26",
-    0.016,
+    0.13,
     "WATCH"
    ],
    [
     "2023-01-02",
-    0.015,
+    0.123,
     "WATCH"
    ],
    [
     "2023-01-09",
-    0.014,
+    0.117,
     "WATCH"
    ],
    [
     "2023-01-16",
-    0.013,
+    0.112,
     "WATCH"
    ],
    [
     "2023-01-23",
-    0.013,
+    0.106,
     "WATCH"
    ],
    [
     "2023-01-30",
-    0.012,
+    0.101,
     "WATCH"
    ],
    [
     "2023-02-06",
-    0.011,
+    0.096,
     "WATCH"
    ],
    [
     "2023-02-13",
-    0.011,
+    0.091,
     "WATCH"
    ],
    [
     "2023-02-20",
-    0.01,
+    0.086,
     "WATCH"
    ],
    [
     "2023-02-27",
-    0.01,
+    0.082,
     "WATCH"
    ],
    [
     "2023-03-06",
-    0.009,
+    0.078,
     "WATCH"
    ],
    [
     "2023-03-13",
-    0.009,
+    0.074,
     "WATCH"
    ],
    [
     "2023-03-20",
-    0.0,
+    0.063,
     "WATCH"
    ],
    [
     "2023-03-27",
-    0.0,
+    0.059,
     "WATCH"
    ],
    [
     "2023-04-03",
-    0.0,
+    0.056,
     "WATCH"
    ],
    [
     "2023-04-10",
-    0.0,
+    0.054,
     "WATCH"
    ],
    [
     "2023-04-17",
-    0.0,
+    0.051,
     "WATCH"
    ],
    [
@@ -881,23 +895,54 @@
   "case": "nyc_2025",
   "pension": "nyc_funds",
   "items_in_corpus": 75,
-  "items_linked": 12,
+  "items_linked": 22,
   "signals": [
+   {
+    "date": "2025-03-04",
+    "type": "sale_or_advisor",
+    "confidence": 0.85,
+    "completed": false,
+    "headline": "Strategic Partners emerges as sole buyer in NYC\u2019s $5bn-plus secondaries sale",
+    "outlet": "PEI Private Equity",
+    "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPeTFfUUQwbm50Njk3NGFKR2IzSWhZVWVzVXAtTVlCUm5NSnFpM3hKbHFRSFZzdmp4VDVFRG9Nb2ZmemNxcFljN0ItVzhTaTlSM1U3RERoRjRzNEM4ZllHcjNXRzd1dFU2blpMZ0dLc2RYLW5qNUIxQmtaMTA5N3lCSC1ueE5KNjZWcEhqZ0dnT2xLbW5yazUzcmtPcW5FTHI0T09tcllmdw"
+   },
+   {
+    "date": "2025-05-27",
+    "type": "sale_or_advisor",
+    "confidence": 0.85,
+    "completed": true,
+    "headline": "NYC Pensions Sell $5B in Private Equity Secondaries to Blackstone",
+    "outlet": "Chief Investment Officer",
+    "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQNlhONjFqd2tvZjRQeVFiWHlUcjJGVEtVdEQ0TE14ckUwc21vczBJZHA3RmlTUlZSMTEyZnJxdEFVSjIwRDZMS3I2RVhLa04tTU9YaUlHOGt5YkVOTkdfRGM2UnVZVS04UEJ4dEFlWHNHTEp2UGhlMF9YZW9lMTJjamJhc0NfR2ZnRHkyNmdTRVBKbkNsd3dteA"
+   },
    {
     "date": "2025-05-28",
     "type": "sale_or_advisor",
     "confidence": 0.85,
+    "completed": true,
     "headline": "Blackstone acquires $5bn PE portfolio from NYC pension",
     "outlet": "Private Equity Wire",
     "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNUlgxWmZrdGZSeURMUkhGYXdRYnVkOFJlRmFLLWF4MWdzTmF2cm0yMFhvSXN5MWNieUdzSV8yZi1pNUg3RFlsTk43ZzYtYUpLUWI2MENwWENkZ2xMeUdpZDBJS2tEYTNWT2hVaWExXy1IMHY3YndNbkxVNHZJM0VsMkdZMXR0bTZtdXB6RUVEbjN2Z0oy"
+   },
+   {
+    "date": "2025-05-28",
+    "type": "sale_or_advisor",
+    "confidence": 0.85,
+    "completed": false,
+    "headline": "NYC pension's $5 billion sale of private equity stakes might be largest ever of its kind",
+    "outlet": "Axios",
+    "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE80aVNuU2E1X2dCRDBXQU1JVmZ4dUJYbTdhU0s4TzM1bm5IVUxXTkxJYUJrdEVydEJaRlp1S2NuUlZzMzRtdngyNGZhVGhhdDdVdnpYLUtRaGZWcERWaUlLaGcyZEYwVkR3eXRrREJKcVM1MmpMSjFBU0kwUQ"
    }
   ],
   "first_non_sale_signal": null,
-  "first_prepare": null,
+  "first_prepare": "2025-05-28",
   "first_sale_report": "2025-05-27",
-  "first_sale_signal_detected": "2025-05-28",
-  "peak_score_before_sale": 0.0,
-  "peak_date": null,
+  "first_sale_signal_detected": "2025-03-04",
+  "first_closed_sale_evidence": "2025-05-27",
+  "weeks_from_first_sale_signal_to_ground_truth": 12.0,
+  "rulebook_version": 2,
+  "peak_score_before_sale": 0.571,
+  "peak_date": "2025-03-04",
   "weeks_of_warning": 0.0,
   "weekly": [
    [
@@ -1427,107 +1472,107 @@
    ],
    [
     "2025-03-10",
-    0.0,
+    0.554,
     "WATCH"
    ],
    [
     "2025-03-17",
-    0.0,
+    0.535,
     "WATCH"
    ],
    [
     "2025-03-24",
-    0.0,
+    0.516,
     "WATCH"
    ],
    [
     "2025-03-31",
-    0.0,
+    0.497,
     "WATCH"
    ],
    [
     "2025-04-07",
-    0.0,
+    0.478,
     "WATCH"
    ],
    [
     "2025-04-14",
-    0.0,
+    0.46,
     "WATCH"
    ],
    [
     "2025-04-21",
-    0.0,
+    0.443,
     "WATCH"
    ],
    [
     "2025-04-28",
-    0.0,
+    0.425,
     "WATCH"
    ],
    [
     "2025-05-05",
-    0.0,
+    0.408,
     "WATCH"
    ],
    [
     "2025-05-12",
-    0.0,
+    0.392,
     "WATCH"
    ],
    [
     "2025-05-19",
-    0.0,
+    0.376,
     "WATCH"
    ],
    [
     "2025-05-26",
-    0.0,
+    0.36,
     "WATCH"
    ],
    [
     "2025-06-02",
-    0.557,
-    "WATCH"
+    0.71,
+    "PREPARE"
    ],
    [
     "2025-06-09",
-    0.537,
-    "WATCH"
+    0.69,
+    "PREPARE"
    ],
    [
     "2025-06-16",
-    0.518,
-    "WATCH"
+    0.67,
+    "PREPARE"
    ],
    [
     "2025-06-23",
-    0.499,
-    "WATCH"
+    0.651,
+    "PREPARE"
    ],
    [
     "2025-06-30",
-    0.481,
-    "WATCH"
+    0.631,
+    "PREPARE"
    ],
    [
     "2025-07-07",
-    0.463,
-    "WATCH"
+    0.611,
+    "PREPARE"
    ],
    [
     "2025-07-14",
-    0.445,
+    0.591,
     "WATCH"
    ],
    [
     "2025-07-21",
-    0.428,
+    0.572,
     "WATCH"
    ],
    [
     "2025-07-28",
-    0.41,
+    0.552,
     "WATCH"
    ]
   ]

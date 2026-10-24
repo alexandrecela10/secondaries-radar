@@ -8,6 +8,10 @@ from pathlib import Path
 
 import yaml
 
+from .tracing import load_env
+
+load_env()      # .env files: ANTHROPIC_API_KEY and LANGFUSE_* keys, if present. Never printed.
+
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT / "config"
 DATA_DIR = ROOT / "data"
@@ -33,6 +37,7 @@ class Rulebook:
     half_life_days: float
     window_days: int
     story_window_days: int
+    completed_sales_count: bool
     weights: dict[str, float]
     descriptions: dict[str, str]
 
@@ -59,6 +64,7 @@ def load_rulebook(path: Path | None = None) -> Rulebook:
         half_life_days=float(fc["half_life_days"]),
         window_days=int(fc["window_days"]),
         story_window_days=int(fc["story_window_days"]),
+        completed_sales_count=bool(fc.get("completed_sales_count", True)),
         weights=weights,
         descriptions=fc.get("descriptions", {}),
     )

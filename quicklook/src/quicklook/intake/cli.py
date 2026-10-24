@@ -34,14 +34,14 @@ def register(sub) -> None:
 def _serve(args) -> int:
     from .smtp_server import serve
 
-    serve("realtime" if args.workspace == "main" else args.workspace, args.host, args.port, args.offline)
+    serve(args.workspace or "realtime", args.host, args.port, args.offline)
     return 0
 
 
 def _batch(args) -> int:
     from .batch import run_loop
 
-    run_loop("batch" if args.workspace == "main" else args.workspace, Path(args.maildir), args.interval,
+    run_loop(args.workspace or "batch", Path(args.maildir), args.interval,
              args.offline, args.once)
     return 0
 

@@ -293,9 +293,15 @@ def build_line(market: Market, offer: OfferSpec, n: int, spec: LineSpec, used: s
     if spec.sel == "planted:F9a":
         row.update(desc="US growth", size_band=None)
     tier, resolved, mgr = market.oracle(f, shows, offer.ref_date)
+    # The fields as the broker wrote them: ground truth for parser extraction accuracy.
+    shown = dict(vintage=row["vintage"], currency=cur, commitment=row["commitment"],
+                 pct_called=None if row["pct_called"] is None else row["pct_called"] / 100,
+                 dpi=row["dpi"], tvpi=row["tvpi"],
+                 value=float(round(row["value"])) if row["approx"] else row["value"])
     label = dict(line_no=n, label=f"Fund {n}", true_fund_id=f["fund_id"], true_manager_id=f["manager_id"],
                  expected_tier=tier, expected_resolved=resolved, expected_manager_id=mgr,
-                 selector=spec.sel, value_usd=round(row["value"] * fx, 3))
+                 selector=spec.sel, value_usd=round(row["value"] * fx, 3), shown=shown,
+                 true_strategy=f["strategy"], true_status=f["status"])
     return row, label
 
 
@@ -410,28 +416,157 @@ def parse_failure_email() -> bytes:
     return bytes(msg)
 
 
+def _build_offer(market: Market, offer: OfferSpec, rng: random.Random) -> tuple[bytes, list[dict]]:
+    used: set[str] = set()
+    rows, line_labels = [], []
+    for i, spec in enumerate(offer.lines, start=1):
+        row, lab = build_line(market, offer, i, spec, used, rng)
+        rows.append(row)
+        line_labels.append(lab)
+    total = sum(l["value_usd"] for l in line_labels)
+    unfunded = sum((r["unfunded"] or 0) * market.rate(r["currency"], offer.ref_date) for r in rows)
+    return build_email(offer, rows, total, unfunded, rng), line_labels
+
+
+def _label(offer: OfferSpec, file: str, line_labels: list[dict], split: str, archetype: str) -> dict:
+    return dict(code=offer.code, file=file, message_id=f"{offer.code.lower()}-{offer.sent:%Y%m%d}@{offer.domain}",
+                pm_label=offer.pm_label, rationale=offer.rationale, fmt=offer.fmt,
+                reference_date=offer.ref_date.isoformat(), injection=offer.injection,
+                is_test_offer=offer.code != "Cedar", split=split, archetype=archetype, lines=line_labels)
+
+
 def generate_offers(data: dict[str, list[dict]], out_dir: Path, fixtures: Path, seed: int = 42) -> list[dict]:
     rng = random.Random(seed + 1)
     market = Market(data)
     out_dir.mkdir(parents=True, exist_ok=True)
     fixtures.parent.mkdir(parents=True, exist_ok=True)
     labels = []
-    for offer in OFFERS:
-        used: set[str] = set()
-        rows, line_labels = [], []
-        for i, spec in enumerate(offer.lines, start=1):
-            row, lab = build_line(market, offer, i, spec, used, rng)
-            rows.append(row)
-            line_labels.append(lab)
-        total = sum(l["value_usd"] for l in line_labels)
-        unfunded = sum((r["unfunded"] or 0) * market.rate(r["currency"], offer.ref_date) for r in rows)
-        raw = build_email(offer, rows, total, unfunded, rng)
+    for offer in OFFERS:  # the first 10: designed by hand, used to tune rulebook v2
+        raw, line_labels = _build_offer(market, offer, rng)
         path = out_dir / f"{offer.code.lower()}.eml"
         path.write_bytes(raw)
-        labels.append(dict(code=offer.code, file=path.name, message_id=f"{offer.code.lower()}-{offer.sent:%Y%m%d}@{offer.domain}",
-                           pm_label=offer.pm_label, rationale=offer.rationale, fmt=offer.fmt,
-                           reference_date=offer.ref_date.isoformat(), injection=offer.injection,
-                           is_test_offer=offer.code != "Cedar", lines=line_labels))
+        labels.append(_label(offer, path.name, line_labels, "tune", "hand-designed"))
     (out_dir / "thistle.eml").write_bytes(parse_failure_email())
+    labels += generate_more_offers(market, out_dir / "more", seed)
     fixtures.write_text(json.dumps(dict(seed=seed, offers=labels), indent=2))
+    return labels
+
+
+# ---------------------------------------------------------------- more labelled offers (tune + holdout)
+
+MORE_CODES = ["Aspen", "Beech", "Cypress", "Elm", "Fir", "Hawthorn", "Holly", "Larch", "Linden", "Magnolia",
+              "Oak", "Olive", "Pine", "Poplar", "Sequoia", "Sycamore", "Yew", "Acacia", "Laurel", "Myrtle"]
+BROKERS = [("Harbourline Partners", "harbourline.example"), ("Quayline Secondary Advisors", "quayline.example"),
+           ("Fenmark Capital Advisory", "fenmark.example"), ("Brightmoor Placement", "brightmoor.example")]
+SELLERS = ["a North American public pension", "a European insurer", "a university endowment", "a family office",
+           "a corporate pension", "a foundation", "a sovereign wealth fund"]
+TUNE_SHARE = 0.3  # 6 of 20 go to tune, 14 to holdout
+
+# Each archetype is written as an analyst's intent, before any rulebook runs on it. The label comes from
+# the intent, not from our pipeline. `check` tests the generated truth (fund status and strategy) so the
+# offer really is what the archetype says; if not, the offer is drawn again.
+ARCHETYPES: dict[str, dict] = {
+    "owned_discount": dict(label="LOOK", why="Mostly funds we own, priced at a discount.",
+                           asks=["low 80s", "mid 80s"]),
+    "known_full_price": dict(label="LOOK", why="Managers we know well, asked near par. Worth a call anyway.",
+                             asks=["mid 90s", "high 90s", "par"]),
+    "venture_moderate": dict(label="LOOK", why="Funds we own with some venture, under our cap.",
+                             asks=["mid 80s", "high 80s"]),
+    "venture_heavy": dict(label="PASS", why="Venture-heavy book. Our policy caps venture.",
+                          asks=["mid 70s", "low 80s"]),
+    "unknown_managers": dict(label="PASS", why="We know almost none of these managers. No edge.",
+                             asks=["mid 80s", "low 90s"]),
+    "tail_end": dict(label="PASS", why="Old tail-end funds asked near par.", asks=["mid 90s", "par"]),
+    "mixed_known": dict(label=None, why="Mixed book. LOOK if most value sits with managers we know.",
+                        asks=["mid 80s", "high 80s"]),
+}
+NON_VENTURE = ["buyout", "growth", "credit", "infra"]
+
+
+def _usd(rng: random.Random) -> float:
+    return float(rng.choice(range(8, 46)))
+
+
+def _specs(arch: str, rng: random.Random) -> list[LineSpec]:
+    nv = lambda: rng.choice(NON_VENTURE)  # noqa: E731
+    if arch == "owned_discount":
+        return ([LineSpec("owned", _usd(rng), nv()) for _ in range(rng.randint(3, 4))]
+                + [LineSpec("tracked1", _usd(rng) / 2, nv())] + [LineSpec("outside_none", 6, nv())] * rng.randint(0, 1))
+    if arch == "known_full_price":
+        return ([LineSpec("owned", _usd(rng), nv()) for _ in range(rng.randint(2, 3))]
+                + [LineSpec("tracked1", _usd(rng), nv()) for _ in range(rng.randint(1, 2))])
+    if arch == "venture_moderate":
+        base = [LineSpec("owned", 30 + rng.randint(0, 15), nv()) for _ in range(3)]
+        return base + [LineSpec(rng.choice(["owned", "outside_none"]), 18 + rng.randint(0, 6), "venture")]
+    if arch == "venture_heavy":
+        return ([LineSpec(rng.choice(["owned", "outside_none", "tracked1"]), 25 + rng.randint(0, 15), "venture")
+                 for _ in range(rng.randint(2, 3))] + [LineSpec("owned", _usd(rng), nv())])
+    if arch == "unknown_managers":
+        return ([LineSpec("outside_none", _usd(rng), nv()) for _ in range(rng.randint(4, 5))]
+                + [LineSpec("tracked1", 6, nv())])
+    if arch == "tail_end":
+        return [LineSpec("owned", float(rng.randint(5, 12)), rng.choice(["buyout", "credit", None]), None,
+                         (2008, 2013), min_vpc=0.03) for _ in range(rng.randint(4, 5))]
+    sels = ["owned", "tracked1", "outside_none"]
+    return [LineSpec(rng.choice(sels), _usd(rng), nv()) for _ in range(rng.randint(4, 6))]
+
+
+def _shares(lines: list[dict]) -> dict[str, float]:
+    tot = sum(l["value_usd"] for l in lines) or 1.0
+    s = lambda pred: sum(l["value_usd"] for l in lines if pred(l)) / tot  # noqa: E731
+    return dict(owned=s(lambda l: l["true_status"] == "owned"),
+                known=s(lambda l: l["true_status"] in ("owned", "tracked")),
+                venture=s(lambda l: l["true_strategy"] == "venture"),
+                outside=s(lambda l: l["true_status"] == "outside"))
+
+
+def _check(arch: str, sh: dict[str, float]) -> bool:
+    return {"owned_discount": sh["owned"] >= 0.6 and sh["venture"] < 0.2,
+            "known_full_price": sh["known"] >= 0.8 and sh["venture"] < 0.2,
+            "venture_moderate": 0.1 <= sh["venture"] <= 0.25 and sh["owned"] >= 0.6,
+            "venture_heavy": sh["venture"] >= 0.4,
+            "unknown_managers": sh["outside"] >= 0.8,
+            "tail_end": sh["owned"] >= 0.8,
+            "mixed_known": 0.2 <= sh["known"] <= 0.8 and sh["venture"] < 0.2}[arch]
+
+
+def generate_more_offers(market: Market, out_dir: Path, seed: int = 42) -> list[dict]:
+    rng = random.Random(seed + 100)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    archs = list(ARCHETYPES) * 3  # 21 slots, 20 offers: every archetype appears at least twice
+    rng.shuffle(archs)
+    codes = list(MORE_CODES)
+    split_rng = random.Random(seed + 200)
+    order = list(codes)
+    split_rng.shuffle(order)
+    tune = set(order[: round(TUNE_SHARE * len(codes))])
+    labels = []
+    for code, arch in zip(codes, archs):
+        a = ARCHETYPES[arch]
+        for _attempt in range(50):
+            broker, domain = rng.choice(BROKERS)
+            sent = dt.datetime(2026, 10, rng.randint(6, 22), rng.randint(8, 17), rng.choice([0, 15, 30, 45]),
+                               tzinfo=dt.timezone.utc)
+            spec = OfferSpec(code, broker, domain, rng.choice(SELLERS), sent, rng.choice(a["asks"]),
+                             (sent + dt.timedelta(days=rng.randint(21, 35))).date(),
+                             rng.choices(["body", "csv", "xlsx"], [0.6, 0.2, 0.2])[0], a["label"] or "PASS",
+                             a["why"], _specs(arch, rng),
+                             ref_date=dt.date(2026, 3, 31) if arch == "tail_end" else REF_DATE)
+            try:
+                raw, line_labels = _build_offer(market, spec, rng)
+            except RuntimeError:
+                continue
+            sh = _shares(line_labels)
+            if not _check(arch, sh):
+                continue
+            if arch == "mixed_known":  # the analyst's stated rule, on the generated truth
+                spec.pm_label = "LOOK" if sh["known"] >= 0.5 else "PASS"
+                spec.rationale = (f"Mixed book; {sh['known']:.0%} of value with managers we know, "
+                                  f"so {'worth a look' if spec.pm_label == 'LOOK' else 'no edge'}.")
+            break
+        else:
+            raise RuntimeError(f"could not build a {arch} offer for {code}")
+        path = out_dir / f"{code.lower()}.eml"
+        path.write_bytes(raw)
+        labels.append(_label(spec, f"more/{path.name}", line_labels, "tune" if code in tune else "holdout", arch))
     return labels

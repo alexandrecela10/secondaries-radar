@@ -68,13 +68,24 @@ def _verdicts(env, rb):
 
 
 def test_eval_labelled_offers(env):
+    """Gate on the tune split (what v2 was tuned on). The holdout is reported, never gated:
+    a failing gate on the holdout would invite tuning on it."""
     v, labels = _verdicts(env, RB)
-    kept, n, good_passed = agreement(v, labels)
+    kept, n, good_passed = agreement(v, labels, "tune")
+    hk, hn, hgp = agreement(v, labels, "holdout")
     v1, _ = _verdicts(env, R.load(CONFIG_DIR / "history" / "rulebook_v1.yaml"))
-    k1, _, gp1 = agreement(v1, labels)
-    EVALS["verdicts_vs_pm_labels"] = {"rulebook": RB.version, "kept": kept, "total": n, "share": kept / n,
-                                      "target": 0.8, "good_offers_passed": good_passed,
-                                      "rulebook_v1_kept": k1, "rulebook_v1_good_offers_passed": gp1}
+    k1, _, gp1 = agreement(v1, labels, "tune")
+    hk1, _, hgp1 = agreement(v1, labels, "holdout")
+    misses = sorted(c for c in v if labels[c]["is_test_offer"]
+                    and (v[c].verdict == "LOOK CLOSER") != (labels[c]["pm_label"] == "LOOK"))
+    EVALS["verdicts_vs_pm_labels"] = {
+        "rulebook": RB.version, "tune": {"kept": kept, "total": n, "share": kept / n, "good_offers_passed": good_passed},
+        "holdout": {"kept": hk, "total": hn, "share": hk / hn, "good_offers_passed": hgp},
+        "target": 0.8, "rulebook_v1": {"tune_kept": k1, "tune_good_passed": gp1, "holdout_kept": hk1,
+                                       "holdout_good_passed": hgp1},
+        "disagreements": {c: {"label": labels[c]["pm_label"], "verdict": v[c].verdict, "split": labels[c]["split"],
+                              "archetype": labels[c]["archetype"], "score": v[c].score, "veto": v[c].veto_rule}
+                          for c in misses}}
     assert good_passed == 0
     assert kept / n >= 0.8
 

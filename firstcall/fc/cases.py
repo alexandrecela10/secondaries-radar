@@ -13,7 +13,7 @@ from . import pipeline, store
 from .classify.base import Classifier
 from .config import CONFIG_DIR, FIXTURES_DIR, rulebook
 from .models import RawItem
-from .scoring import SignalInput, score
+from .scoring import inputs, score
 from .sources import google_news
 
 CORPUS = FIXTURES_DIR / "frozen_corpus"
@@ -48,13 +48,13 @@ def replay(case: dict, classifier: Classifier, refresh: bool = False) -> dict:
     end = datetime.combine(case["end"], time(23, 59), timezone.utc)
     pipeline.process_many(con, corpus(case, refresh), classifier, end, path="replay")
     sigs = store.load_signals(con, case["pension"])
-    inputs = [SignalInput(s["signal_id"], s["signal_type"], s["confidence"], s["published_at"]) for s in sigs]
+    sig_inputs = inputs(sigs)
     sale_day: date = case["first_sale_report"]["date"]
 
     timeline, first_prepare, peak = [], None, (0.0, None)
     d = case["start"]
     while d <= case["end"]:
-        sc = score(inputs, datetime.combine(d, time(23, 59), timezone.utc), rb)
+        sc = score(sig_inputs, datetime.combine(d, time(23, 59), timezone.utc), rb)
         if sc.score > peak[0] and d < sale_day:
             peak = (sc.score, d)
         if sc.verdict == "PREPARE" and first_prepare is None:
@@ -65,17 +65,24 @@ def replay(case: dict, classifier: Classifier, refresh: bool = False) -> dict:
 
     pre_sale = [s for s in sigs if s["published_at"].date() < sale_day]
     first_non_sale = next((s for s in pre_sale if s["signal_type"] != "sale_or_advisor"), None)
-    detected_sale = next((s for s in sigs if s["signal_type"] == "sale_or_advisor"), None)
+    sales = [s for s in sigs if s["signal_type"] == "sale_or_advisor"]
+    detected_sale = next((s for s in sales if not s["completed"]), None)     # counts toward the score
+    closed_sale = next((s for s in sales if s["completed"]), None)           # evidence only
     warning_weeks = (sale_day - first_prepare).days / 7 if first_prepare and first_prepare < sale_day else 0.0
     return {
         "case": case["id"], "pension": case["pension"], "items_in_corpus": con.execute("SELECT count(*) FROM silver_items").fetchone()[0],
         "items_linked": con.execute("SELECT count(*) FROM silver_items WHERE pension_id = ?", [case["pension"]]).fetchone()[0],
         "signals": [{"date": str(s["published_at"].date()), "type": s["signal_type"], "confidence": s["confidence"],
-                     "headline": s["headline"], "outlet": s["outlet"], "link": s["link"]} for s in sigs],
+                     "completed": bool(s["completed"]), "headline": s["headline"], "outlet": s["outlet"],
+                     "link": s["link"]} for s in sigs],
         "first_non_sale_signal": str(first_non_sale["published_at"].date()) if first_non_sale else None,
         "first_prepare": str(first_prepare) if first_prepare else None,
         "first_sale_report": str(sale_day),
         "first_sale_signal_detected": str(detected_sale["published_at"].date()) if detected_sale else None,
+        "first_closed_sale_evidence": str(closed_sale["published_at"].date()) if closed_sale else None,
+        "weeks_from_first_sale_signal_to_ground_truth": round((sale_day - detected_sale["published_at"].date()).days / 7, 1)
+        if detected_sale else None,
+        "rulebook_version": rb.version,
         "peak_score_before_sale": round(peak[0], 3), "peak_date": str(peak[1]) if peak[1] else None,
         "weeks_of_warning": round(warning_weeks, 1),
         "weekly": [(str(d), round(s, 3), v) for d, s, v in timeline],
@@ -87,12 +94,16 @@ def render(r: dict) -> str:
              f"corpus: {r['items_in_corpus']} items, {r['items_linked']} linked to {r['pension']}",
              "signals found:"]
     for s in r["signals"]:
-        lines.append(f"  {s['date']}  {s['type']:<24} {s['confidence']:.2f}  \"{s['headline'][:80]}\" ({s['outlet']})")
+        tag = "closed" if s["completed"] else "open  " if s["type"] == "sale_or_advisor" else "      "
+        lines.append(f"  {s['date']}  {s['type']:<16} {tag} {s['confidence']:.2f}  \"{s['headline'][:76]}\" ({s['outlet']})")
     lines += [
         f"first non-sale signal : {r['first_non_sale_signal'] or 'none before the sale report'}",
         f"first PREPARE         : {r['first_prepare'] or 'never'}",
         f"first sale report     : {r['first_sale_report']} (ground truth, set by hand)",
-        f"first sale signal seen: {r['first_sale_signal_detected'] or 'missed'}",
+        f"first open sale signal: {r['first_sale_signal_detected'] or 'missed'}"
+        + (f" ({r['weeks_from_first_sale_signal_to_ground_truth']} weeks before the ground truth date)"
+           if r["weeks_from_first_sale_signal_to_ground_truth"] else ""),
+        f"first closed-sale story: {r['first_closed_sale_evidence'] or 'none'} (evidence only, rulebook v{r['rulebook_version']})",
         f"peak score before sale: {r['peak_score_before_sale']} on {r['peak_date']}",
         f"weeks of warning      : {r['weeks_of_warning']}",
     ]

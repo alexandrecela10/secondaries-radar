@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from .config import BRONZE_DIR, load_queries
 from .models import RawItem
+from . import tracing
 from .sources import gdelt, google_news
 
 log = logging.getLogger(__name__)
@@ -25,23 +26,21 @@ def fetch_all(use_gdelt: bool = True) -> tuple[list[RawItem], dict]:
     queries = load_queries()
     items: list[RawItem] = []
     stats = {"google_news": 0, "gdelt": 0, "errors": []}
-    for q in queries["google_news"]:
-        try:
-            body, got = google_news.fetch(q)
-            _save_raw("google_news", q, body)
-            items += got
-            stats["google_news"] += len(got)
-        except Exception as exc:  # one bad feed must not stop the run
-            stats["errors"].append(f"google_news '{q}': {exc}")
+    plan = [("google_news", google_news, q) for q in queries["google_news"]]
     if use_gdelt:
-        for q in queries["gdelt"]:
+        plan += [("gdelt", gdelt, q) for q in queries["gdelt"]]
+    for name, source, q in plan:
+        with tracing.observe("fetch-source", as_type="retriever", input={"source": name, "query": q}) as obs:
             try:
-                body, got = gdelt.fetch(q)
-                _save_raw("gdelt", q, body)
+                body, got = source.fetch(q)
+                _save_raw(name, q, body)
                 items += got
-                stats["gdelt"] += len(got)
-            except Exception as exc:
-                stats["errors"].append(f"gdelt '{q}': {exc}")
+                stats[name] += len(got)
+                obs.update(output={"items": len(got)}, metadata={"source": name})
+            except Exception as exc:  # one bad feed must not stop the run
+                stats["errors"].append(f"{name} '{q}': {exc}")
+                obs.update(output={"items": 0}, level="ERROR", status_message=str(exc)[:200],
+                           metadata={"source": name})
     for e in stats["errors"]:
         log.warning(e)
     return items, stats

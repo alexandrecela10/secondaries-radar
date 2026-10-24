@@ -7,3 +7,6 @@ data/bronze/
 data/*.duckdb
 # Maildir and other intake runtime data
 outbox/
+
+# Secrets
+.env

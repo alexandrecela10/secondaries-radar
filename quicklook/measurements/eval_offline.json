@@ -1,0 +1,121 @@
+{
+  "parser": "offline-regex",
+  "parser_version": "offline-v1",
+  "run_name": "offline-20261024-222754",
+  "mode": "local",
+  "n_offers": 29,
+  "n_lines": 149,
+  "lines": {
+    "match_accuracy": 0.9395973154362416,
+    "field_accuracy_mean": 1.0
+  },
+  "lines_failures": [
+    {
+      "id": "Birch:4",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Maple:2",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Cypress:4",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Elm:3",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Fir:2",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Holly:3",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Poplar:6",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Yew:2",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Myrtle:2",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    }
+  ],
+  "field_accuracy_by_field": {
+    "vintage": 1.0,
+    "currency": 1.0,
+    "commitment": 1.0,
+    "pct_called": 1.0,
+    "dpi": 1.0,
+    "tvpi": 1.0,
+    "value": 1.0
+  },
+  "offers": {
+    "verdict_agreement_tune": 1.0,
+    "verdict_agreement_holdout": 0.7142857142857143,
+    "good_offers_passed": 1
+  },
+  "offers_failures": [
+    {
+      "id": "Magnolia",
+      "scores": {
+        "verdict_correct": 0
+      }
+    },
+    {
+      "id": "Pine",
+      "scores": {
+        "verdict_correct": 0
+      }
+    },
+    {
+      "id": "Acacia",
+      "scores": {
+        "verdict_correct": 0
+      }
+    },
+    {
+      "id": "Laurel",
+      "scores": {
+        "verdict_correct": 0
+      }
+    }
+  ],
+  "parse_calls": 29,
+  "seconds_total": 32.1,
+  "seconds_per_offer_mean": 0.317,
+  "fell_back_offline": 0
+}
