@@ -81,3 +81,10 @@ def test_claude_refusal_is_a_classifier_error():
     client, _ = fake_client("", stop="refusal")
     with pytest.raises(ClassifierError):
         ClaudeClassifier(client).classify("headline", None)
+
+
+def test_claude_long_rationale_is_clipped_not_failed():
+    out = json.dumps({"signal_type": "none", "confidence": 0.9, "quote": "Real headline", "rationale": "x" * 900,
+                      "completed": False})
+    client, _ = fake_client(out)
+    assert len(ClaudeClassifier(client).classify("Real headline here", None).rationale) == 300

@@ -1,0 +1,70 @@
+{
+  "compared_at": "2026-10-25T00:03:55",
+  "runs": {
+    "offline": "offline-20261024-235704",
+    "claude": "claude-20261024-235848"
+  },
+  "table": {
+    "match_accuracy": {
+      "offline": 0.9395973154362416,
+      "claude": 0.9395973154362416
+    },
+    "field_accuracy_mean": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "verdict_agreement_tune": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "verdict_agreement_holdout": {
+      "offline": 0.7142857142857143,
+      "claude": 0.7142857142857143
+    },
+    "good_offers_passed": {
+      "offline": 1,
+      "claude": 1
+    },
+    "field:vintage": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "field:currency": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "field:commitment": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "field:pct_called": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "field:dpi": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "field:tvpi": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "field:value": {
+      "offline": 1.0,
+      "claude": 1.0
+    },
+    "seconds_per_offer_mean": {
+      "offline": 0.248,
+      "claude": 5.629
+    },
+    "tokens": {
+      "offline": null,
+      "claude": {
+        "input": 86584,
+        "output": 28027
+      }
+    }
+  },
+  "only_offline_failed": [],
+  "only_claude_failed": []
+}

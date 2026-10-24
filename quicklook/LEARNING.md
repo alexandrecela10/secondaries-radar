@@ -31,3 +31,29 @@ The demo owns its own mail server. A real deal inbox lives in Exchange or Google
 - **Graph delta queries or Gmail history polling.** The polling version: ask "what changed since my last token?" every N minutes. No public endpoint, no subscription to renew. This is the batch path with a real mailbox behind it.
 
 Either way, the pipeline does not change. Only the adapter that turns "an email arrived" into `process_email(raw_bytes)` changes. That is why the experiment keeps the two paths to a few dozen lines each.
+
+# Learning notes: tracing and feedback
+
+## What a trace shows
+
+A trace is the full record of one offer run, step by step: intake, parse, match, metrics, verdict, brief, validator. Each step stores what went in, what came out and how long it took. The parse step, when Claude runs it, is a "generation": it also stores the model, the prompt version, the tokens in and out, and the cost.
+
+Worked example. Project Cedar's trace shows the parse generation took 12.5 s and used 3,397 input and 2,293 output tokens, about $0.03. The match step lists all 12 lines; Fund 9 says "unknown, description fits several managers". The verdict step shows LOOK CLOSER at score 0.75. The trace carries three scores: validator passed, data matched 0.91, band medium. When a head of team asks "why did we look at Cedar?" three weeks later, the answer is one link, not a re-run.
+
+How a buyer thinks about it: an investment committee wants to know what you knew and when. The trace is that record for the screening step, the same idea as point-in-time data for the numbers.
+
+## Why overrides as scores matter
+
+Most eval sets are written by the builder. An override is different: it is a team member saying "the rule was wrong here", with a reason, on a real offer. Stored as a score on that offer's trace (`team_decision = override`, `verdict_agrees = 0`, `team_label = PASS`), it becomes a label you did not have to write.
+
+Worked example. Layla overrides Cedar to PASS: "Seller will not move on price." The rulebook already flagged the price rule as not met, but the other rules carried the score. One override is an anecdote. Ten overrides on the price rule, filtered in Langfuse by `verdict_agrees = 0`, say the price rule should be a veto. That is the case for candidate `rulebook_v3_price_veto.yaml`, made from the team's own decisions instead of the builder's guess.
+
+`radar keep` matters for the same reason. Without it, silence looks like agreement and you cannot tell "kept" from "not read". `radar resolve` sends `line_resolved` on the trace whose match it fixed, so the matcher's open lines become a list of cases to learn from.
+
+Two cautions. Overrides are recorded, not learned from: a rule changes only through `radar rules test` and a review. And the team's labels are biased toward offers someone read closely; offers passed in a minute rarely get an override, even when they should.
+
+## Tune and holdout
+
+If you tune a rule on the same offers you test it on, the test only tells you that you tuned it. Keep a holdout: offers you never look at while changing the rule, checked once at the end.
+
+Worked example. Rulebook v2 lowered the plan-fit bar from 0.7 to 0.55 so Willow, a good offer, would pass. On the 9 offers it was tuned on, v2 agreed 9 of 9. On 14 new holdout offers it agreed 10 of 14: the lower bar now lets old tail-end funds through. v1 got 13 of 14 on the same holdout. The fix for one offer broke a pattern the old rule caught.

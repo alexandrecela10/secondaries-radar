@@ -1,8 +1,8 @@
 {
   "parser": "offline-regex",
   "parser_version": "offline-v1",
-  "run_name": "offline-20261024-222754",
-  "mode": "local",
+  "run_name": "offline-20261024-235704",
+  "mode": "langfuse",
   "n_offers": 29,
   "n_lines": 149,
   "lines": {
@@ -11,49 +11,7 @@
   },
   "lines_failures": [
     {
-      "id": "Birch:4",
-      "scores": {
-        "match_correct": 0,
-        "field_accuracy": 1.0
-      }
-    },
-    {
-      "id": "Maple:2",
-      "scores": {
-        "match_correct": 0,
-        "field_accuracy": 1.0
-      }
-    },
-    {
-      "id": "Cypress:4",
-      "scores": {
-        "match_correct": 0,
-        "field_accuracy": 1.0
-      }
-    },
-    {
-      "id": "Elm:3",
-      "scores": {
-        "match_correct": 0,
-        "field_accuracy": 1.0
-      }
-    },
-    {
-      "id": "Fir:2",
-      "scores": {
-        "match_correct": 0,
-        "field_accuracy": 1.0
-      }
-    },
-    {
-      "id": "Holly:3",
-      "scores": {
-        "match_correct": 0,
-        "field_accuracy": 1.0
-      }
-    },
-    {
-      "id": "Poplar:6",
+      "id": "Myrtle:2",
       "scores": {
         "match_correct": 0,
         "field_accuracy": 1.0
@@ -67,7 +25,49 @@
       }
     },
     {
-      "id": "Myrtle:2",
+      "id": "Poplar:6",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Holly:3",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Fir:2",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Elm:3",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Cypress:4",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Maple:2",
+      "scores": {
+        "match_correct": 0,
+        "field_accuracy": 1.0
+      }
+    },
+    {
+      "id": "Birch:4",
       "scores": {
         "match_correct": 0,
         "field_accuracy": 1.0
@@ -90,13 +90,7 @@
   },
   "offers_failures": [
     {
-      "id": "Magnolia",
-      "scores": {
-        "verdict_correct": 0
-      }
-    },
-    {
-      "id": "Pine",
+      "id": "Laurel",
       "scores": {
         "verdict_correct": 0
       }
@@ -108,14 +102,20 @@
       }
     },
     {
-      "id": "Laurel",
+      "id": "Pine",
+      "scores": {
+        "verdict_correct": 0
+      }
+    },
+    {
+      "id": "Magnolia",
       "scores": {
         "verdict_correct": 0
       }
     }
   ],
   "parse_calls": 29,
-  "seconds_total": 32.1,
-  "seconds_per_offer_mean": 0.317,
+  "seconds_total": 96.66,
+  "seconds_per_offer_mean": 0.248,
   "fell_back_offline": 0
 }

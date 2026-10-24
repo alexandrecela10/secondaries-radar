@@ -1,5 +1,7 @@
 # Streaming, learned on First Call
 
+The stream path is a learning artefact. Batch is the production path and the only one on the partner journey (README).
+
 Eight concepts, each tied to the file and function that implements it. Run `make up`, then `make measure`, and read along. The numbers come from `measurements/*.json`.
 
 The picture to keep in mind:
@@ -92,3 +94,16 @@ poller  --(event, key = pension)-->  topic news.raw (3 partitions)  -->  consume
 3. The dead consumer's group membership lasted until its 6-second session timed out, then the group rebalanced. The restarted consumer gave up after 4 idle seconds, before it was assigned any partition.
 4. Event time, 1 March. `fc/scoring.py: contribution` computes age from `published_at`; `fetched_at` is kept only for latency.
 5. Both paths passed freshness, parity and recovery. The source refreshes every 15 minutes and the decision window is 4 weeks, so the gain changes no decision. The rule then picks fewer moving parts: 1 against 3.
+
+
+## Added in round 2: traces, evals and feedback
+
+**Trace = one unit of work.** Here that is one batch run (`fc/batch.py: run_live_once`). Its children are named after actions and stay stable, because filters and evaluators match on names: `fetch-source`, `dedupe-items`, `classify-headline`, `score-pensions` (`fc/tracing.py`).
+
+**Generation vs span.** A model call is a generation: it carries model, parameters, tokens and cost. The keyword rules are a span. What we saw: the Anthropic SDK emits its own generation inside ours, so cost was counted twice. We turned the SDK's spans off (`fc/classify/claude.py: new_client`).
+
+**Offline eval vs online feedback.** The dataset run (`fc/lf_eval.py`) asks "is the classifier right on labelled headlines?" before a change ships. `act` and `dismiss` (`fc/journey.py: record_decision`) ask "did the partner agree?" after it ships. Dismissal reasons are the raw material for the next rule review.
+
+**Cache keys include the version.** A stored label is reused only if it came from the same classifier and prompt version (`fc/store.py: get_classification`). Change a rule, bump the version, and `make rebuild` re-labels the backlog.
+
+Quiz: (6) Why name the observation `classify-headline` and not `claude-sonnet-5-5`? (7) Why is holdout, not dev, the fair keyword vs Claude comparison? Answers: (6) the model is an attribute; a name tied to it breaks every filter when the model changes. (7) The keyword rules were tuned on dev, so dev flatters them.

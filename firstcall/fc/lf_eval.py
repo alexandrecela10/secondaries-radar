@@ -39,7 +39,7 @@ def predict(clf_factory, headline: str) -> dict:
     pid = pensions.link(headline).pension_id
     clf: Classifier = clf_factory()
     is_model = clf.name == "claude"
-    extra = {"model": clf.model} if is_model else {}
+    extra = {"model": clf.model, "model_parameters": clf.model_parameters} if is_model else {}
     with tracing.observe("classify-headline", as_type="generation" if is_model else "span",
                          input={"headline": headline, "pension": pensions.ALL[pid].name if pid else None},
                          metadata={"classifier": f"{clf.name}:{clf.version}",
@@ -117,11 +117,9 @@ def ensure_dataset(lf, rows: list[dict]) -> None:
 
 def _factory(kind: str):
     if kind == "claude":
-        import anthropic
+        from .classify.claude import ClaudeClassifier, new_client
 
-        from .classify.claude import ClaudeClassifier
-
-        shared = anthropic.Anthropic()
+        shared = new_client()
         return lambda: ClaudeClassifier(shared)      # one adapter per item: token counts never mix across threads
     clf = get_classifier(kind)
     return lambda: clf

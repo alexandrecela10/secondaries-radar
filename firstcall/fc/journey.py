@@ -105,8 +105,10 @@ def record_decision(con, pension_id: str, action: str, *, owner: str | None = No
             "verdict": sc.verdict, "sent_to_langfuse": sent}
 
 
-def last_decision(con, pension_id: str) -> dict | None:
-    cur = con.execute("SELECT * FROM decisions WHERE pension_id = ? ORDER BY decided_at DESC LIMIT 1", [pension_id])
+def last_decision(con, pension_id: str, as_of: datetime | None = None) -> dict | None:
+    """The latest decision made on or before `as_of` (point in time, like the score)."""
+    cur = con.execute("SELECT * FROM decisions WHERE pension_id = ? AND decided_at <= ? ORDER BY decided_at DESC LIMIT 1",
+                      [pension_id, as_of or datetime.now(timezone.utc)])
     r = cur.fetchone()
     return dict(zip([d[0] for d in cur.description], r)) if r else None
 

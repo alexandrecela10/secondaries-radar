@@ -51,7 +51,7 @@ def ingest(con, raw: RawItem, classifier: Classifier) -> Outcome:
 def _classify_traced(classifier: Classifier, item, pension_id: str, tag: str):
     """One classified item = one observation: a generation for the model, a span for keyword rules."""
     is_model = classifier.name == "claude"
-    extra = {"model": classifier.model} if is_model else {}
+    extra = {"model": classifier.model, "model_parameters": classifier.model_parameters} if is_model else {}
     meta = {"classifier": tag, "prompt_version": getattr(classifier, "prompt_version", classifier.version),
             "item_id": item.item_id, "pension_id": pension_id, "outlet": item.outlet or "",
             "published_at": item.published_at.isoformat(), "link": str(item.canonical_link)}

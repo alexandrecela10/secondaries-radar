@@ -257,6 +257,7 @@ def run(parser_name: str = "offline", local: bool = False, limit: int | None = N
     tr = get_tracer()
     use_lf = tr.on and not local
     t0 = time.perf_counter()
+    urls: dict = {}
     report: dict = {"parser": parser.name, "parser_version": parser.version, "run_name": f"{parser_name}-{stamp}",
                     "mode": "langfuse" if use_lf else "local", "n_offers": len(offer_items), "n_lines": len(line_items)}
     for key, items, name, evaluators in (("lines", line_items, DATASET_LINES, [match_correct, field_accuracy]),
@@ -272,7 +273,7 @@ def run(parser_name: str = "offline", local: bool = False, limit: int | None = N
                                     task=task, evaluators=evaluators, run_evaluators=[aggregates], max_concurrency=1,
                                     metadata={"parser": parser.name, "prompt_version": parser.version})
             item_results, run_evs = res.item_results, res.run_evaluations
-            report[f"{key}_experiment_url"] = getattr(res, "experiment_url", None)
+            urls[key] = getattr(res, "experiment_url", None)  # printed, not saved: the repo is public
         else:
             item_results, run_evs = run_local(items, task, evaluators)
         report[key] = {e.name: e.value for e in run_evs}
@@ -297,7 +298,7 @@ def run(parser_name: str = "offline", local: bool = False, limit: int | None = N
     report["fell_back_offline"] = sum(1 for c in task.calls if c.get("fell_back"))
     out_dir.mkdir(exist_ok=True)
     (out_dir / f"eval_{parser_name}.json").write_text(json.dumps(report, indent=2, default=str))
-    return report
+    return dict(report, **{f"{k}_experiment_url": v for k, v in urls.items()})
 
 
 def main(parser: str = "offline", local: bool = False, limit: int | None = None) -> int:
