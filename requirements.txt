@@ -1,0 +1,6 @@
+# Streamlit Community Cloud installs this file. Python 3.11 (set it under Advanced settings).
+streamlit>=1.50
+altair>=5.4
+pandas>=2.2
+./quicklook
+./firstcall
