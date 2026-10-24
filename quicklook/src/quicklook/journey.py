@@ -12,6 +12,7 @@ from markupsafe import Markup, escape
 
 from . import brief as brief_mod
 from . import match, store
+from .rulebook import OP_WORDS
 from .config import Workspace
 from .reference import Reference
 
@@ -61,7 +62,9 @@ def match_lines(con, ref: Reference, offer: str, line_no: int) -> list[str]:
     cands = json.loads(g["candidates_json"])
     tier = brief_mod.TIER_WORDS[g["tier"]] + ("" if g["resolved"] else " (open)")
     conf = "" if g["confidence"] is None else f", confidence {g['confidence']:.2f}"
-    head = [f"Project {o['code_name']}, {g['label']}: {line['description']}, {line['vintage']}",
+    desc = line["description"] or ""
+    vint = "" if not line["vintage"] or str(line["vintage"]) in desc else f", {line['vintage']}"
+    head = [f"Project {o['code_name']}, {g['label']}: {desc}{vint}",
             f"Tier: {tier}{conf}. Method: {g['method']}."]
     known_at = o["email_date"]
     # The fund to show: the match, else the best owned candidate with a report at the reference date.
@@ -120,9 +123,9 @@ def memo_segments(con, offer_id: str) -> list:
 
     rbv = f"rulebook v{v['rulebook_version']}"
     broker = re.sub(r"\s*<.*>$", "", o["sender"] or "").strip() or "the broker"
-    seller = o["seller_type"] or "a seller"
+    seller = re.sub(r"(?i)^(a|an|the)\s+", "", o["seller_type"] or "not given")
     n = mets["count_lines"]["value"] or 0
-    segs: list = [f"Project {o['code_name']} ({broker}): {seller} is selling ", M("count_lines"),
+    segs: list = [f"Project {o['code_name']} ({broker}; seller: {seller}): ", M("count_lines"),
                   f" fund interest{'s' if n != 1 else ''}, total value ", M("total_value_usd"), " at ",
                   S("silver_offers", offer_id, "reference_date", o["reference_date"].isoformat(), o["parser_version"])]
     if o["bid_deadline"]:
@@ -155,7 +158,7 @@ def memo_segments(con, offer_id: str) -> list:
         if r["status"] == "not checked":
             segs += [f"Not checked: {r['description'].lower()} (no number). "]
         else:
-            segs += [f"Not met: {r['description'].lower()} (", M(r["metric"]), f" against {r['op']} ",
+            segs += [f"Not met: {r['description'].lower()} (", M(r["metric"]), f" against {OP_WORDS[r['op']]} ",
                      S("gold_rule_results", r["row_id"], "threshold", thr, rbv), "). "]
     open_lines = store.rows(con, "SELECT label FROM gold_line_matches WHERE offer_id = ? AND NOT resolved ORDER BY line_no",
                             [offer_id])

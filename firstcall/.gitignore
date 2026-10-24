@@ -11,3 +11,4 @@ fixtures/frozen_corpus/*.jsonl
 reports/
 data/measure/
 data/*.json
+.env

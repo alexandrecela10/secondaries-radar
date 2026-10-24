@@ -102,7 +102,8 @@ def run_trace(name: str, *, tags: list[str], metadata: dict[str, str], **kw: Any
 
     with lf.start_as_current_observation(name=name, as_type="span", **kw) as root:
         with propagate_attributes(trace_name=name, tags=tags, metadata=metadata,
-                                  version=metadata.get("rulebook_version")):
+                                  version=metadata.get("rulebook_version"),
+                                  environment=os.environ.get("FC_ENV", "development")):
             yield root
 
 
@@ -124,7 +125,7 @@ def score_trace(trace_id: str | None, name: str, value: Any, *, data_type: str, 
     if lf is None or not trace_id:
         return False
     lf.create_score(name=name, value=value, trace_id=trace_id, data_type=data_type, comment=comment,
-                    metadata=metadata)
+                    metadata=metadata, environment=os.environ.get("FC_ENV", "development"))
     return True
 
 

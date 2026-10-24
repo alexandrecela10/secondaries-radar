@@ -62,7 +62,7 @@ def weekly_text(con, as_of: datetime, watch_limit: int = 8, anon: bool = False) 
         t = r["top"]
         pid = labels[r["pension_id"]] if anon else r["pension_id"]
         quote = pensions.mask(t["quote"]) if anon else t["quote"]
-        note = "" if anon else decision_note(last_decision(con, r["pension_id"]))
+        note = "" if anon else decision_note(last_decision(con, r["pension_id"], as_of))
         more = f"   {r['n'] - 1} more signal{'s' if r['n'] != 2 else ''}" if r["n"] > 1 else ""
         lines.append(f"{r['verdict']:<8} {pid:<14} score {r['score']:.2f}  \"{quote[:70]}\"")
         lines.append(f"{'':<23}{t['outlet'] or 'unknown outlet'}, {t['published_at'].date()}{more}"
@@ -122,7 +122,7 @@ def why_text(con, pension_id: str, as_of: datetime) -> str:
     outside = [s for s in sigs if s["signal_id"] not in counted and s not in closed]
     if outside:
         lines.append(f"\n{len(outside)} older or later signal(s) outside the window are not counted.")
-    d = last_decision(con, pension_id)
+    d = last_decision(con, pension_id, as_of)
     if d:
         lines.append(f"\nLast decision: {d['action']} by {d['decided_by']} on {d['decided_at'].date()}"
                      + (f", owner {d['owner']}" if d["owner"] else "") + (f": {d['reason']}" if d["reason"] else "")

@@ -3,7 +3,8 @@ PY := .venv/bin/python
 UV := $(HOME)/.local/bin/uv
 FC := $(PY) -m fc.cli
 
-.PHONY: setup up collect-batch collect-stream demo weekly test eval cases measure down clean
+.PHONY: setup up collect-batch collect-stream demo weekly test eval eval-langfuse eval-llm cases rebuild measure down clean
+CLASSIFIER ?= keyword
 
 setup:            ## create the venv and install dependencies
 	$(UV) venv --python 3.11 --allow-existing
@@ -32,8 +33,17 @@ weekly:
 test:             ## all evals and unit tests, offline
 	$(PY) -m pytest -q
 
-eval:             ## classifier precision and recall on the labelled headlines
-	$(FC) eval --errors
+eval:             ## classifier precision and recall on the labelled headlines (the pytest gate uses the same code)
+	$(FC) --classifier keyword eval --errors
+
+eval-langfuse:    ## dataset + experiment in Langfuse, dev and holdout (CLASSIFIER=keyword|claude); local without keys
+	$(FC) --classifier $(CLASSIFIER) eval-langfuse
+
+eval-llm:         ## the same experiment with the Claude classifier (needs ANTHROPIC_API_KEY; about 125k tokens)
+	$(FC) --classifier claude eval-langfuse
+
+rebuild:          ## re-label every landed fetch with the current classifier and rulebook (backfill)
+	$(FC) rebuild
 
 cases:            ## replay the two worked historical cases
 	$(FC) cases
