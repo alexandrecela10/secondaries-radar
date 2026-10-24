@@ -1,0 +1,9 @@
+{
+ "bronze_rows": 928,
+ "batch_rebuild_s": 10.13,
+ "stream_rebuild_s": 12.61,
+ "batch_matches_reference": true,
+ "stream_matches_reference": true,
+ "note": "keyword classifier; with the model (about 1 s per linked item) both paths add the same model time",
+ "items": 928
+}

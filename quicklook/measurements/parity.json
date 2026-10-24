@@ -1,0 +1,96 @@
+{
+  "realtime": {
+    "silver_offers": {
+      "rows": 27,
+      "sha256": "fc6b8a113dee4b15dbc194888271570ae384fb6ce3ca03668e553929e9a75d9f"
+    },
+    "silver_offer_lines": {
+      "rows": 168,
+      "sha256": "1440e2ee41ab897d2f2f0305b7e458ff5c4d445d885e5c7ce4c38fcea2f245b9"
+    },
+    "silver_rejects": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "review_queue": {
+      "rows": 3,
+      "sha256": "4b456d02d0cf591a3414641f2e4c8805fd2deb5595b54711afada17e6dc87e8c"
+    },
+    "gold_line_matches": {
+      "rows": 168,
+      "sha256": "2b54fa2b67c7ae22d1db981264ed456a2034588968cd790573eb3636c408264b"
+    },
+    "gold_offer_metrics": {
+      "rows": 459,
+      "sha256": "da21602fe0e8071f49c2026077bf2dd0498d59871fe53d8f402c7669c38572ba"
+    },
+    "gold_exposure": {
+      "rows": 105,
+      "sha256": "52981c0950cea7fd6689a591788daef1bdb3b10492d3948eaa49bff6cb3b9181"
+    },
+    "gold_rule_results": {
+      "rows": 108,
+      "sha256": "83a0e4cfc07e88f5b4ca288ed686f662b8b14a8d4f9edbc2c6f167a91ffacb5c"
+    },
+    "gold_verdicts": {
+      "rows": 27,
+      "sha256": "771b1ceaf67c3c886b783a3487b7812892bdffa9c7335985b7fd2a216a2d861e"
+    },
+    "gold_briefs": {
+      "rows": 27,
+      "sha256": "8b01b078a8fa82e67191eb612a9d090a6c3703204d68ac6ccc09d070e584a9d3"
+    },
+    "bronze_emails": {
+      "rows": 30,
+      "sha256": "f1892891404c413c9359a55ba78b96b6851ced0dc8af4af2560d877ebcb22937"
+    }
+  },
+  "batch": {
+    "silver_offers": {
+      "rows": 27,
+      "sha256": "fc6b8a113dee4b15dbc194888271570ae384fb6ce3ca03668e553929e9a75d9f"
+    },
+    "silver_offer_lines": {
+      "rows": 168,
+      "sha256": "1440e2ee41ab897d2f2f0305b7e458ff5c4d445d885e5c7ce4c38fcea2f245b9"
+    },
+    "silver_rejects": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "review_queue": {
+      "rows": 3,
+      "sha256": "4b456d02d0cf591a3414641f2e4c8805fd2deb5595b54711afada17e6dc87e8c"
+    },
+    "gold_line_matches": {
+      "rows": 168,
+      "sha256": "2b54fa2b67c7ae22d1db981264ed456a2034588968cd790573eb3636c408264b"
+    },
+    "gold_offer_metrics": {
+      "rows": 459,
+      "sha256": "da21602fe0e8071f49c2026077bf2dd0498d59871fe53d8f402c7669c38572ba"
+    },
+    "gold_exposure": {
+      "rows": 105,
+      "sha256": "52981c0950cea7fd6689a591788daef1bdb3b10492d3948eaa49bff6cb3b9181"
+    },
+    "gold_rule_results": {
+      "rows": 108,
+      "sha256": "83a0e4cfc07e88f5b4ca288ed686f662b8b14a8d4f9edbc2c6f167a91ffacb5c"
+    },
+    "gold_verdicts": {
+      "rows": 27,
+      "sha256": "771b1ceaf67c3c886b783a3487b7812892bdffa9c7335985b7fd2a216a2d861e"
+    },
+    "gold_briefs": {
+      "rows": 27,
+      "sha256": "8b01b078a8fa82e67191eb612a9d090a6c3703204d68ac6ccc09d070e584a9d3"
+    },
+    "bronze_emails": {
+      "rows": 30,
+      "sha256": "f1892891404c413c9359a55ba78b96b6851ced0dc8af4af2560d877ebcb22937"
+    }
+  },
+  "differing_tables": [],
+  "identical": true
+}

@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+# Runtime data. All of it is reproducible with `make generate` and `make demo`.
+data/
+data/bronze/
+data/*.duckdb
+# Maildir and other intake runtime data
+outbox/

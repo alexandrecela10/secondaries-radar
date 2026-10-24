@@ -1,0 +1,7 @@
+{
+ "gdelt_update_minutes": 15,
+ "rss_poll_minutes": 15,
+ "rss_items_published_last_72h": 46,
+ "freshest_item_age_at_fetch_hours": 4.57,
+ "note": "age of the newest item when we fetched it, an upper bound on index delay. Pensions publish board materials days before meetings, so the news itself arrives in days, not seconds."
+}

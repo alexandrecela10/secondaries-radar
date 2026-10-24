@@ -1,0 +1,56 @@
+# Worked historical cases (PRD F-5). An illustration with n = 2, not a statistic.
+# first_sale_report is ground truth set by hand from public reporting.
+# queries are Google News RSS searches with date operators; results are frozen to
+# fixtures/frozen_corpus/<id>.jsonl the first time the case runs.
+# manual_items were collected by web search because the RSS index misses them.
+cases:
+  - id: wsib_2022
+    pension: wsib
+    start: 2021-04-01
+    end: 2024-06-30
+    first_sale_report:
+      date: 2022-04-20
+      headline: As philosophies change, Washington State gears up for first secondaries sale
+      outlet: Buyouts
+      link: https://www.privateequityinternational.com/as-philosophies-change-washington-state-gears-up-for-first-secondaries-sale/
+    queries:
+      - Washington State Investment Board after:2021-04-01 before:2022-09-30
+      - WSIB private equity after:2021-04-01 before:2022-09-30
+      - Washington State Investment Board CIO after:2021-06-01 before:2022-09-30
+      - Washington State Investment Board private equity after:2022-09-30 before:2024-06-30
+    manual_items:
+      - published: 2022-04-20T12:00:00Z
+        headline: As philosophies change, Washington State gears up for first secondaries sale
+        outlet: Buyouts
+        link: https://www.privateequityinternational.com/as-philosophies-change-washington-state-gears-up-for-first-secondaries-sale/
+      - published: 2024-01-31T12:00:00Z
+        headline: Washington pension system shops large PE portfolio as secondaries surge
+        outlet: Secondaries Investor
+        link: https://www.pei-secondariesinvestor.com/washington-pension-system-shops-large-pe-portfolio-as-secondaries-surges/
+  - id: nyc_2025
+    pension: nyc_funds
+    start: 2023-03-01
+    end: 2025-07-31
+    first_sale_report:
+      date: 2025-05-27
+      headline: NYC Comptroller Lander and Pension Trustees Close Record Private Equity Secondary Sale
+      outlet: NYC Comptroller
+      link: https://comptroller.nyc.gov/newsroom/nyc-comptroller-lander-and-pension-trustees-close-record-private-equity-secondary-sale
+    queries:
+      - NYC pension private equity after:2023-03-01 before:2025-07-01
+      - New York City pension private equity sale after:2023-03-01 before:2025-07-01
+      - New York City Retirement Systems private equity after:2023-03-01 before:2025-07-01
+      - NYC pension secondary after:2023-03-01 before:2025-07-01
+    manual_items:
+      - published: 2025-05-27T12:00:00Z
+        headline: NYC Comptroller Lander and Pension Trustees Close Record Private Equity Secondary Sale
+        outlet: NYC Comptroller
+        link: https://comptroller.nyc.gov/newsroom/nyc-comptroller-lander-and-pension-trustees-close-record-private-equity-secondary-sale
+      - published: 2025-05-28T12:00:00Z
+        headline: NYC pension's private equity sale might be largest ever of its kind
+        outlet: Axios
+        link: https://www.axios.com/2025/05/28/nyc-pensions-blackstone-private-equity
+      - published: 2025-05-27T12:00:00Z
+        headline: NYC Pensions Sell $5B in Private Equity Secondaries to Blackstone
+        outlet: Chief Investment Officer
+        link: https://www.ai-cio.com/news/nyc-pensions-sell-5b-in-private-equity-secondaries-to-blackstone/

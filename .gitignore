@@ -1,0 +1,10 @@
+.venv/
+.env
+__pycache__/
+.DS_Store
+
+# local symlink to PM-OS-fresh/skills, machine-specific
+.claude/skills
+.claude/agents
+.env.*
+*.env

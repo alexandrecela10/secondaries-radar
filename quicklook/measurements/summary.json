@@ -1,0 +1,49 @@
+{
+  "window": "1 working day = 8 h; limit = 10% = 48 min",
+  "criteria": {
+    "1_p95_latency_s": {
+      "realtime": 0.41546106338500977,
+      "batch_real_5s": 9.345186948776245,
+      "batch_sim_15min": 854.0025500220218,
+      "batch_sim_1min": 57.60665860836161,
+      "limit_s": 2880.0
+    },
+    "2_parity": true,
+    "3_recovery": {
+      "realtime": {
+        "duplicates": 0,
+        "missed": 0,
+        "passes": true
+      },
+      "batch": {
+        "duplicates": 0,
+        "missed": 0,
+        "passes": true
+      }
+    },
+    "4_moving_parts": {
+      "realtime": 3,
+      "batch": 2
+    },
+    "5_lines_of_code": {
+      "realtime": 49,
+      "batch": 47,
+      "shared_pipeline": 256
+    },
+    "6_always_on_h_per_month": {
+      "realtime": 730.0,
+      "batch": 0.0,
+      "batch_busy_h_per_month_at_15min": 0.32837861768528814
+    },
+    "7_replay_s": {
+      "realtime": 8.21751997800311,
+      "batch": 9.504621319007128,
+      "emails": 30
+    }
+  },
+  "passing_1_to_3": [
+    "realtime",
+    "batch"
+  ],
+  "decision": "batch"
+}

@@ -1,0 +1,13 @@
+{
+  "doc": "outputs/analyses/first-call-batch-vs-stream-plan.md",
+  "date": "2026-10-24",
+  "decided": [
+    "Build streaming as a timeboxed learning spike, then ship batch unless the measurements say otherwise.",
+    "Redpanda in Docker plus Quix Streams; same classifier in both paths."
+  ],
+  "open": [
+    "Batch interval N (proposal: 15 min to match the source cadence).",
+    "Confirm Docker runs locally and Quix Streams supports the installed Python version (3.14 found; a 3.11 or 3.12 venv may be needed)."
+  ],
+  "would_change_the_call": "A decision window shorter than the 15-minute source cadence."
+}

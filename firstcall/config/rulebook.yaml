@@ -1,0 +1,19 @@
+# First Call rulebook. Versioned. Changing a weight changes every score.
+version: 1
+first_call:
+  prepare_threshold: 0.6
+  half_life_days: 90          # a signal loses half its weight every 90 days
+  window_days: 365            # signals older than this are dropped (weight < 6%)
+  story_window_days: 7        # copies of one story inside 7 days count once
+  signal_weights:
+    sale_or_advisor: 1.0
+    allocation_above_target: 0.6
+    liquidity_need: 0.5
+    policy_review: 0.4
+    leadership_change: 0.2
+  descriptions:
+    sale_or_advisor: The pension is reported to be selling fund stakes or to have hired a sale adviser
+    allocation_above_target: Private equity sits above the pension's target allocation
+    liquidity_need: The pension reports a need for cash or liquidity
+    policy_review: The pension is reviewing its private markets portfolio, or cutting or slowing its private equity target or pacing
+    leadership_change: The pension has a new or departing chief investment officer or director

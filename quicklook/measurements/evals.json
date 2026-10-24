@@ -1,0 +1,59 @@
+{
+  "briefs_valid": {
+    "valid": 9,
+    "total": 9
+  },
+  "validator_cases": {
+    "correct": 14,
+    "total": 14
+  },
+  "match_accuracy_labelled": {
+    "correct": 54,
+    "total": 56,
+    "accuracy": 0.9642857142857143,
+    "target": 0.9,
+    "misses": [
+      [
+        "Birch",
+        4
+      ],
+      [
+        "Maple",
+        2
+      ]
+    ]
+  },
+  "match_stress_noise": {
+    "owned_funds": 60,
+    "owned_matched_to_self": 58,
+    "recall": 0.9666666666666667,
+    "not_owned_funds": 60,
+    "false_same_fund": 0
+  },
+  "metric_fixtures": {
+    "correct": 16,
+    "total": 16,
+    "accuracy": 1.0,
+    "target": 1.0
+  },
+  "offline_parse_lines": {
+    "read": 56,
+    "total": 56
+  },
+  "injection": {
+    "verdict_with_injection": "PASS",
+    "verdict_without": "PASS",
+    "rule_changes": 0,
+    "rule_results_identical": true
+  },
+  "verdicts_vs_pm_labels": {
+    "rulebook": "2",
+    "kept": 8,
+    "total": 8,
+    "share": 1.0,
+    "target": 0.8,
+    "good_offers_passed": 0,
+    "rulebook_v1_kept": 7,
+    "rulebook_v1_good_offers_passed": 1
+  }
+}
