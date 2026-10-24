@@ -1,0 +1,41 @@
+# Quick Look rulebook. The team owns this file. Every change runs `radar rules test` first.
+#
+# Changelog
+#   v1 (Annex B of the PRD): config/history/rulebook_v1.yaml.
+#   v2: plan_fit threshold 0.7 -> 0.55. `radar rules test config/history/rulebook_v1.yaml`
+#       showed v1 passes Willow, a good offer (funds we know well, full price). The fit
+#       score punishes any offer concentrated in one region, so 0.7 failed most offers.
+#       Risk: tuned on 9 offers labelled by one person. Re-check with real labels.
+version: 2
+threshold: 0.6
+confidence:
+  data_matched_strong: 0.9   # at or above: strong
+  data_matched_weak: 0.7     # below: weak
+  margin_strong: 0.2         # gap between score and threshold
+  margin_weak: 0.1
+quick_look:
+  - id: no_venture_heavy
+    description: Venture is under 30% of value
+    metric: share_value_venture
+    op: "<"
+    value: 0.3
+    weight: 1
+    veto: true
+  - id: known_managers
+    description: Most of the value sits with managers we already know
+    metric: share_value_known_manager
+    op: ">="
+    value: 0.5
+    weight: 3
+  - id: plan_fit
+    description: Fund types match our plan
+    metric: fit_score
+    op: ">="
+    value: 0.55
+    weight: 2
+  - id: max_price
+    description: Asking price within our range
+    metric: guidance_minus_range_top
+    op: "<="
+    value: 0
+    weight: 2

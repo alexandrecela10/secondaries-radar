@@ -1,0 +1,15 @@
+[project]
+name = "firstcall"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=2.3.0",
+    "confluent-kafka>=2.16.0",
+    "duckdb>=2.0.0",
+    "feedparser>=6.0.14",
+    "httpx>=0.28.1",
+    "pydantic>=2",
+    "pytest>=9.1.1",
+    "pytz>=2026.5",
+    "pyyaml>=6.0.3",
+]

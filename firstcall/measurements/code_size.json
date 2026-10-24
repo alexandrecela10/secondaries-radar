@@ -1,0 +1,14 @@
+{
+ "stream_specific_lines": 376,
+ "batch_specific_lines": 54,
+ "shared_lines": 708,
+ "stream_files": [
+  "fc/stream/log.py",
+  "fc/stream/poller.py",
+  "fc/stream/consumer.py",
+  "docker-compose.yml"
+ ],
+ "batch_files": [
+  "fc/batch.py"
+ ]
+}

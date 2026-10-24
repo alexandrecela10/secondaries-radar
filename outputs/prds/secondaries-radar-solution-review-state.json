@@ -1,0 +1,25 @@
+{
+  "doc": "outputs/prds/secondaries-radar-solution-review.md",
+  "date": "2026-10-24",
+  "version": "v2 after 7-agent review",
+  "decided": [
+    "Scope: Quick Look full build; First Call thin (real news, classify, score, PREPARE/WATCH, 2 worked cases).",
+    "Both features build a real-time and a batch collection path; 7 objective criteria pick one; decisions filed in outputs/decisions/.",
+    "First Call promises preparation, not exclusive direct deals (D4).",
+    "D1 closed: no pseudonymisation needed because real and synthetic data never join (D-3).",
+    "Model parses, code matches by ratio fingerprint (D3). Confidence in words plus data matched and margin (D2).",
+    "Value shown as low/base/high net of cost; Quick Look base AED 0.55M net year 1; First Call option, break-even 0.1% on a $200M deal.",
+    "Override via CLI with required reason; chat cut to CLI 'why' and 'override'.",
+    "Offline deterministic parser/classifier when no API key."
+  ],
+  "open": [
+    "Practitioner calls on triage time and pre-NDA offer contents.",
+    "Set ANTHROPIC_API_KEY for the model path.",
+    "Labels are PM/agent-made; real test needs 2 to 3 analysts."
+  ],
+  "build": {
+    "quicklook": "quicklook/ (agent running)",
+    "firstcall": "firstcall/ (agent running)"
+  },
+  "next": "Review build reports; merge architecture notes into docs/ARCHITECTURE.md; interview framings."
+}

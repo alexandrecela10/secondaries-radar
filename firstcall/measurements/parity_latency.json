@@ -1,0 +1,35 @@
+{
+ "log": "redpanda",
+ "topic": "m1792873935p.news.raw",
+ "items": 928,
+ "emit_rate_per_s": 20.0,
+ "emit_seconds": 46.37,
+ "batch_every_s": 5.0,
+ "stream_latency_s": {
+  "p50": 0.015774011611938477,
+  "p95": 0.03380894660949707,
+  "max": 0.1811511516571045,
+  "n": 928
+ },
+ "batch_latency_s": {
+  "p50": 3.459372043609619,
+  "p95": 5.689214706420898,
+  "max": 6.0838189125061035,
+  "n": 928
+ },
+ "parity": {
+  "signals_only_left": 0,
+  "signals_only_right": 0,
+  "scores_only_left": 0,
+  "scores_only_right": 0,
+  "identical": true
+ },
+ "signals": 40,
+ "pensions_scored": 42,
+ "consumer_stdout": [
+  "{'processed': 928, 'dlq': 0, 'first_record_s': 1.53}"
+ ],
+ "batch_stdout": [
+  "{'ticks': 14, 'read': 928}"
+ ]
+}

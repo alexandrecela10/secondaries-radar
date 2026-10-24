@@ -1,0 +1,11 @@
+{
+ "total_records": 928,
+ "committed_at_kill": 207,
+ "processed_after_restart": 721,
+ "restart_to_first_record_s": 5.31,
+ "redelivered": 0,
+ "duplicate_rows": 0,
+ "missed_signals": 0,
+ "extra_signals": 0,
+ "matches_reference": true
+}

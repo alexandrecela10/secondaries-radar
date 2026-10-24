@@ -1,0 +1,86 @@
+"""Rulebook: score, veto, not checked, confidence, load errors, labelled-offer outcomes."""
+from pathlib import Path
+
+import pytest
+
+from quicklook import rulebook as R
+from quicklook.cli import agreement
+from quicklook.config import CONFIG_DIR, RULEBOOK_PATH
+from quicklook import store
+
+from .conftest import EVALS
+
+RB = R.load(RULEBOOK_PATH)
+BASE = dict(share_value_venture=0.12, share_value_known_manager=0.78, fit_score=0.82,
+            guidance_minus_range_top=0.03, data_matched=0.91, count_unresolved=1, share_value_unresolved=0.09)
+
+
+def test_cedar_like_offer():
+    v = R.evaluate(RB, BASE)
+    assert v.verdict == "LOOK CLOSER"
+    assert v.score == pytest.approx(6 / 8)
+    assert v.band == "medium"  # data matched strong, margin 0.15 is medium
+    assert v.headline == "LOOK CLOSER, medium confidence: 1 fund unmatched (9% of value), close to the line."
+    assert [r.rule_id for r in v.reasons][0] == "no_venture_heavy"  # veto first, then by weight
+    assert [r.weight for r in v.reasons[1:]] == sorted([r.weight for r in v.reasons[1:]], reverse=True)
+
+
+def test_veto_blocks():
+    v = R.evaluate(RB, dict(BASE, share_value_venture=0.45))
+    assert v.verdict == "PASS" and v.veto_rule == "no_venture_heavy" and v.margin is None
+    assert v.headline.startswith("PASS: blocked by veto rule")
+
+
+def test_not_checked_is_excluded_and_lowers_confidence():
+    v = R.evaluate(RB, dict(BASE, guidance_minus_range_top=None))
+    assert next(r for r in v.reasons if r.rule_id == "max_price").status == "not checked"
+    assert v.score == pytest.approx(1.0)  # 6 of 6 checked weight
+    assert v.band in ("medium", "low") and "not checked" in v.headline
+
+
+def test_nothing_matched_is_low_confidence():
+    v = R.evaluate(RB, dict(BASE, share_value_known_manager=0.0, data_matched=1.0))
+    assert v.band == "low" and "We know none of these funds" in v.headline
+
+
+def test_unknown_metric_fails_load_and_names_rule(tmp_path):
+    p = tmp_path / "bad.yaml"
+    p.write_text(RULEBOOK_PATH.read_text().replace("metric: fit_score", "metric: irr_net"))
+    with pytest.raises(R.RulebookError) as e:
+        R.load(p)
+    assert "plan_fit" in str(e.value) and "irr_net" in str(e.value) and "share_value_venture" in str(e.value)
+
+
+def test_print_as_sentences():
+    s = "\n".join(R.as_sentences(RB))
+    assert "Veto: if this fails" in s and "60% or more" in s
+
+
+def _verdicts(env, rb):
+    con = env.con()
+    out = {}
+    for o in env.labels["offers"]:
+        off = store.resolve_offer(con, o["code"])
+        m = {r["metric"]: r["value"] for r in store.rows(con, "SELECT metric, value FROM gold_offer_metrics WHERE offer_id = ?", [off["offer_id"]])}
+        out[o["code"]] = R.evaluate(rb, m)
+    con.close()
+    return out, {o["code"]: o for o in env.labels["offers"]}
+
+
+def test_eval_labelled_offers(env):
+    v, labels = _verdicts(env, RB)
+    kept, n, good_passed = agreement(v, labels)
+    v1, _ = _verdicts(env, R.load(CONFIG_DIR / "history" / "rulebook_v1.yaml"))
+    k1, _, gp1 = agreement(v1, labels)
+    EVALS["verdicts_vs_pm_labels"] = {"rulebook": RB.version, "kept": kept, "total": n, "share": kept / n,
+                                      "target": 0.8, "good_offers_passed": good_passed,
+                                      "rulebook_v1_kept": k1, "rulebook_v1_good_offers_passed": gp1}
+    assert good_passed == 0
+    assert kept / n >= 0.8
+
+
+def test_rules_diff_sentence(env):
+    v2, _ = _verdicts(env, RB)
+    v3, _ = _verdicts(env, R.load(CONFIG_DIR / "candidates" / "rulebook_v3_price_veto.yaml"))
+    lines = R.diff_sentences(v2, v3)
+    assert any(l.startswith("Cedar flips to PASS") for l in lines)

@@ -1,0 +1,253 @@
+{
+  "path": "realtime",
+  "emails": 30,
+  "latencies_s": [
+    0.301267147064209,
+    0.2659718990325928,
+    0.36071085929870605,
+    0.3227119445800781,
+    0.20157217979431152,
+    0.41546106338500977,
+    0.20395326614379883,
+    0.2683992385864258,
+    0.051873207092285156,
+    0.24791693687438965,
+    0.24998784065246582,
+    0.2716388702392578,
+    0.3640170097351074,
+    0.2623589038848877,
+    0.20060205459594727,
+    0.2666337490081787,
+    0.20046401023864746,
+    0.2903449535369873,
+    0.04728102684020996,
+    0.24012994766235352,
+    0.2454371452331543,
+    0.26362109184265137,
+    0.4207310676574707,
+    0.26089000701904297,
+    0.20308923721313477,
+    0.27461695671081543,
+    0.2066490650177002,
+    0.34648823738098145,
+    0.04929614067077637,
+    0.25839900970458984
+  ],
+  "p50_s": 0.26162445545196533,
+  "p95_s": 0.41546106338500977,
+  "max_s": 0.4207310676574707,
+  "limit_s": 2880.0,
+  "passes": true,
+  "sends": [
+    {
+      "message_id": "alder-20261007@fenmark.example",
+      "sent_at": 1792874470.2462049,
+      "acked_at": 1792874470.5669389,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "birch-20261005@quayline.example",
+      "sent_at": 1792874470.6767712,
+      "acked_at": 1792874470.965632,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "cedar-20261023@harbourline.example",
+      "sent_at": 1792874471.075308,
+      "acked_at": 1792874471.4595,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "hazel-20261019@brightmoor.example",
+      "sent_at": 1792874471.5680041,
+      "acked_at": 1792874471.938411,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "juniper-20261009@harbourline.example",
+      "sent_at": 1792874472.038591,
+      "acked_at": 1792874472.262798,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "maple-20261012@quayline.example",
+      "sent_at": 1792874472.3726459,
+      "acked_at": 1792874472.811965,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "rowan-20261014@brightmoor.example",
+      "sent_at": 1792874472.9215648,
+      "acked_at": 1792874473.150517,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "spruce-20261021@quayline.example",
+      "sent_at": 1792874473.2604969,
+      "acked_at": 1792874473.554271,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "thistle-20261020@brightmoor.example",
+      "sent_at": 1792874473.6637719,
+      "acked_at": 1792874473.72628,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "willow-20261016@fenmark.example",
+      "sent_at": 1792874473.834579,
+      "acked_at": 1792874474.1061602,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "alder-20261007-r1@fenmark.example",
+      "sent_at": 1792874474.2154791,
+      "acked_at": 1792874474.4899158,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "birch-20261005-r1@quayline.example",
+      "sent_at": 1792874474.596853,
+      "acked_at": 1792874474.8924532,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "cedar-20261023-r1@harbourline.example",
+      "sent_at": 1792874475.002202,
+      "acked_at": 1792874475.392159,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "hazel-20261019-r1@brightmoor.example",
+      "sent_at": 1792874475.501794,
+      "acked_at": 1792874475.7892969,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "juniper-20261009-r1@harbourline.example",
+      "sent_at": 1792874475.898828,
+      "acked_at": 1792874476.122842,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "maple-20261012-r1@quayline.example",
+      "sent_at": 1792874476.2328162,
+      "acked_at": 1792874476.523332,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "rowan-20261014-r1@brightmoor.example",
+      "sent_at": 1792874476.632786,
+      "acked_at": 1792874476.8565938,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "spruce-20261021-r1@quayline.example",
+      "sent_at": 1792874476.960603,
+      "acked_at": 1792874477.2759109,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "thistle-20261020-r1@brightmoor.example",
+      "sent_at": 1792874477.384616,
+      "acked_at": 1792874477.44063,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "willow-20261016-r1@fenmark.example",
+      "sent_at": 1792874477.549632,
+      "acked_at": 1792874477.8140302,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "alder-20261007-r2@fenmark.example",
+      "sent_at": 1792874477.9236548,
+      "acked_at": 1792874478.1944041,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "birch-20261005-r2@quayline.example",
+      "sent_at": 1792874478.303854,
+      "acked_at": 1792874478.593432,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "cedar-20261023-r2@harbourline.example",
+      "sent_at": 1792874478.703168,
+      "acked_at": 1792874479.151231,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "hazel-20261019-r2@brightmoor.example",
+      "sent_at": 1792874479.25499,
+      "acked_at": 1792874479.540831,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "juniper-20261009-r2@harbourline.example",
+      "sent_at": 1792874479.6507509,
+      "acked_at": 1792874479.8766952,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "maple-20261012-r2@quayline.example",
+      "sent_at": 1792874479.985533,
+      "acked_at": 1792874480.287138,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "rowan-20261014-r2@brightmoor.example",
+      "sent_at": 1792874480.396627,
+      "acked_at": 1792874480.630902,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "spruce-20261021-r2@quayline.example",
+      "sent_at": 1792874480.7350788,
+      "acked_at": 1792874481.112531,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "thistle-20261020-r2@brightmoor.example",
+      "sent_at": 1792874481.2216399,
+      "acked_at": 1792874481.281354,
+      "attempts": 1,
+      "ok": true
+    },
+    {
+      "message_id": "willow-20261016-r2@fenmark.example",
+      "sent_at": 1792874481.390898,
+      "acked_at": 1792874481.674768,
+      "attempts": 1,
+      "ok": true
+    }
+  ]
+}

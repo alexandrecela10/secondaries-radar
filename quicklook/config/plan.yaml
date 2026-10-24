@@ -1,0 +1,7 @@
+# Allocation plan the fit score compares each offer against. Mixes are shares of value.
+version: 1
+weights: {strategy: 0.5, region: 0.3, vintage_band: 0.2}
+targets:
+  strategy: {buyout: 0.45, growth: 0.20, venture: 0.05, credit: 0.15, infra: 0.15}
+  region: {north_america: 0.50, europe: 0.35, asia: 0.10, global: 0.05}
+  vintage_band: {"2008-2012": 0.10, "2013-2017": 0.45, "2018-2024": 0.45}

@@ -1,0 +1,39 @@
+{
+  "moving_parts": {
+    "realtime": [
+      "SMTP listener process, always on",
+      "process supervisor to restart it (launchd or systemd)",
+      "mail routing rule that forwards offers to the listener"
+    ],
+    "batch": [
+      "scheduler entry (cron or launchd) that starts the job every N minutes",
+      "mailbox the job reads (Maildir here, IMAP or Graph in production)"
+    ]
+  },
+  "lines_of_code": {
+    "realtime": 49,
+    "batch": 47,
+    "shared_pipeline": 256
+  },
+  "idle": {
+    "realtime_always_on_h": 730.0,
+    "batch_always_on_h": 0.0,
+    "batch_interval_min": 15,
+    "batch_empty_scan_s": 0.04033366664953064,
+    "batch_cold_start_s": 0.4050723079999443,
+    "batch_runs_per_month": 2918.3999999999996,
+    "batch_busy_h_per_month": 0.32837861768528814
+  },
+  "replay": {
+    "realtime": {
+      "workspace": "exp-realtime",
+      "emails": 30,
+      "seconds": 8.21751997800311
+    },
+    "batch": {
+      "workspace": "exp-batch",
+      "emails": 30,
+      "seconds": 9.504621319007128
+    }
+  }
+}

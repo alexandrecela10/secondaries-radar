@@ -1,0 +1,36 @@
+# Candidate v3: make the price rule a veto. Not adopted. Run:
+#   radar rules test config/candidates/rulebook_v3_price_veto.yaml
+version: 3
+threshold: 0.6
+confidence:
+  data_matched_strong: 0.9   # at or above: strong
+  data_matched_weak: 0.7     # below: weak
+  margin_strong: 0.2         # gap between score and threshold
+  margin_weak: 0.1
+quick_look:
+  - id: no_venture_heavy
+    description: Venture is under 30% of value
+    metric: share_value_venture
+    op: "<"
+    value: 0.3
+    weight: 1
+    veto: true
+  - id: known_managers
+    description: Most of the value sits with managers we already know
+    metric: share_value_known_manager
+    op: ">="
+    value: 0.5
+    weight: 3
+  - id: plan_fit
+    description: Fund types match our plan
+    metric: fit_score
+    op: ">="
+    value: 0.55
+    weight: 2
+  - id: max_price
+    description: Asking price within our range
+    metric: guidance_minus_range_top
+    op: "<="
+    value: 0
+    weight: 2
+    veto: true

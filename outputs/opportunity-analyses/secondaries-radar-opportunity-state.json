@@ -1,0 +1,52 @@
+{
+  "doc": "outputs/opportunity-analyses/secondaries-radar-opportunity.md",
+  "date": "2026-10-24",
+  "recommendation": "Go",
+  "why": "Seller signals are public, the fund owns the overlap data, and a backtest on real reported pension sales can show lead time.",
+  "decided": [
+    "Target fund is assumed to buy LP-led secondaries.",
+    "Optimise for the CDAO interview over the engineering interview.",
+    "Demo-grade working prototype, not production.",
+    "Public data allowed on the seller side; buyer portfolio synthetic; real seller names anonymised before publishing (CLAUDE.md amended).",
+    "The system drafts outreach; a human sends. No agent contacts or negotiates with a seller.",
+    "Streaming is a learning spike; batch ships unless measured otherwise.",
+    "Interviewer organisations stay out of all outputs.",
+    "Both gates in scope: First Call (Gate 0) and Quick Look (Gate 1).",
+    "Plain-language wording for readers outside private capital.",
+    "Rough value assessment: about AED 16M per year (Quick Look AED 1.05M, First Call AED 14.6M), all inputs assumed.",
+    "Quick Look matching reports depth in three tiers, not a known/unknown flag: same fund (we get its reports), same manager but another fund, unknown. Carry into the PRD.",
+    "Every verdict (First Call: call now or wait; Quick Look: look closer or pass) opens into a confidence level and reasons, each tied to a rule and a number.",
+    "The team supplies its own plain-text rulebook (a skill-style blueprint) for what a good deal is; the AI applies it, not its own judgement.",
+    "Analysts can override any verdict with a one-line reason; overrides are stored as a record for improving rules and AI. Problem 4 added: verdicts kept without override 80% or more.",
+    "First Call promises preparation (PREPARE / WATCH), not exclusive direct deals.",
+    "Value shown as low/base/high net of cost; First Call is an option with a 0.1% break-even.",
+    "Quick Look identifies funds by ratio fingerprint (% called, DPI, TVPI, value/commitment), not names."
+  ],
+  "feasibility_checked": {
+    "fund_level_disclosures": [
+      "CalPERS PEP fund performance (active funds, about 2-quarter lag)",
+      "Washington State Investment Board PE IRR and holdings reports"
+    ],
+    "backtest_candidates": [
+      "Washington State (pulled 2022, relaunched 2023)",
+      "NYSTRS (about $6bn, reported June 2023)",
+      "PA PSERS (13 funds, $822M, closed 2024-09-30)",
+      "NYC pensions (about $5bn to Blackstone, initiated Dec 2024)",
+      "Ohio SERS (with UBS)",
+      "New Jersey (sale procedures, up to $1bn)"
+    ],
+    "news_index_limit": "GDELT DOC API article lists cover roughly the last 3 months; older backtest news needs GDELT raw files or BigQuery."
+  },
+  "open": [
+    "Exact first-signal dates for each backtest case; needs board minutes, not only press.",
+    "Which other pensions publish fund-level holdings (CalSTRS, Oregon, others).",
+    "Price range heuristic for a public-disclosure portfolio, where NAV lags about 2 quarters.",
+    "Replace value inputs (300 offers/yr, 7 h saved, AED 500/h, 1 direct deal of $200M, 2% price gain) with sourced or interview-based numbers.",
+    "How the rulebook's rules turn into a confidence number (weighted rules vs model judgement) needs a decision in the PRD."
+  ],
+  "would_change_the_call": [
+    "Backtest median lead time under 1 month, which would leave no room for a bilateral approach.",
+    "Too few pensions publish fund-level holdings to build a call pack."
+  ],
+  "next": "/prd-draft, scoped as a demo"
+}

@@ -1,0 +1,19 @@
+# Google News RSS search queries (English, US edition). One request per query per run.
+google_news:
+  - pension private equity allocation over target
+  - pension secondary sale private equity
+  - pension overallocated private equity
+  - pension liquidity private markets
+  - pension board private equity review
+  - pension sells private equity stakes
+  - pension denominator effect private equity
+  - pension hires adviser secondary sale
+  - retirement system private equity pacing
+  - pension private equity allocation cut
+  - pension chief investment officer named
+  - state investment board private equity
+# GDELT DOC 2.0 queries. GDELT allows one request every 5 seconds.
+gdelt:
+  - '"pension" "private equity" (secondary OR overallocated OR "over target" OR liquidity)'
+  - '"retirement system" "private equity" (sale OR allocation)'
+  - '"investment board" "private equity" (secondary OR allocation)'

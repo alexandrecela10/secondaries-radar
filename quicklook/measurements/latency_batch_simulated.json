@@ -1,0 +1,46 @@
+{
+  "N=1min": {
+    "path": "batch (simulated)",
+    "interval_min": 1,
+    "processing_s": 0.4393191337585449,
+    "samples": 20000,
+    "p50_s": 30.34249674070452,
+    "p95_s": 57.60665860836161,
+    "max_s": 60.43728994717094,
+    "limit_s": 2880.0,
+    "passes": true
+  },
+  "N=5min": {
+    "path": "batch (simulated)",
+    "interval_min": 5,
+    "processing_s": 0.4393191337585449,
+    "samples": 20000,
+    "p50_s": 151.64820528454584,
+    "p95_s": 285.4628121782007,
+    "max_s": 300.43728994717094,
+    "limit_s": 2880.0,
+    "passes": true
+  },
+  "N=15min": {
+    "path": "batch (simulated)",
+    "interval_min": 15,
+    "processing_s": 0.4393191337585449,
+    "samples": 20000,
+    "p50_s": 451.65993486090883,
+    "p95_s": 854.0025500220218,
+    "max_s": 900.3375922324776,
+    "limit_s": 2880.0,
+    "passes": true
+  },
+  "N=60min": {
+    "path": "batch (simulated)",
+    "interval_min": 60,
+    "processing_s": 0.4393191337585449,
+    "samples": 20000,
+    "p50_s": 1809.0257288975554,
+    "p95_s": 3421.0580903584196,
+    "max_s": 3600.217880018434,
+    "limit_s": 2880.0,
+    "passes": false
+  }
+}

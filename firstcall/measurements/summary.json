@@ -1,0 +1,51 @@
+{
+ "decision_window_hours": 672,
+ "freshness_limit_hours": 67.2,
+ "criteria": {
+  "1_p95_latency_hours": {
+   "stream_measured": 1e-05,
+   "batch_measured_every_5s": 0.00158,
+   "batch_projected_every_15min": 0.242,
+   "source_cadence_cap_hours": 0.25,
+   "limit_hours": 67.2,
+   "stream_passes": true,
+   "batch_passes": true
+  },
+  "2_parity_identical": true,
+  "3_recovery": {
+   "stream_duplicates": 0,
+   "stream_missed": 0,
+   "stream_redelivered_records": 0,
+   "stream_restart_to_first_record_s": 5.31,
+   "batch_duplicates": 0,
+   "batch_missed": 0,
+   "stream_passes": true,
+   "batch_passes": true
+  },
+  "4_moving_parts": {
+   "stream": 3,
+   "batch": 1,
+   "stream_detail": "poller + consumer + broker",
+   "batch_detail": "one scheduled job"
+  },
+  "5_path_specific_lines": {
+   "stream": 376,
+   "batch": 54
+  },
+  "6_always_on_hours_per_month": {
+   "stream": 2160,
+   "batch": 10.9,
+   "batch_basis": "2880 runs x 14 s"
+  },
+  "7_replay_seconds": {
+   "stream": 12.61,
+   "batch": 10.13
+  }
+ },
+ "passes_1_to_3": {
+  "stream": true,
+  "batch": true
+ },
+ "decision": "batch",
+ "rule": "simplest path that passes 1 to 3; ties go to fewer moving parts"
+}

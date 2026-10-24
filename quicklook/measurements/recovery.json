@@ -1,0 +1,42 @@
+{
+  "realtime": {
+    "bronze_rows": 10,
+    "distinct_ids": 10,
+    "offers": 9,
+    "distinct_offer_messages": 9,
+    "line_rows": 56,
+    "brief_rows": 9,
+    "not_finished": [],
+    "retried_in_pipeline": [
+      "cedar-20261023@harbourline.example"
+    ],
+    "missed": [],
+    "duplicates": 0,
+    "passes": true,
+    "path": "realtime",
+    "killed_after_s": 2.5,
+    "slow_s": 0.8,
+    "sends_retried": 1,
+    "sends_failed": 0,
+    "killed_at": 1792874500.142994
+  },
+  "batch": {
+    "bronze_rows": 10,
+    "distinct_ids": 10,
+    "offers": 9,
+    "distinct_offer_messages": 9,
+    "line_rows": 56,
+    "brief_rows": 9,
+    "not_finished": [],
+    "retried_in_pipeline": [
+      "birch-20261005@quayline.example"
+    ],
+    "missed": [],
+    "duplicates": 0,
+    "passes": true,
+    "path": "batch",
+    "killed_after_s": 2.5,
+    "slow_s": 0.8,
+    "left_in_new_after_kill": 9
+  }
+}
