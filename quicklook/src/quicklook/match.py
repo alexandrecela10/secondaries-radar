@@ -188,3 +188,14 @@ def match_line(line: ParsedLine, line_id: str, ref: Reference, reference_date: d
                      method="description fits several managers",
                      candidates=[_cand(ref, f, score_of.get(f["fund_id"])) for f in top],
                      flags=flags + [f"{len(remaining)} funds from {len(mgrs)} managers fit the description"])
+
+
+def analyst_pick(m: LineMatch, fund: dict, ref: Reference, who: str) -> LineMatch:
+    """An analyst says which fund an open line is. Code keeps the tier rules:
+    a fund we own becomes "same fund", a fund we only track becomes "same manager".
+    The ratio score is not invented: confidence stays empty and the method says who decided."""
+    tier = Tier.SAME_FUND if fund["owned"] else Tier.SAME_MANAGER
+    return LineMatch(line_id=m.line_id, tier=tier, fund_id=fund["fund_id"], manager_id=fund["manager_id"],
+                     confidence=None, resolved=True, method=f"analyst pick by {who}",
+                     candidates=m.candidates or [_cand(ref, fund)],
+                     flags=m.flags + [f"code said {m.tier.value} ({m.method}); analyst picked {fund['fund_id']}"])

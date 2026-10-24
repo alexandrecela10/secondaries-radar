@@ -83,6 +83,8 @@ details summary{cursor:pointer}
 {% if offline %}<div class="banner">Offline parser in use. Fields were read by fixed rules, not by the model.</div>{% endif %}
 {% if override %}<div class="override"><b>Team override: {{ override.new_verdict }}</b> (rulebook said {{ override.original_verdict }}).
 Reason: {{ override.reason }}. By {{ override.user_name }}, {{ override.at }}.</div>{% endif %}
+{% if kept %}<div class="override"><b>Team kept the verdict: {{ kept.verdict }}</b>. By {{ kept.user_name }}, {{ kept.at }}.</div>{% endif %}
+{% if picks %}<p class="mute">Matched by hand: {% for p in picks %}{{ p.label }} is {{ p.fund }} (by {{ p.user }}, {{ p.at }}){% if not loop.last %}; {% endif %}{% endfor %}.</p>{% endif %}
 <h1>{{ headline }}</h1>
 <p class="mute">Score {{ score }} against a threshold of {{ threshold }}. Data matched {{ data_matched }}.{% if margin %} Margin {{ margin }}.{% else %} A veto decides.{% endif %}
 Total value {{ total }}.</p>
@@ -191,7 +193,9 @@ def render(con, offer_id: str) -> str:
         vint = S("silver_offer_lines", lid, "vintage", str(l["vintage"])) if l["vintage"] else ""
         value = S("silver_offer_lines", lid, "value", fmt_money(l["value"], l["currency"]))
         cands = json.loads(l["candidates_json"])
-        if l["tier"] == "same_fund":
+        if l["tier"] == "same_fund" and l["confidence"] is None:
+            match_cell = Markup(f"{escape(l['fund_name'])}, analyst pick")
+        elif l["tier"] == "same_fund":
             match_cell = Markup(f"{escape(l['fund_name'])}, ") + S("gold_line_matches", lid, "confidence",
                                                                    f"{l['confidence']:.2f}", mv)
         elif l["tier"] == "same_manager":
@@ -228,16 +232,30 @@ def render(con, offer_id: str) -> str:
                 for e in store.rows(con, "SELECT * FROM gold_exposure WHERE offer_id = ? ORDER BY our_value_usd DESC", [offer_id])]
     rejects = [dict(ref=r["line_ref"], reason=S("silver_rejects", r["row_id"], "reason", r["reason"]))
                for r in store.rows(con, "SELECT * FROM silver_rejects WHERE offer_id = ? ORDER BY row_id", [offer_id])]
-    ov = store.one(con, "SELECT * FROM overrides WHERE offer_id = ? ORDER BY created_at DESC LIMIT 1", [offer_id])
-    override = None
+    dec = store.team_decision(con, offer_id)
+    ov = dec if dec and dec["kind"] == "override" else None
+    override = kept = None
+    if dec and dec["kind"] == "keep":
+        kept = dict(verdict=dec["verdict"],
+                    user_name=span(dec["user_name"], "decisions", dec["decision_id"], "user_name", "decision"),
+                    at=span(dec["created_at"].strftime("%Y-%m-%d %H:%M"), "decisions", dec["decision_id"], "created_at", "decision"))
+    picks = []
+    last: dict = {}
+    for r in store.rows(con, "SELECT * FROM line_resolutions WHERE offer_id = ? ORDER BY created_at", [offer_id]):
+        last[r["line_no"]] = r
+    for r in sorted(last.values(), key=lambda r: r["line_no"]):
+        rid = r["resolution_id"]
+        picks.append(dict(label=r["label"], fund=span(r["fund_name"], "line_resolutions", rid, "fund_name", "resolution"),
+                          user=span(r["user_name"], "line_resolutions", rid, "user_name", "resolution"),
+                          at=span(r["created_at"].strftime("%Y-%m-%d %H:%M"), "line_resolutions", rid, "created_at", "resolution")))
     if ov:
         override = dict(new_verdict=ov["new_verdict"], original_verdict=ov["original_verdict"],
                         reason=span(ov["reason"], "overrides", ov["override_id"], "reason", "override"),
-                        user_name=ov["user_name"],
+                        user_name=span(ov["user_name"], "overrides", ov["override_id"], "user_name", "override"),
                         at=span(ov["created_at"].strftime("%Y-%m-%d %H:%M"), "overrides", ov["override_id"], "created_at", "override"))
     V = lambda col, disp: span(disp, "gold_verdicts", offer_id, col, f"rulebook v{v['rulebook_version']}")  # noqa: E731
     return _tpl.render(
-        o=o, v=v, offline=o["parser_offline"], override=override, headline=headline,
+        o=o, v=v, offline=o["parser_offline"], override=override, kept=kept, picks=picks, headline=headline,
         received=S("silver_offers", offer_id, "email_date", o["email_date"].strftime("%Y-%m-%d %H:%M")),
         refdate=S("silver_offers", offer_id, "reference_date", o["reference_date"].isoformat()),
         seller=o["seller_type"] or "seller type not given",

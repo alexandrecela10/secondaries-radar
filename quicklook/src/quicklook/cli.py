@@ -4,8 +4,13 @@
   radar ingest FILE...              run the pipeline on .eml files
   radar demo                        generate, ingest every offer, print Cedar
   radar status                      offers and verdicts
+  radar brief cedar                 headline, team decision and brief path
   radar why cedar                   headline and reasons with sources
+  radar match cedar 4               offer ratios vs our fund's ratios, distance per ratio
+  radar resolve cedar 9 F012        analyst picks the fund for an open line; verdict recomputes
+  radar keep cedar                  agree with the verdict (who, when, rulebook version)
   radar override cedar pass --reason "..."
+  radar memo cedar                  one sourced paragraph for the head of team
   radar rules print                 the rulebook as sentences
   radar rules test [CANDIDATE]      diff a candidate rulebook on the labelled offers
   radar replay                      rebuild silver, gold and briefs from bronze
@@ -25,7 +30,83 @@ from .parse import get_parser
 
 
 def _ws(args) -> Workspace:
-    return default_workspace(args.workspace)
+    return default_workspace(args.workspace or "main")
+
+
+def _user(args) -> str:
+    return getattr(args, "user", None) or getpass.getuser()
+
+
+def cmd_brief(args) -> int:
+    from . import journey
+
+    ws = _ws(args)
+    con = store.connect(ws, read_only=True)
+    out = journey.brief_lines(con, ws, args.offer)
+    con.close()
+    print("\n".join(out))
+    return 0 if not out[0].startswith("No offer") else 1
+
+
+def cmd_match(args) -> int:
+    from . import journey
+
+    ws = _ws(args)
+    con = store.connect(ws, read_only=True)
+    out = journey.match_lines(con, pipeline.load_reference(ws), args.offer, args.line)
+    con.close()
+    print("\n".join(out))
+    return 0
+
+
+def cmd_resolve(args) -> int:
+    try:
+        r = pipeline.record_resolve(_ws(args), args.offer, args.line, args.fund_id, _user(args))
+    except (ValueError, KeyError) as e:
+        print(str(e).strip("'\""))
+        return 2
+    b, a = r["before"], r["after"]
+    print(f"Recorded: {r['code_name']} {r['label']} is {r['fund_id']} {r['fund_name']} (was {r['previous_tier']}), "
+          f"by {r['user_name']} at {r['created_at']:%Y-%m-%d %H:%M}.")
+    print(f"Before: {b['headline']}  Data matched {b['data_matched']:.0%}.")
+    print(f"After:  {a['headline']}  Data matched {a['data_matched']:.0%}.")
+    print(f"Brief updated: {r['brief_path']}")
+    return 0
+
+
+def cmd_keep(args) -> int:
+    try:
+        r = pipeline.record_keep(_ws(args), args.offer, _user(args))
+    except KeyError as e:
+        print(str(e).strip("'\""))
+        return 2
+    print(f"Recorded: {r['code_name']} keeps {r['verdict']} ({r['band']} confidence) by {r['user_name']} at "
+          f"{r['created_at']:%Y-%m-%d %H:%M}, rulebook v{r['rulebook_version']}. Brief updated: {r['brief_path']}")
+    return 0
+
+
+def cmd_memo(args) -> int:
+    from . import journey
+
+    ws = _ws(args)
+    con = store.connect(ws, read_only=True)
+    try:
+        text, html, problems, n = journey.memo(con, args.offer)
+        o = store.resolve_offer(con, args.offer)
+    except KeyError as e:
+        print(str(e).strip("'\""))
+        return 2
+    finally:
+        con.close()
+    path = ws.briefs_dir / f"{o['offer_id']}.memo.html"
+    path.write_text(html)
+    print(text)
+    print()
+    if problems:
+        print("Validator FAILED:\n  " + "\n  ".join(problems))
+        return 1
+    print(f"Validator: passed, {n} numbers each sourced to a row. Sources: {path}")
+    return 0
 
 
 def cmd_generate(args) -> int:
@@ -119,7 +200,7 @@ def cmd_why(args) -> int:
 
 def cmd_override(args) -> int:
     try:
-        r = pipeline.record_override(_ws(args), args.offer, args.verdict, args.reason, args.user or getpass.getuser())
+        r = pipeline.record_override(_ws(args), args.offer, args.verdict, args.reason, _user(args))
     except (ValueError, KeyError) as e:
         print(str(e).strip("'\""))
         return 2
@@ -155,8 +236,9 @@ def labelled_metrics(ws: Workspace) -> tuple[dict[str, dict], dict[str, dict]]:
     return out, labels
 
 
-def agreement(verdicts: dict, labels: dict) -> tuple[int, int, int]:
-    tests = [c for c in verdicts if labels[c]["is_test_offer"]]
+def agreement(verdicts: dict, labels: dict, split: str | None = "tune") -> tuple[int, int, int]:
+    """Agreement with the labels on test offers of one split ("tune", "holdout"; None for all)."""
+    tests = [c for c in verdicts if labels[c]["is_test_offer"] and (split is None or labels[c].get("split") == split)]
     kept = sum(1 for c in tests if (verdicts[c].verdict == "LOOK CLOSER") == (labels[c]["pm_label"] == "LOOK"))
     good_passed = sum(1 for c in tests if labels[c]["pm_label"] == "LOOK" and verdicts[c].verdict == "PASS")
     return kept, len(tests), good_passed
@@ -173,14 +255,37 @@ def cmd_rules_test(args) -> int:
     mets, labels = labelled_metrics(ws)
     old = {c: rulebook.evaluate(current, m) for c, m in mets.items()}
     new = {c: rulebook.evaluate(cand, m) for c, m in mets.items()}
-    print(f"Rulebook v{current.version} -> v{cand.version}, on {len(labels)} labelled offers:")
-    for s in rulebook.diff_sentences(old, new):
+    tune = {c: l for c, l in labels.items() if l.get("split") != "holdout"}
+    print(f"Rulebook v{current.version} -> v{cand.version}, on {len(tune)} labelled tune offers:")
+    for s in rulebook.diff_sentences({c: old[c] for c in tune}, {c: new[c] for c in tune}):
         print("  " + s)
     for name, vs, rb in (("current", old, current), ("candidate", new, cand)):
-        kept, n, gp = agreement(vs, labels)
-        print(f"{name} v{rb.version}: verdicts agree with the PM labels on {kept} of {n} test offers "
+        kept, n, gp = agreement(vs, labels, "tune")
+        print(f"{name} v{rb.version}: verdicts agree with the labels on {kept} of {n} tune offers "
               f"({kept / n:.0%}); good offers marked PASS: {gp}.")
+    if not args.holdout:
+        n_hold = sum(1 for l in labels.values() if l.get("split") == "holdout")
+        print(f"Holdout ({n_hold} offers) not shown. Look at it once, after you stop tuning: --holdout.")
+        return 0
+    _log_holdout_look(cand)
+    for name, vs, rb in (("current", old, current), ("candidate", new, cand)):
+        kept, n, gp = agreement(vs, labels, "holdout")
+        print(f"HOLDOUT {name} v{rb.version}: {kept} of {n} ({kept / n:.0%}); good offers marked PASS: {gp}.")
     return 0
+
+
+def _log_holdout_look(rb) -> None:
+    """Each look at the holdout is logged. Many looks means the holdout has become a tune set."""
+    import datetime as dt
+
+    from .config import ROOT
+
+    p = ROOT / "measurements" / "holdout_looks.json"
+    looks = json.loads(p.read_text()) if p.exists() else []
+    looks.append({"at": dt.datetime.now().isoformat(timespec="seconds"), "rulebook": rb.version, "sha": rb.sha})
+    p.parent.mkdir(exist_ok=True)
+    p.write_text(json.dumps(looks, indent=2))
+    print(f"Holdout look number {len(looks)} logged in {p.name}.")
 
 
 def cmd_replay(args) -> int:
@@ -195,7 +300,7 @@ def cmd_replay(args) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="radar", description="Quick Look: screen secondaries offers from email.")
-    p.add_argument("--workspace", default="main", help="data/<name> holds this pipeline's layers")
+    p.add_argument("--workspace", default=None, help="data/<name> holds this pipeline's layers (default main)")
     sub = p.add_subparsers(dest="cmd", required=True)
     g = sub.add_parser("generate")
     g.add_argument("--seed", type=int, default=42)
@@ -208,6 +313,33 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--offline", action="store_true")
     d.set_defaults(fn=cmd_demo)
     sub.add_parser("status").set_defaults(fn=cmd_status)
+    br = sub.add_parser("brief")
+    br.add_argument("offer")
+    br.set_defaults(fn=cmd_brief)
+    mt = sub.add_parser("match")
+    mt.add_argument("offer")
+    mt.add_argument("line", type=int)
+    mt.set_defaults(fn=cmd_match)
+    rv = sub.add_parser("resolve")
+    rv.add_argument("offer")
+    rv.add_argument("line", type=int)
+    rv.add_argument("fund_id")
+    rv.add_argument("--user")
+    rv.set_defaults(fn=cmd_resolve)
+    kp = sub.add_parser("keep")
+    kp.add_argument("offer")
+    kp.add_argument("--user")
+    kp.set_defaults(fn=cmd_keep)
+    me = sub.add_parser("memo")
+    me.add_argument("offer")
+    me.set_defaults(fn=cmd_memo)
+    ev = sub.add_parser("eval", help="experiment over the labelled datasets (Langfuse when keys are set)")
+    ev.add_argument("--parser", choices=["offline", "claude"], default="offline")
+    ev.add_argument("--local", action="store_true", help="do not post to Langfuse even if keys are set")
+    ev.add_argument("--limit", type=int, help="first N offers only (keeps model cost down)")
+    ev.set_defaults(fn=cmd_eval)
+    cmp_ = sub.add_parser("eval-compare", help="compare saved parser eval results")
+    cmp_.set_defaults(fn=cmd_eval_compare)
     w = sub.add_parser("why")
     w.add_argument("offer")
     w.set_defaults(fn=cmd_why)
@@ -225,6 +357,7 @@ def main(argv: list[str] | None = None) -> int:
     rt = rs.add_parser("test")
     rt.add_argument("candidate", nargs="?")
     rt.add_argument("--current", default=str(RULEBOOK_PATH))
+    rt.add_argument("--holdout", action="store_true", help="also report the holdout split (logged)")
     rt.set_defaults(fn=cmd_rules_test)
     rep = sub.add_parser("replay")
     rep.add_argument("--offline", action="store_true")
@@ -234,11 +367,28 @@ def main(argv: list[str] | None = None) -> int:
 
     intake_cli.register(sub)
     args = p.parse_args(argv)
+    from .tracing import get_tracer, load_env
+
+    load_env()
     try:
         return args.fn(args)
     except rulebook.RulebookError as e:
         print(f"Rulebook error: {e}")
         return 2
+    finally:
+        get_tracer().flush()
+
+
+def cmd_eval(args) -> int:
+    from . import evals
+
+    return evals.main(parser=args.parser, local=args.local, limit=args.limit)
+
+
+def cmd_eval_compare(args) -> int:
+    from . import evals
+
+    return evals.compare()
 
 
 if __name__ == "__main__":

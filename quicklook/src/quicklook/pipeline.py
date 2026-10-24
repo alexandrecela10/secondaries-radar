@@ -21,6 +21,7 @@ from pydantic import ValidationError
 
 from . import brief as brief_mod
 from . import match, metrics, rulebook, store
+from .tracing import Tracer, get_tracer
 from .config import PLAN_PATH, RULEBOOK_PATH, Workspace
 from .emailio import EmailContent, read_email
 from .models import ParsedLine, ParsedOffer, Tier
@@ -105,15 +106,15 @@ def _validate_lines(offer_id: str, parsed: ParsedOffer) -> tuple[list[ParsedLine
     return good, rejects
 
 
-def compute(parsed: ParsedOffer, lines: list[ParsedLine], offer_id: str, known_at: dt.datetime,
-            ref: Reference, rb: rulebook.Rulebook, plan: dict):
-    """Pure-ish core: matching, metrics, verdict. Returns rows ready for gold."""
-    ref_date = parsed.reference_date
+def _match_all(lines, offer_id, known_at, ref, ref_date, resolutions, currency):
     match_rows, facts = [], []
     for line in lines:
         line_id = f"{offer_id}:L{line.line_no:02d}"
         m = match.match_line(line, line_id, ref, ref_date, known_at)
-        rate, fx_row = ref.fx_rate(line.currency or parsed.currency, ref_date)
+        if line.line_no in resolutions:
+            pick = resolutions[line.line_no]
+            m = match.analyst_pick(m, ref.funds[pick["fund_id"]], ref, pick["user_name"])
+        rate, fx_row = ref.fx_rate(line.currency or currency, ref_date)
         value_usd = line.value * rate
         lo = hi = None
         method = our_row = None
@@ -141,8 +142,33 @@ def compute(parsed: ParsedOffer, lines: list[ParsedLine], offer_id: str, known_a
         facts.append(metrics.LineFact(line_id=line_id, value_usd=value_usd, strategy=line.strategy,
                                       region=line.region, vintage=line.vintage, tier=m.tier, resolved=m.resolved,
                                       match_confidence=m.confidence, price_low=lo, price_high=hi))
-    mvals = metrics.offer_metrics(facts, parsed.asking_price_text, plan)
-    verdict = rulebook.evaluate(rb, {k: v.value for k, v in mvals.items()})
+    return match_rows, facts
+
+
+def compute(parsed: ParsedOffer, lines: list[ParsedLine], offer_id: str, known_at: dt.datetime,
+            ref: Reference, rb: rulebook.Rulebook, plan: dict, resolutions: dict[int, dict] | None = None,
+            tr: Tracer | None = None):
+    """Pure-ish core: matching, metrics, verdict. Returns rows ready for gold.
+
+    `resolutions` maps line_no to an analyst's pick ({fund_id, user_name}); code still applies the tier rules."""
+    tr = tr or Tracer(None)
+    resolutions = resolutions or {}
+    ref_date = parsed.reference_date
+    with tr.step("match", as_type="retriever",
+                 input={"reference_date": ref_date.isoformat(), "known_at": str(known_at), "lines": len(lines),
+                        "analyst_picks": {str(k): v["fund_id"] for k, v in resolutions.items()}}) as obs:
+        match_rows, facts = _match_all(lines, offer_id, known_at, ref, ref_date, resolutions, parsed.currency)
+        obs.update(output=[{"line": r["label"], "tier": r["tier"], "fund_id": r["fund_id"], "manager_id": r["manager_id"],
+                            "confidence": r["confidence"], "resolved": r["resolved"], "method": r["method"]}
+                           for r in match_rows])
+    with tr.step("metrics", input={"lines": len(facts), "asking_price_text": parsed.asking_price_text}) as o:
+        mvals = metrics.offer_metrics(facts, parsed.asking_price_text, plan)
+        o.update(output={k: v.value for k, v in mvals.items()}, metadata={"versions": {k: v.version for k, v in mvals.items()}})
+    with tr.step("verdict", input={"rulebook_version": rb.version, "rulebook_sha": rb.sha}) as o:
+        verdict = rulebook.evaluate(rb, {k: v.value for k, v in mvals.items()})
+        o.update(output={"verdict": verdict.verdict, "band": verdict.band, "score": verdict.score,
+                         "threshold": verdict.threshold, "veto_rule": verdict.veto_rule, "headline": verdict.headline,
+                         "rules": [{"rule": r.rule_id, "status": r.status, "value": r.value} for r in verdict.reasons]})
 
     exposure = []
     mgrs = sorted({r["manager_id"] for r in match_rows if r["manager_id"] and r["tier"] != Tier.UNKNOWN.value})
@@ -202,9 +228,15 @@ def _write_gold(con, offer_id, content, parsed, parser, lines, rejects, match_ro
         raise
 
 
-def write_brief(con, ws: Workspace, offer_id: str) -> tuple[Path, bool, list[str]]:
-    html = brief_mod.render(con, offer_id)
-    problems = brief_mod.validate(html, lambda t, r, m: store.lookup(con, t, r, m))
+def write_brief(con, ws: Workspace, offer_id: str, tr: Tracer | None = None) -> tuple[Path, bool, list[str]]:
+    tr = tr or Tracer(None)
+    with tr.step("brief", input={"offer_id": offer_id}) as o:
+        html = brief_mod.render(con, offer_id)
+        o.update(output={"bytes": len(html)})
+    with tr.step("validator", as_type="guardrail", input={"offer_id": offer_id}) as o:
+        problems = brief_mod.validate(html, lambda t, r, m: store.lookup(con, t, r, m))
+        o.update(output={"passed": not problems, "problems": problems[:20]},
+                 level="ERROR" if problems else "DEFAULT")
     path = ws.briefs_dir / (f"{offer_id}.html" if not problems else f"{offer_id}.INVALID.html")
     _atomic_write(path, html.encode())
     con.execute("DELETE FROM gold_briefs WHERE offer_id = ?", [offer_id])
@@ -215,24 +247,75 @@ def write_brief(con, ws: Workspace, offer_id: str) -> tuple[Path, bool, list[str
 
 
 def process_email(raw: bytes, ws: Workspace, parser: Parser | None = None, channel: str = "cli",
-                  rulebook_path: Path = RULEBOOK_PATH) -> Result:
+                  rulebook_path: Path = RULEBOOK_PATH, tracer: Tracer | None = None) -> Result:
     t0 = time.perf_counter()
+    tr = tracer or get_tracer()
     content = read_email(raw)
-    con = store.connect(ws)
-    try:
-        existing = record_bronze(con, ws, raw, content, channel)
-        if existing and existing["status"] in ("done", "parse_failed", "brief_invalid"):
-            return Result("duplicate", content.message_id, seconds=time.perf_counter() - t0)
-        con.execute("UPDATE bronze_emails SET attempts = attempts + 1 WHERE message_id = ?", [content.message_id])
-        return _run(con, ws, content, parser or get_parser(), rulebook_path, t0)
-    finally:
-        con.close()
+    with tr.run(TRACE_NAME, input={"subject": content.subject, "sender": content.sender,
+                                   "received": content.date.isoformat(), "message_id": content.message_id},
+                session_id=content.message_id, metadata={"channel": channel}, tags=[f"channel:{channel}"]) as root:
+        con = store.connect(ws)
+        try:
+            with tr.step("intake", input={"channel": channel, "message_id": content.message_id,
+                                          "bytes": len(raw)}) as o:
+                existing = record_bronze(con, ws, raw, content, channel)
+                dup = bool(existing and existing["status"] in ("done", "parse_failed", "brief_invalid"))
+                o.update(output={"status": "duplicate" if dup else ("retry" if existing else "new"),
+                                 "attachments": [t.filename for t in content.tables]})
+            if dup:
+                root.update(output={"status": "duplicate"})
+                return Result("duplicate", content.message_id, seconds=time.perf_counter() - t0)
+            con.execute("UPDATE bronze_emails SET attempts = attempts + 1 WHERE message_id = ?", [content.message_id])
+            r = _run(con, ws, content, parser or get_parser(), rulebook_path, t0, tr, root, channel)
+            root.update(output={"status": r.status, "offer_id": r.offer_id, "verdict": r.verdict,
+                                "headline": r.headline})
+            return r
+        finally:
+            con.close()
 
 
-def _run(con, ws, content, parser, rulebook_path, t0) -> Result:
+TRACE_NAME = "quick-look-offer"
+
+
+def _parse_traced(parser, content, tr: Tracer):
+    """Run the parser inside a 'parse' step: a generation for the model parser, a span offline."""
+    if parser.offline:
+        kw = dict(as_type="span", input={"parser": parser.name, "version": parser.version})
+    else:
+        msgs = parser.request_messages(content) if hasattr(parser, "request_messages") else None
+        kw = dict(as_type="generation", input=msgs, model=getattr(parser, "model", None) or parser.name.split(":")[-1],
+                  metadata={"prompt_version": parser.version, "parser": parser.name})
+    with tr.step("parse", **kw) as o:
+        try:
+            parsed, err = parser.parse(content), None
+        except (ParseError, ValidationError) as e:
+            parsed, err = None, e
+        call = getattr(parser, "last_call", None) or {}
+        upd: dict = {}
+        if call.get("usage"):
+            upd["usage_details"] = call["usage"]
+        if call.get("model"):
+            upd["model"] = call["model"]
+        if call.get("fell_back_offline"):
+            upd.update(level="WARNING", status_message="model unreachable; offline parser used")
+        if err is not None:
+            upd.update(level="ERROR", status_message=str(err).splitlines()[0])
+        else:
+            upd["output"] = {"code_name": parsed.code_name, "reference_date": parsed.reference_date.isoformat(),
+                             "currency": parsed.currency, "asking_price_text": parsed.asking_price_text,
+                             "lines": parsed.lines}
+        o.update(**upd)
+    if err is not None:
+        raise err
+    return parsed
+
+
+def _run(con, ws, content, parser, rulebook_path, t0, tr: Tracer | None = None, root=None,
+         channel: str = "cli") -> Result:
+    tr = tr or Tracer(None)
     mid = content.message_id
     try:
-        parsed = parser.parse(content)
+        parsed = _parse_traced(parser, content, tr)
     except (ParseError, ValidationError) as e:
         reason = str(e).splitlines()[0]
         con.execute("DELETE FROM review_queue WHERE message_id = ?", [mid])
@@ -247,12 +330,13 @@ def _run(con, ws, content, parser, rulebook_path, t0) -> Result:
     lines, rejects = _validate_lines(offer_id, parsed)
     rb = rulebook.load(rulebook_path)
     match_rows, mvals, verdict, exposure = compute(parsed, lines, offer_id, content.date, load_reference(ws), rb,
-                                                   load_plan())
+                                                   load_plan(), _resolutions(con, offer_id), tr)
     _write_gold(con, offer_id, content, parsed, parser, lines, rejects, match_rows, mvals, verdict, exposure)
     slow = float(os.environ.get("QUICKLOOK_SLOW_SECONDS", "0") or 0)
     if slow:
         time.sleep(slow)  # used by the recovery test to kill a run half-way
-    path, ok, _ = write_brief(con, ws, offer_id)
+    path, ok, _ = write_brief(con, ws, offer_id, tr)
+    _finish_trace(con, offer_id, root, ok, verdict, channel)
     status = "done" if ok else "brief_invalid"
     con.execute("UPDATE bronze_emails SET status = ?, processed_at = ? WHERE message_id = ?",
                 [status, store.now(), mid])
@@ -260,26 +344,151 @@ def _run(con, ws, content, parser, rulebook_path, t0) -> Result:
                   time.perf_counter() - t0)
 
 
-def record_override(ws: Workspace, offer: str, verdict: str, reason: str, user: str) -> dict:
-    """Store a team override with who, when, why, and the rulebook it overrules. Not learned from."""
+def _resolutions(con, offer_id: str) -> dict[int, dict]:
+    """Latest analyst pick per line for this offer."""
+    out: dict[int, dict] = {}
+    for r in store.rows(con, "SELECT * FROM line_resolutions WHERE offer_id = ? ORDER BY created_at", [offer_id]):
+        out[r["line_no"]] = r
+    return out
+
+
+def _finish_trace(con, offer_id: str, root, ok: bool, verdict, kind: str) -> None:
+    """Scores on the run's trace, and remember the trace so later team feedback lands on it."""
+    if root is None or root.trace_id is None:
+        return
+    root.score_trace(name="validator_pass", value=1 if ok else 0, data_type="BOOLEAN")
+    root.score_trace(name="data_matched", value=float(verdict.data_matched), data_type="NUMERIC")
+    root.score_trace(name="verdict_band", value=verdict.band, data_type="CATEGORICAL",
+                     comment=f"{verdict.verdict}: {verdict.headline}")
+    con.execute("DELETE FROM offer_traces WHERE trace_id = ?", [root.trace_id])
+    store.insert(con, "offer_traces", dict(trace_id=root.trace_id, offer_id=offer_id, kind=kind,
+                                           created_at=store.now()))
+
+
+def _offer_and_verdict(con, offer: str) -> tuple[dict, dict]:
+    o = store.resolve_offer(con, offer)
+    if not o:
+        raise KeyError(f"No offer called {offer}.")
+    return o, store.one(con, "SELECT * FROM gold_verdicts WHERE offer_id = ?", [o["offer_id"]])
+
+
+def record_override(ws: Workspace, offer: str, verdict: str, reason: str, user: str,
+                    tracer: Tracer | None = None) -> dict:
+    """Store a team override with who, when, why, and the rulebook it overrules. Not learned from.
+    It is also sent as feedback on the offer's trace: an override is the team's label."""
     import uuid
 
+    tr = tracer or get_tracer()
     reason = (reason or "").strip()
     if len(reason) < 5:
         raise ValueError("An override needs a reason (at least a few words).")
     new = {"pass": "PASS", "look": "LOOK CLOSER"}[verdict.lower()]
     con = store.connect(ws)
     try:
-        o = store.resolve_offer(con, offer)
-        if not o:
-            raise KeyError(f"No offer called {offer}.")
-        v = store.one(con, "SELECT * FROM gold_verdicts WHERE offer_id = ?", [o["offer_id"]])
+        o, v = _offer_and_verdict(con, offer)
         row = dict(override_id=uuid.uuid4().hex[:12], offer_id=o["offer_id"], user_name=user,
                    created_at=store.now(), rulebook_version=v["rulebook_version"], rulebook_sha=v["rulebook_sha"],
                    original_verdict=v["verdict"], new_verdict=new, reason=reason)
         store.insert(con, "overrides", row)
         path, _, _ = write_brief(con, ws, o["offer_id"])
-        return dict(row, code_name=o["code_name"], brief_path=path)
+        tid = store.latest_trace_id(con, o["offer_id"])
+        meta = {"user": user, "rulebook_version": v["rulebook_version"], "original_verdict": v["verdict"]}
+        tr.feedback(tid, "team_decision", "override", "CATEGORICAL", reason, f"{row['override_id']}-d", meta)
+        tr.feedback(tid, "verdict_agrees", 1 if new == v["verdict"] else 0, "BOOLEAN", reason,
+                    f"{row['override_id']}-a", meta)
+        tr.feedback(tid, "team_label", new, "CATEGORICAL", reason, f"{row['override_id']}-l", meta)
+        return dict(row, code_name=o["code_name"], brief_path=path, trace_id=tid)
+    finally:
+        con.close()
+
+
+def record_keep(ws: Workspace, offer: str, user: str, tracer: Tracer | None = None) -> dict:
+    """The analyst agrees with the verdict. Stored with who, when and the rulebook version."""
+    import uuid
+
+    tr = tracer or get_tracer()
+    con = store.connect(ws)
+    try:
+        o, v = _offer_and_verdict(con, offer)
+        row = dict(decision_id=uuid.uuid4().hex[:12], offer_id=o["offer_id"], user_name=user,
+                   created_at=store.now(), verdict=v["verdict"], band=v["band"],
+                   rulebook_version=v["rulebook_version"], rulebook_sha=v["rulebook_sha"])
+        store.insert(con, "decisions", row)
+        path, _, _ = write_brief(con, ws, o["offer_id"])
+        tid = store.latest_trace_id(con, o["offer_id"])
+        meta = {"user": user, "rulebook_version": v["rulebook_version"]}
+        tr.feedback(tid, "team_decision", "keep", "CATEGORICAL", None, f"{row['decision_id']}-d", meta)
+        tr.feedback(tid, "verdict_agrees", 1, "BOOLEAN", None, f"{row['decision_id']}-a", meta)
+        tr.feedback(tid, "team_label", v["verdict"], "CATEGORICAL", None, f"{row['decision_id']}-l", meta)
+        return dict(row, code_name=o["code_name"], brief_path=path, trace_id=tid)
+    finally:
+        con.close()
+
+
+def record_resolve(ws: Workspace, offer: str, line_no: int, fund_id: str, user: str,
+                   tracer: Tracer | None = None) -> dict:
+    """The analyst says which fund a line is. Verdict and confidence are recomputed from silver."""
+    import uuid
+
+    tr = tracer or get_tracer()
+    ref = load_reference(ws)
+    con = store.connect(ws)
+    try:
+        o, before = _offer_and_verdict(con, offer)
+        oid = o["offer_id"]
+        line = store.one(con, "SELECT * FROM silver_offer_lines WHERE offer_id = ? AND line_no = ?", [oid, line_no])
+        gm = store.one(con, "SELECT * FROM gold_line_matches WHERE offer_id = ? AND line_no = ?", [oid, line_no])
+        if not line or not gm:
+            raise KeyError(f"Project {o['code_name']} has no Fund {line_no}.")
+        fits = ref.candidates(line["vintage"], line["strategy"], line["region"])
+        if fund_id not in {f["fund_id"] for f in fits}:
+            listed = json.loads(gm["candidates_json"]) or [dict(fund_id=f["fund_id"], fund_name=f["name"]) for f in fits]
+            names = ", ".join(f"{c['fund_id']} {c['fund_name']}" for c in listed[:5]) or "none"
+            raise ValueError(f"{fund_id} does not fit {gm['label']}'s description. Candidates: {names}.")
+        fund = ref.funds[fund_id]
+        row = dict(resolution_id=uuid.uuid4().hex[:12], offer_id=oid, line_no=line_no, label=gm["label"],
+                   fund_id=fund_id, fund_name=fund["name"], user_name=user, created_at=store.now(),
+                   previous_tier=gm["tier"], previous_method=gm["method"])
+        store.insert(con, "line_resolutions", row)
+        tid = store.latest_trace_id(con, oid)
+    finally:
+        con.close()
+    tr.feedback(tid, "line_resolved", 1, "BOOLEAN",
+                f"{gm['label']}: code said {gm['tier']} ({gm['method']}); analyst picked {fund_id}",
+                f"{row['resolution_id']}-r", {"user": user, "line_no": line_no, "fund_id": fund_id,
+                                              "previous_tier": gm["tier"]})
+    after = recompute(ws, oid, tr, kind="resolve")
+    return dict(row, code_name=o["code_name"], before=before, after=after["verdict"], brief_path=after["brief_path"])
+
+
+def recompute(ws: Workspace, offer: str, tracer: Tracer | None = None, kind: str = "recompute") -> dict:
+    """Re-run match, metrics, verdict and brief from silver (no new parse), keeping team rows."""
+    from types import SimpleNamespace
+
+    tr = tracer or get_tracer()
+    con = store.connect(ws)
+    try:
+        o = store.resolve_offer(con, offer)
+        oid = o["offer_id"]
+        cols = [c for c in ParsedLine.model_fields]
+        lines = [ParsedLine(**{c: r[c] for c in cols})
+                 for r in store.rows(con, "SELECT * FROM silver_offer_lines WHERE offer_id = ? ORDER BY line_no", [oid])]
+        rejects = store.rows(con, "SELECT * FROM silver_rejects WHERE offer_id = ? ORDER BY row_id", [oid])
+        parsed = ParsedOffer(code_name=o["code_name"], seller_type=o["seller_type"], reference_date=o["reference_date"],
+                             currency=o["currency"], total_value=o["total_value"],
+                             asking_price_text=o["asking_price_text"], bid_deadline=o["bid_deadline"])
+        content = SimpleNamespace(message_id=o["message_id"], date=o["email_date"], sender=o["sender"])
+        parser = SimpleNamespace(name=o["parser"], version=o["parser_version"], offline=o["parser_offline"])
+        res = _resolutions(con, oid)
+        with tr.run(f"{TRACE_NAME}-{kind}", input={"offer_id": oid, "analyst_picks": {str(k): v["fund_id"] for k, v in res.items()}},
+                    session_id=o["message_id"], metadata={"channel": kind}, tags=[f"channel:{kind}"]) as root:
+            match_rows, mvals, verdict, exposure = compute(parsed, lines, oid, o["email_date"], load_reference(ws),
+                                                           rulebook.load(RULEBOOK_PATH), load_plan(), res, tr)
+            _write_gold(con, oid, content, parsed, parser, lines, rejects, match_rows, mvals, verdict, exposure)
+            path, ok, _ = write_brief(con, ws, oid, tr)
+            _finish_trace(con, oid, root, ok, verdict, kind)
+            root.update(output={"verdict": verdict.verdict, "band": verdict.band, "headline": verdict.headline})
+        return dict(verdict=store.one(con, "SELECT * FROM gold_verdicts WHERE offer_id = ?", [oid]), brief_path=path)
     finally:
         con.close()
 

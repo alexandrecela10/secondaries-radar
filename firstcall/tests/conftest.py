@@ -1,3 +1,11 @@
+import os
+
+# Tests run offline: no .env, no tracing, no model calls, whatever keys the machine has.
+os.environ["FC_NO_DOTENV"] = "1"
+os.environ["FC_TRACING"] = "0"
+for _k in ("ANTHROPIC_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"):
+    os.environ.pop(_k, None)
+
 from datetime import datetime, timedelta, timezone
 
 import pytest

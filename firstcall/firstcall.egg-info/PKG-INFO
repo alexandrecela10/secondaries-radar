@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: firstcall
+Version: 0.2.0
+Requires-Python: >=3.11
+Requires-Dist: anthropic>=2.3.0
+Requires-Dist: confluent-kafka>=2.16.0
+Requires-Dist: duckdb>=2.0.0
+Requires-Dist: feedparser>=6.0.14
+Requires-Dist: httpx>=0.28.1
+Requires-Dist: langfuse==5.0.4
+Requires-Dist: pydantic>=2
+Requires-Dist: pytest>=9.1.1
+Requires-Dist: python-dotenv==1.2.4
+Requires-Dist: pytz>=2026.5
+Requires-Dist: pyyaml>=6.0.3

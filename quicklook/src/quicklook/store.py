@@ -56,6 +56,14 @@ CREATE TABLE IF NOT EXISTS overrides (
     override_id VARCHAR PRIMARY KEY, offer_id VARCHAR, user_name VARCHAR, created_at TIMESTAMP,
     rulebook_version VARCHAR, rulebook_sha VARCHAR, original_verdict VARCHAR, new_verdict VARCHAR,
     reason VARCHAR);
+CREATE TABLE IF NOT EXISTS decisions (
+    decision_id VARCHAR PRIMARY KEY, offer_id VARCHAR, user_name VARCHAR, created_at TIMESTAMP,
+    verdict VARCHAR, band VARCHAR, rulebook_version VARCHAR, rulebook_sha VARCHAR);
+CREATE TABLE IF NOT EXISTS line_resolutions (
+    resolution_id VARCHAR PRIMARY KEY, offer_id VARCHAR, line_no INTEGER, label VARCHAR, fund_id VARCHAR,
+    fund_name VARCHAR, user_name VARCHAR, created_at TIMESTAMP, previous_tier VARCHAR, previous_method VARCHAR);
+CREATE TABLE IF NOT EXISTS offer_traces (
+    trace_id VARCHAR PRIMARY KEY, offer_id VARCHAR, kind VARCHAR, created_at TIMESTAMP);
 """
 
 OFFER_TABLES = ["silver_offer_lines", "silver_rejects", "gold_line_matches", "gold_offer_metrics", "gold_exposure",
@@ -65,7 +73,8 @@ OFFER_TABLES = ["silver_offer_lines", "silver_rejects", "gold_line_matches", "go
 LINEAGE_KEYS = {
     "silver_offers": "offer_id", "silver_offer_lines": "line_id", "gold_line_matches": "line_id",
     "gold_exposure": "row_id", "gold_rule_results": "row_id", "gold_verdicts": "offer_id",
-    "silver_rejects": "row_id", "overrides": "override_id", "ref_fund_series": "row_id", "ref_fx_rates": "row_id", "bronze_emails": "message_id",
+    "silver_rejects": "row_id", "overrides": "override_id", "decisions": "decision_id",
+    "line_resolutions": "resolution_id", "ref_fund_series": "row_id", "ref_fx_rates": "row_id", "bronze_emails": "message_id",
 }
 
 
@@ -132,3 +141,19 @@ def resolve_offer(con, code_or_id: str) -> dict | None:
         return r
     return one(con, "SELECT * FROM silver_offers WHERE lower(code_name) = lower(?) ORDER BY email_date DESC LIMIT 1",
                [code_or_id])
+
+
+def latest_trace_id(con, offer_id: str) -> str | None:
+    r = one(con, "SELECT trace_id FROM offer_traces WHERE offer_id = ? ORDER BY created_at DESC LIMIT 1", [offer_id])
+    return r["trace_id"] if r else None
+
+
+def team_decision(con, offer_id: str) -> dict | None:
+    """The latest keep or override, whichever came last. kind is 'keep' or 'override'."""
+    ov = one(con, "SELECT * FROM overrides WHERE offer_id = ? ORDER BY created_at DESC LIMIT 1", [offer_id])
+    kp = one(con, "SELECT * FROM decisions WHERE offer_id = ? ORDER BY created_at DESC LIMIT 1", [offer_id])
+    if ov and (not kp or ov["created_at"] >= kp["created_at"]):
+        return dict(ov, kind="override")
+    if kp:
+        return dict(kp, kind="keep")
+    return None

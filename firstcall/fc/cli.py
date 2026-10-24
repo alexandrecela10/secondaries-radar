@@ -48,9 +48,24 @@ def main(argv: list[str] | None = None) -> int:
     w = sub.add_parser("weekly", help="weekly list (text, and HTML with --html)")
     w.add_argument("--as-of", default=None)
     w.add_argument("--html", action="store_true")
+    w.add_argument("--anon", action="store_true", help="hide pension names and links (for public docs)")
     y = sub.add_parser("why", help="evidence behind one pension's score")
     y.add_argument("pension")
     y.add_argument("--as-of", default=None)
+    t = sub.add_parser("timeline", help="weekly score against the PREPARE line, with dated signals")
+    t.add_argument("pension")
+    t.add_argument("--as-of", default=None)
+    t.add_argument("--weeks", type=int, default=26)
+    ac = sub.add_parser("act", help="record a decision to prepare (assign an analyst)")
+    ac.add_argument("pension")
+    ac.add_argument("action", choices=["prepare"])
+    ac.add_argument("--owner", required=True, help="the analyst who prepares")
+    ds = sub.add_parser("dismiss", help="dismiss a flag; the reason feeds the rule review")
+    ds.add_argument("pension")
+    ds.add_argument("--reason", required=True)
+    sub.add_parser("rebuild", help="re-process every landed fetch with the current classifier and rulebook")
+    el = sub.add_parser("eval-langfuse", help="labelled headlines as a Langfuse dataset and experiment")
+    el.add_argument("--no-upload", action="store_true", help="run locally even when Langfuse keys are set")
     sub.add_parser("rulebook", help="print the rulebook as sentences")
     sub.add_parser("pensions", help="list the pensions we link to")
     e = sub.add_parser("eval", help="classifier precision and recall on labelled headlines")
@@ -101,6 +116,34 @@ def main(argv: list[str] | None = None) -> int:
         from .stream.log import get_log
 
         print(f"redriven: {redrive_dlq(get_log(a.log))}")
+    elif a.cmd in ("timeline", "act", "dismiss"):
+        from . import journey, store
+
+        pid = journey.resolve(a.pension)
+        if pid is None:
+            print(journey.unknown(a.pension))
+            return 2
+        con = store.connect(a.db)
+        if a.cmd == "timeline":
+            print(journey.timeline_text(con, pid, _as_of(a.as_of), weeks=a.weeks))
+        else:
+            d = journey.record_decision(con, pid, "prepare" if a.cmd == "act" else "dismiss",
+                                        owner=getattr(a, "owner", None), reason=getattr(a, "reason", None))
+            what = f"prepare, owner {d['owner']}" if d["action"] == "prepare" else f"dismiss: {d['reason']}"
+            print(f"Recorded {what} for {pid} by {d['decided_by']} at {d['decided_at']:%Y-%m-%d %H:%M} UTC, "
+                  f"rulebook v{d['rulebook_version']}, score then {d['score']:.2f} ({d['verdict']}). "
+                  + ("Sent to Langfuse as score partner_decision." if d["sent_to_langfuse"]
+                     else "Langfuse off or no traced run: stored locally only."))
+    elif a.cmd == "rebuild":
+        from . import pipeline, store
+        from .collect import load_landing
+
+        con = store.connect(a.db)
+        print(pipeline.process_many(con, load_landing(), get_classifier(a.classifier), _as_of(None), path="batch"))
+    elif a.cmd == "eval-langfuse":
+        from .lf_eval import main as lf_main
+
+        lf_main(a.classifier, upload=not a.no_upload)
     elif a.cmd in ("weekly", "why"):
         from . import report, store
 
@@ -109,7 +152,7 @@ def main(argv: list[str] | None = None) -> int:
         if a.cmd == "why":
             print(report.why_text(con, a.pension, as_of))
         else:
-            print(report.weekly_text(con, as_of))
+            print(report.weekly_text(con, as_of, anon=a.anon))
             if a.html:
                 REPORTS_DIR.mkdir(exist_ok=True)
                 out = REPORTS_DIR / f"weekly_{as_of.date()}.html"
@@ -118,6 +161,8 @@ def main(argv: list[str] | None = None) -> int:
     elif a.cmd == "rulebook":
         rb = rulebook()
         print(f"Rulebook v{rb.version}. A pension is on PREPARE when its score reaches {rb.prepare_threshold}.")
+        if not rb.completed_sales_count:
+            print("A sale that already closed is shown as evidence and adds nothing to the score.")
         print(f"Each signal adds weight x confidence, halved every {rb.half_life_days:.0f} days; "
               f"signals older than {rb.window_days} days are dropped.")
         for k, v in sorted(rb.weights.items(), key=lambda kv: -kv[1]):

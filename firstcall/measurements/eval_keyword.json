@@ -1,0 +1,1990 @@
+{
+ "classifier": "keyword:kw-3",
+ "run_at": "2026-10-24 21:27",
+ "langfuse": true,
+ "splits": {
+  "dev": {
+   "n": 65,
+   "precision": 0.95,
+   "recall": 1.0,
+   "link_accuracy": 1.0,
+   "flagged": 20,
+   "labelled_signals": 19,
+   "errors": 0,
+   "dataset_run_url": "https://cloud.langfuse.com/project/cmvmvsysv00l2ad0jj1iugnuj/experiments/results?baseline=4025cb7ba3711790",
+   "items": [
+    {
+     "n": 64,
+     "headline": "New York City Retirement Systems makes interim CIO Monte Tarbox permanent",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "e4fbc4b56bf6dfb17f8d08e7e8c1192c"
+    },
+    {
+     "n": 63,
+     "headline": "LACERA to reduce meeting frequency despite governance concerns",
+     "expected": {
+      "pension_id": "lacera",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lacera",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "ea999ba6c312942e0047f5e3441e3eb3"
+    },
+    {
+     "n": 62,
+     "headline": "SWIB at 75: A Legacy of Strength and Stability",
+     "expected": {
+      "pension_id": "swib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "swib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "ed906b2caf329da85610f4c776de6f98"
+    },
+    {
+     "n": 61,
+     "headline": "Washington pension board expresses credit concern amid build-out",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "cba79abc2b0051f5e254c20c7740c621"
+    },
+    {
+     "n": 60,
+     "headline": "Investor Intentions: Ohio STRS sets private equity pacing plan for 2027",
+     "expected": {
+      "pension_id": "ohio_strs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ohio_strs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "d6d9a1b3218a73f2ea34e67c353e69c7"
+    },
+    {
+     "n": 59,
+     "headline": "Wisconsin Investment Board private markets exec, P&I Influential Women honoree, has retired",
+     "expected": {
+      "pension_id": "swib",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "swib",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "952019cfe5f05cf4400198fd500a8924"
+    },
+    {
+     "n": 58,
+     "headline": "Washington State Investment Board allocates $500M to growth-oriented PE",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "72b2eb9314111db0c320433bf1add018"
+    },
+    {
+     "n": 57,
+     "headline": "PSERS rebalances toward next-gen private markets",
+     "expected": {
+      "pension_id": "psers",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "psers",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "90a95a208988604db1e546903e19b8e0"
+    },
+    {
+     "n": 56,
+     "headline": "CalPERS tops U.S. public pension funds in private equity returns for fiscal year",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "4c2f37ff9a6e09f978d5301c1725cc66"
+    },
+    {
+     "n": 55,
+     "headline": "PennSERS lowers PE target due to lack of \u2018options\u2019 in current market",
+     "expected": {
+      "pension_id": "pa_sers",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "pa_sers",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "bfec7eebea11f500260407f8799a4e2d"
+    },
+    {
+     "n": 54,
+     "headline": "WSIB recommends two new PE commitments",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "edd37b544e4753182bc910efbe61e1a0"
+    },
+    {
+     "n": 53,
+     "headline": "MassPRIM to miss PE deployment target amid distribution slowdown",
+     "expected": {
+      "pension_id": "massprim",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "liquidity_need",
+      "pension_id": "massprim",
+      "completed": false,
+      "confidence": 0.65
+     },
+     "trace_id": "852716c0a570249acb5906545d9a5327"
+    },
+    {
+     "n": 52,
+     "headline": "WSIB adds $1.8bn to private markets",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "d7ad8569e77ac00f7328bde17edffa8d"
+    },
+    {
+     "n": 51,
+     "headline": "Washington State Investment Board Decreases its Public Equity Exposure",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "21628f7d686c263ed9f1852833269eb1"
+    },
+    {
+     "n": 50,
+     "headline": "LACERS to cull GP relationships, focusing on outperforming smaller managers",
+     "expected": {
+      "pension_id": "lacers",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "lacers",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "35b2640d5381e93e2532f38c0b3179cf"
+    },
+    {
+     "n": 49,
+     "headline": "IMRF assigns $320m to real assets, PE funds",
+     "expected": {
+      "pension_id": "imrf",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "imrf",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "8bb6e808bb1b2f0f7c848d376b204bf5"
+    },
+    {
+     "n": 48,
+     "headline": "Fernando Vinzons Named New CIO at Chicago Teachers\u2019 Pension Fund",
+     "expected": {
+      "pension_id": "ctpf",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "ctpf",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "ded831adf0fb4230a56e2fbd9bbe1f60"
+    },
+    {
+     "n": 47,
+     "headline": "Washington State Investment Board names new CIO",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "c3cfb25694dc30f10a8b0895428e662a"
+    },
+    {
+     "n": 46,
+     "headline": "Louisiana Teachers\u2019 co-investment allocation set to skyrocket",
+     "expected": {
+      "pension_id": "trsl",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "trsl",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "502ad19d73164da4cef71dc2d04a3eb1"
+    },
+    {
+     "n": 45,
+     "headline": "Iowa PERS re-assesses real assets credit portfolio for restructuring",
+     "expected": {
+      "pension_id": "ipers",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "ipers",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "e6f64119dfdcbdc3447b23a12b4ac553"
+    },
+    {
+     "n": 44,
+     "headline": "Scott Parrish, Head of Private Equity, State of Wisconsin Investment Board, on private capital trends",
+     "expected": {
+      "pension_id": "swib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "swib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "491807e027b4f1a9a18a359797f442a8"
+    },
+    {
+     "n": 43,
+     "headline": "Hawaii ERS sets $1B private equity pacing to maintain \"healthy liquidity\"",
+     "expected": {
+      "pension_id": "hawaii_ers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "hawaii_ers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "f1a26f84929ef87d4d6dc09a8803074a"
+    },
+    {
+     "n": 42,
+     "headline": "LACERS outlines 2020 private equity pacing plan",
+     "expected": {
+      "pension_id": "lacers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lacers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "a71a97cf5d6b363e398275ab9949d3c6"
+    },
+    {
+     "n": 41,
+     "headline": "NYC pension's $5 billion sale of private equity stakes might be largest ever of its kind",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.85
+     },
+     "trace_id": "15cc3668bd5e9f1583d686c8e22152f7"
+    },
+    {
+     "n": 40,
+     "headline": "CalPERS\u2019 new alts head takes sophisticated approach to secondaries",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "f130f54cbeff826fe20d973ef316164c"
+    },
+    {
+     "n": 39,
+     "headline": "California retiree group wants to investigate CalPERS. It\u2019s not the first time",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "d9996f04c5c029619e66ba37b5438838"
+    },
+    {
+     "n": 38,
+     "headline": "WSIB adds $1.3bn to private markets",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "4abbfc342dea4e3658c65c2605c62e3c"
+    },
+    {
+     "n": 37,
+     "headline": "Marcie Frost, CalPERS: Women in Private Equity 2026",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "fb9461df569572faa68228161d0f06fb"
+    },
+    {
+     "n": 36,
+     "headline": "Illinois State Board of Investment names Dipesh Mehta as CIO",
+     "expected": {
+      "pension_id": "isbi",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "isbi",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "87dd7fe806e7bb81eec0098b8c1cfdc6"
+    },
+    {
+     "n": 35,
+     "headline": "Oklahoma Teachers, facing \u2018too many\u2019 distributions, ups pacing plan",
+     "expected": {
+      "pension_id": "trs_oklahoma",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "trs_oklahoma",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "36879c89651e19b502ff6573c2400ed1"
+    },
+    {
+     "n": 34,
+     "headline": "Virginia Retirement System Appoints Andrew Junkin as CIO",
+     "expected": {
+      "pension_id": "vrs",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "vrs",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "35a359cad7bc5ec570b43a52b1465a54"
+    },
+    {
+     "n": 33,
+     "headline": "Ohio SERS joins pension funds tracking AI exposure as data center risks mount",
+     "expected": {
+      "pension_id": "ohio_sers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ohio_sers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "86ab2cb0caab694988112f541c7af720"
+    },
+    {
+     "n": 32,
+     "headline": "WSIB CIO Gary Bruebaker to Retire",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "cf1732c9181485abeee6be0ab616cc69"
+    },
+    {
+     "n": 31,
+     "headline": "Nevada pension looks to slash private equity allocation",
+     "expected": {
+      "pension_id": "nvpers",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "nvpers",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "8465ceb29b26f067d054b65f10020857"
+    },
+    {
+     "n": 30,
+     "headline": "Colorado PERA names investment consultant search finalists",
+     "expected": {
+      "pension_id": "colorado_pera",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "colorado_pera",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "b0ded04ce4d6ede9647d4bbfd3b1915b"
+    },
+    {
+     "n": 29,
+     "headline": "Why OCERS CIO Molly Murphy prefers taking the less-traveled investment route",
+     "expected": {
+      "pension_id": "ocers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ocers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "c5507c19bf0cfa3a4aa858a083242849"
+    },
+    {
+     "n": 28,
+     "headline": "MassPRIM commits $350m to private equity",
+     "expected": {
+      "pension_id": "massprim",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "massprim",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "d7c25398d0ab9e665af33f9359c1c4e8"
+    },
+    {
+     "n": 27,
+     "headline": "CalPERS sells 46 funds managed by 24 GPs in massive secondary sale",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "calpers",
+      "completed": true,
+      "confidence": 0.85
+     },
+     "trace_id": "3833d72126539c88e19ca0ef64c1940d"
+    },
+    {
+     "n": 26,
+     "headline": "Anne-Marie Fink, CIO, Private Markets & Funds Alpha, State of Wisconsin Investment Board: On Wisconsin",
+     "expected": {
+      "pension_id": "swib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "swib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "930b210f1feb3f26b92f8f55daa5e725"
+    },
+    {
+     "n": 25,
+     "headline": "Angela Miller-May, CIO, Illinois Municipal Retirement Fund",
+     "expected": {
+      "pension_id": "imrf",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "imrf",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "3a780a1d7be2f062aef0ae5b2be56fdd"
+    },
+    {
+     "n": 24,
+     "headline": "Iowa PERS the latest pension fund to face private equity challenges in fiscal-year returns",
+     "expected": {
+      "pension_id": "ipers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ipers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "b1006f58f45076d2847cca1f37d805b3"
+    },
+    {
+     "n": 23,
+     "headline": "Yup Kim\u2019s bold vision for Texas Municipal Retirement System",
+     "expected": {
+      "pension_id": "tmrs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "tmrs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "ee0cdfcaec40625141725d683cb4c9bd"
+    },
+    {
+     "n": 22,
+     "headline": "Monte Tarbox Named Permanent CIO of $316B NYC Retirement System",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "0479e1f5cecb1af27da1a2713e251fba"
+    },
+    {
+     "n": 21,
+     "headline": "How CIO Bob Jacksha navigated bureaucracy to transform New Mexico ERB into an alternatives pioneer",
+     "expected": {
+      "pension_id": "nm_erb",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nm_erb",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "873febe382f60895d19d6518143a9865"
+    },
+    {
+     "n": 20,
+     "headline": "Texas Municipal Retirement System CIO resigns, deputy CIO takes helm",
+     "expected": {
+      "pension_id": "tmrs",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "tmrs",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "d36a9ff36ba797a27f87d719853c43a5"
+    },
+    {
+     "n": 19,
+     "headline": "CalPERS joins growing wave of pension funds offloading private equity stakes as sales volume hits record",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.85
+     },
+     "trace_id": "1e009c7dc256e65afc9b51a34e342752"
+    },
+    {
+     "n": 18,
+     "headline": "CalPERS breaks with its past",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "a7c4f8a615bd902b9552d1359722f0a3"
+    },
+    {
+     "n": 17,
+     "headline": "Why liquidity discipline shapes every portfolio decision at Illinois Teachers\u2019 Retirement System",
+     "expected": {
+      "pension_id": "trs_illinois",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "trs_illinois",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "f9d5ec7847748a6a8d3a8bcf8138b081"
+    },
+    {
+     "n": 16,
+     "headline": "Former CalPERS board member launches GoFundMe for probe into nation\u2019s largest pension fund",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "8299aa640b2663f0e228b068ee5e7488"
+    },
+    {
+     "n": 15,
+     "headline": "LAFPP reaffirms conviction in lower mid-market, emerging managers despite portfolio underperformance",
+     "expected": {
+      "pension_id": "lafpp",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lafpp",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "b8e88fc3872ce35181a051211223274a"
+    },
+    {
+     "n": 14,
+     "headline": "WSIB commits $1.2B to private equity amid signs of sector resiliency",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "626929d7f02dcc98eded7de997008354"
+    },
+    {
+     "n": 13,
+     "headline": "CalPERS just had one of its best years in a decade. Why it matters to taxpayers",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "b8e1476776e8107bef2d66806d78838a"
+    },
+    {
+     "n": 12,
+     "headline": "CalPERS and CalSTRS to boost private credit allocations",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "fd0416d1ea1f508c3fdba2aa5db88026"
+    },
+    {
+     "n": 11,
+     "headline": "Illinois Teachers picks senior investment officer for emerging managers",
+     "expected": {
+      "pension_id": "trs_illinois",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "trs_illinois",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "2305b88d01fc47eddbd31cc1adb5b2ce"
+    },
+    {
+     "n": 10,
+     "headline": "WA's pension investments are tied to controversial companies",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "6fb8863e12de0822aefc9954dc0481fc"
+    },
+    {
+     "n": 9,
+     "headline": "DiNapoli: State Pension Fund Valued at $309.7 Billion at End of First Quarter",
+     "expected": {
+      "pension_id": "nyscrf",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nyscrf",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "c81bd48db7d5fb43a4fb3c87ea35eaa3"
+    },
+    {
+     "n": 8,
+     "headline": "New Mexico Educational Retirement Board Names New CIO",
+     "expected": {
+      "pension_id": "nm_erb",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "nm_erb",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "32d121c973008500870ece0b716870b1"
+    },
+    {
+     "n": 7,
+     "headline": "WSIB adds $500m to private equity",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "cd36f80091046b774ac9d2d8f2e4a9cf"
+    },
+    {
+     "n": 6,
+     "headline": "LACERA\u2019s capital commitments fall short of expected pacing",
+     "expected": {
+      "pension_id": "lacera",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lacera",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "8e00479e4ad538169f1ab006a1fc42f3"
+    },
+    {
+     "n": 5,
+     "headline": "Washington State Investment Board allocates $950 million to private equity, taps new emerging markets equity manager",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "6657497ba80c822820419fe5f3fd4de5"
+    },
+    {
+     "n": 4,
+     "headline": "KKR Wins $400M Washington State Investment Board Commitment to Asia Buyout Fund",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "c98d2f00abf665a20916ca63e3becec9"
+    },
+    {
+     "n": 3,
+     "headline": "Connecticut Pension Fund Poaches LACERA\u2019s Ted Wright to be New CIO",
+     "expected": {
+      "pension_id": "connecticut",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "connecticut",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "6f27b1c0e64db7554b51df2088d5b5d9"
+    },
+    {
+     "n": 2,
+     "headline": "Calpers pushes further into private equity after best results in 4 years",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "bfb3cb5916bcbc35e75337ebb1e68be6"
+    },
+    {
+     "n": 1,
+     "headline": "Private equity: Arizona\u2019s ASRS argues the case for secondaries",
+     "expected": {
+      "pension_id": "asrs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "asrs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "0b2aab5fb7d444eb873d3a205b967170"
+    },
+    {
+     "n": 0,
+     "headline": "LACERA hiring investment officer to oversee secondaries, co-investments",
+     "expected": {
+      "pension_id": "lacera",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lacera",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "65202946efa8a76d6dff07773b98d384"
+    }
+   ]
+  },
+  "holdout": {
+   "n": 65,
+   "precision": 0.9047619047619048,
+   "recall": 0.8260869565217391,
+   "link_accuracy": 0.9846153846153847,
+   "flagged": 21,
+   "labelled_signals": 23,
+   "errors": 0,
+   "dataset_run_url": "https://cloud.langfuse.com/project/cmvmvsysv00l2ad0jj1iugnuj/experiments/results?baseline=792f7906e5c219a5",
+   "items": [
+    {
+     "n": 129,
+     "headline": "Ohio Teachers names ED, aims to diversify equity risk",
+     "expected": {
+      "pension_id": "ohio_strs",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ohio_strs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "e2ba4a91e34e331058650c37f56a2336"
+    },
+    {
+     "n": 128,
+     "headline": "CalPERS reaps benefits from PE strategy shift",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "fc32e32fdfb0e7ad38f2e1c017005d69"
+    },
+    {
+     "n": 127,
+     "headline": "Texas Teachers pension sells \u2018large, concentrated positions\u2019 on secondary market",
+     "expected": {
+      "pension_id": "trs_texas",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "trs_texas",
+      "completed": true,
+      "confidence": 0.85
+     },
+     "trace_id": "ed16e9fa051b708dfbd7112c81a12cb9"
+    },
+    {
+     "n": 126,
+     "headline": "San Francisco Pension System Commits More than $900 Million to Private Markets",
+     "expected": {
+      "pension_id": "sfers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "sfers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "ae676b7d794f6c61193658228c9a8b1b"
+    },
+    {
+     "n": 125,
+     "headline": "SWIB adds $1.7bn in Q4 to private funds",
+     "expected": {
+      "pension_id": "swib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "swib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "6e1debe42e83c132815e2f98657dc19c"
+    },
+    {
+     "n": 124,
+     "headline": "NYC Pension Systems Name Valerie Red-Horse Mohl as Deputy CIO",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "36ac5c14c81c1a3eab97a30ba3ef5b66"
+    },
+    {
+     "n": 123,
+     "headline": "Ohio Teachers prioritizes liquidity as it sets PE pacing for FY 2027",
+     "expected": {
+      "pension_id": "ohio_strs",
+      "signal_type": "liquidity_need"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ohio_strs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "c27972da9df2e5070ee985f50d3f2865"
+    },
+    {
+     "n": 122,
+     "headline": "CalSTRS\u2019 CIO on private equity, the surge in secondaries, and AI as a \u2018mega theme\u2019",
+     "expected": {
+      "pension_id": "calstrs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calstrs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "2440c44ee92caeb57ab8f94e2818c6d0"
+    },
+    {
+     "n": 121,
+     "headline": "Cook County pension to tick up private equity allocation",
+     "expected": {
+      "pension_id": "cook_county",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "cook_county",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "00407d9e24b448ca1f6ed48075a9f1c1"
+    },
+    {
+     "n": 120,
+     "headline": "New York State Pension Returns 6.1% in Q1; Cuts Tech Stocks Ahead of Slump",
+     "expected": {
+      "pension_id": "nyscrf",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nyscrf",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "eeabdab3791b5c7a2183fc9619b72c98"
+    },
+    {
+     "n": 119,
+     "headline": "Calpers Slashes Direct Holdings in Magnificent Seven by 26%, Shifts Funds into Private Equity",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "2cfb9475859cf96b8c2e3e41768b7038"
+    },
+    {
+     "n": 118,
+     "headline": "Breaking News: Kentucky Retirement Systems Names Steven Herbert New CIO | Chief Investment Officer",
+     "expected": {
+      "pension_id": "kppa",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "kppa",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "3e7f36b730f2b3a6973fb60216d1c64e"
+    },
+    {
+     "n": 117,
+     "headline": "San Diego city pension eyes $775m private markets outlay for FY2026",
+     "expected": {
+      "pension_id": "sdcers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "sdcers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "6558730110b5fd0ce13fc48794881dca"
+    },
+    {
+     "n": 116,
+     "headline": "Texas Teachers trims private equity in new asset allocation, but CIO still sees opportunity",
+     "expected": {
+      "pension_id": "trs_texas",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "trs_texas",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "276e459a51a452addc3eab89c9f352ba"
+    },
+    {
+     "n": 115,
+     "headline": "Investor Intentions: Texas ERS to increase its exposure to core strategies in 2026",
+     "expected": {
+      "pension_id": "texas_ers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "texas_ers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "7ce5630a0dce639abb0ca5daf0b76876"
+    },
+    {
+     "n": 114,
+     "headline": "New Mexico Educational Retirement Board names Steve Neel as new CIO",
+     "expected": {
+      "pension_id": "nm_erb",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "nm_erb",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "7948fbfa8e509e7db6f8d34fd5e684c0"
+    },
+    {
+     "n": 113,
+     "headline": "Investor Intentions: Texas ERS to be active in the secondaries market in 2026",
+     "expected": {
+      "pension_id": "texas_ers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "texas_ers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "765ad35174733109f943790b01b79a30"
+    },
+    {
+     "n": 112,
+     "headline": "OCERS sets $350M real assets pacing, eyes infrastructure, energy",
+     "expected": {
+      "pension_id": "ocers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ocers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "efc3a6eaf925b16867faa614e9dff0ec"
+    },
+    {
+     "n": 111,
+     "headline": "LACERS PE consultant hints at possible secondaries strategy",
+     "expected": {
+      "pension_id": "lacers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lacers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "0b81d14a6c1a46cc996e2c11ea75082a"
+    },
+    {
+     "n": 110,
+     "headline": "Texas communities demand end of LNG project at Washington pension meeting",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "c819e78d4c5a8c5c65b74fcf9474e62a"
+    },
+    {
+     "n": 109,
+     "headline": "Blackstone acquires $5bn PE portfolio from NYC pension",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "nyc_funds",
+      "completed": true,
+      "confidence": 0.85
+     },
+     "trace_id": "23be94946c958f9824751af5e9e73e19"
+    },
+    {
+     "n": 108,
+     "headline": "Ohio State Teachers plans $5.1 billion in alts commitments for next fiscal year",
+     "expected": {
+      "pension_id": "ohio_strs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ohio_strs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "becbf51cbca0ae77da762574cea798f7"
+    },
+    {
+     "n": 107,
+     "headline": "SWIB narrows hedge fund focus for alpha",
+     "expected": {
+      "pension_id": "swib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "swib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "da7c8f7bf7bfc728fd2c299388803818"
+    },
+    {
+     "n": 106,
+     "headline": "Illinois Municipal Retirement Fund lowers private credit, domestic equity targets and hikes fixed income, infrastructure to reduce risk",
+     "expected": {
+      "pension_id": "imrf",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "imrf",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "b3875ad17cd639ecdab8860039dfcab4"
+    },
+    {
+     "n": 105,
+     "headline": "Virginia pension cuts private equity target, citing volatility concerns",
+     "expected": {
+      "pension_id": "vrs",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "vrs",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "73f3d260fd60183a35c4d6dd9b6fe982"
+    },
+    {
+     "n": 104,
+     "headline": "New Jersey pension fund cuts private equity, real estate targets \u2014 adds investment-grade private credit",
+     "expected": {
+      "pension_id": "nj_doi",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "nj_doi",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "f780819e612b1de3cb0e4e20a26c0dad"
+    },
+    {
+     "n": 103,
+     "headline": "Why LACERS cut its return assumption while other public pension funds hold steady",
+     "expected": {
+      "pension_id": "lacers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lacers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "d736b62cf4f5d6922803d7e94d5eb32a"
+    },
+    {
+     "n": 102,
+     "headline": "Seattle Times : WA pension dollars invested in high-risk private equity",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "b1802024f1e6d19f4ad03f95e8dea1bd"
+    },
+    {
+     "n": 101,
+     "headline": "Lender, not owner: NYC pension leans into credit amid PE slump",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "82e984eed659fac4f55b4cccb06679a3"
+    },
+    {
+     "n": 100,
+     "headline": "WSIB commits $400m to private debt",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "6c57a862f900523fd2c2018042b23b15"
+    },
+    {
+     "n": 99,
+     "headline": "How Nevada PERS is charting a smooth path to alpha",
+     "expected": {
+      "pension_id": "nvpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nvpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "22a5519b05c1d8c1dc47aa91bb237680"
+    },
+    {
+     "n": 98,
+     "headline": "Louisiana Teachers adjusts PE pacing to combat buyout overweighting",
+     "expected": {
+      "pension_id": "trsl",
+      "signal_type": "allocation_above_target"
+     },
+     "output": {
+      "signal_type": "allocation_above_target",
+      "pension_id": "trsl",
+      "completed": false,
+      "confidence": 0.8
+     },
+     "trace_id": "5116b38414dd8e6073c6efbd106bc582"
+    },
+    {
+     "n": 97,
+     "headline": "New Private Equity Commitments Continue at Washington State Investment Board",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "efd9c44142a8b7e9e3c82a8cbfeabf3e"
+    },
+    {
+     "n": 96,
+     "headline": "Side Letter: LAFPP\u2019s PE pacing plan",
+     "expected": {
+      "pension_id": "lafpp",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "lafpp",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "398c6f1bbc22b5d6a4103cc6ba42979c"
+    },
+    {
+     "n": 95,
+     "headline": "Oregon pension fund dials back private equity target in allocation overhaul",
+     "expected": {
+      "pension_id": "oregon",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "oregon",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "904fe97a422807f10af96c2bc4115b0f"
+    },
+    {
+     "n": 94,
+     "headline": "INPRS: Destination Retirement: INPRS Deputy CIO Alex Far Named to CIO\u2019s Class of 2024 NextGen",
+     "expected": {
+      "pension_id": "inprs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "inprs",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "d8dda9f14cb601da1fb64409905e1b6f"
+    },
+    {
+     "n": 93,
+     "headline": "Breaking News: Washington State Investment Board Names New CIO",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "e43e803fdcdcf2e969099ff734eb5e02"
+    },
+    {
+     "n": 92,
+     "headline": "Real Estate, Private Equity Propel Washington State Investment Board to Strong Fiscal Year",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "0c3bf2b2039a3b21e2e43fa536e22aa1"
+    },
+    {
+     "n": 91,
+     "headline": "Oklahoma Teachers\u2019 sets $440M aside for inaugural infrastructure sleeve",
+     "expected": {
+      "pension_id": "trs_oklahoma",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "trs_oklahoma",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "a1693fa50ff6fb413841b82c6904a154"
+    },
+    {
+     "n": 90,
+     "headline": "WA's pension fund is an outlier \u2014 and the risks are growing",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "955954de3b5a2aee7ca920a5cf4e36ba"
+    },
+    {
+     "n": 89,
+     "headline": "Opinion | The CalPERS gamble: Why the push to invest in private equity alarms public employees",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "b9f9f318861a3c4d6cc008e33185b844"
+    },
+    {
+     "n": 88,
+     "headline": "Illinois Teachers' Retirement System adds Diana Ochoa as senior investment officer for private equity",
+     "expected": {
+      "pension_id": "trs_illinois",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "trs_illinois",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "33cca202ae70b95c7a7685e83c986a38"
+    },
+    {
+     "n": 87,
+     "headline": "CalPERS cuts interim PE allocation to 8 pct",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "a5650f5cf20033019fefd9cc3862a0ed"
+    },
+    {
+     "n": 86,
+     "headline": "SWIB adds $3.5bn across private equity, debt, real estate and alpha pool",
+     "expected": {
+      "pension_id": "swib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "swib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "f3a85095df53df19bd49161a350574fe"
+    },
+    {
+     "n": 85,
+     "headline": "Washington State Investment Board launches implementation plan for new private credit asset class, seeks additional investment staff",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "509c1d285452ccf715229c939406adc4"
+    },
+    {
+     "n": 84,
+     "headline": "CalPERS: PE remains the pension\u2019s \u2018top-performing asset class\u2019",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "54c73d1128991961f5bd759204ae65c2"
+    },
+    {
+     "n": 83,
+     "headline": "Louisiana Teachers\u2019 Pension Preps Venture Portfolio Secondary Sale",
+     "expected": {
+      "pension_id": "trsl",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "trsl",
+      "completed": false,
+      "confidence": 0.85
+     },
+     "trace_id": "e9adb77f9b4a69348c48f13d517fefe5"
+    },
+    {
+     "n": 82,
+     "headline": "San Diego city pension fund reports ESG \u2018strides\u2019 made by managers",
+     "expected": {
+      "pension_id": "sdcers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "sdcers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "1ac242364ee2cd7ce8ab23b0823ec8f6"
+    },
+    {
+     "n": 81,
+     "headline": "Ohio State Teachers names new CIO",
+     "expected": {
+      "pension_id": "ohio_strs",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "ohio_strs",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "235db0ed095cf6127bb766d6c2ca06d9"
+    },
+    {
+     "n": 80,
+     "headline": "CalPERS cuts Big Tech holdings 26% as it expands private equity exposure",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "51ff1a01b2beaa39945c30f07ecf3da8"
+    },
+    {
+     "n": 79,
+     "headline": "Missouri PSRS/PEERS develops cost cutting private markets strategy",
+     "expected": {
+      "pension_id": "psrs_missouri",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "psrs_missouri",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "1aa09963a8894e511f090de50d5a4e7b"
+    },
+    {
+     "n": 78,
+     "headline": "WSIB edges towards standalone private credit, eyeing best GPs",
+     "expected": {
+      "pension_id": "wsib",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "wsib",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "64833df05279dceba72a92963fb58994"
+    },
+    {
+     "n": 77,
+     "headline": "New York City Retirement Systems nears 15% allocation to diverse managers",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "af0899c0f1e32d932e58e7b48557befa"
+    },
+    {
+     "n": 76,
+     "headline": "NYC pension systems disclose details of multi-billion sale",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.85
+     },
+     "trace_id": "a82bb3c1a6df3aab726335ba90cd23c8"
+    },
+    {
+     "n": 75,
+     "headline": "2nd Circuit Vacates PBGC\u2019s Denial of SFA Funds for NYC Pension",
+     "expected": {
+      "pension_id": null,
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "a2e9e1179da16ec620a741b4902561a1"
+    },
+    {
+     "n": 74,
+     "headline": "Han Yik Named Senior Advisor at New York State Teachers\u2019 Pension",
+     "expected": {
+      "pension_id": "nystrs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "nystrs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "da63ce38f0bc0e7808d70669e63e53b2"
+    },
+    {
+     "n": 73,
+     "headline": "SFERS maintains venture conviction while warning of AI concentration risk",
+     "expected": {
+      "pension_id": "sfers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "sfers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "3534ff80803068ec03bcde678a661e2b"
+    },
+    {
+     "n": 72,
+     "headline": "CalPERS shops $3bn PE portfolio as it works to reconfigure programme",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "sale_or_advisor"
+     },
+     "output": {
+      "signal_type": "sale_or_advisor",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.85
+     },
+     "trace_id": "11ffa9a1f457a1b17744999b8f0ace2c"
+    },
+    {
+     "n": 71,
+     "headline": "Gov. Kim Reynolds names former Maryland pension chief to lead IPERS",
+     "expected": {
+      "pension_id": "ipers",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "ipers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "28c3a8c8e1693c5f52fc1ef3da17f18b"
+    },
+    {
+     "n": 70,
+     "headline": "PennSERS lowers PE target due to lack of 'options' in current market",
+     "expected": {
+      "pension_id": "pa_sers",
+      "signal_type": "policy_review"
+     },
+     "output": {
+      "signal_type": "policy_review",
+      "pension_id": "pa_sers",
+      "completed": false,
+      "confidence": 0.6
+     },
+     "trace_id": "34db4d320f569962fe4f4555a3d24990"
+    },
+    {
+     "n": 69,
+     "headline": "Arizona State Retirement System has a 22% private credit allocation, says deputy CIO",
+     "expected": {
+      "pension_id": "asrs",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "asrs",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "d52b3dc31adfa77ce2f1c08d698fc6dc"
+    },
+    {
+     "n": 68,
+     "headline": "Texas ERS Raises Private-Equity Investment Target",
+     "expected": {
+      "pension_id": "texas_ers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "texas_ers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "91a924d72439f0d0e848ee27c51aab90"
+    },
+    {
+     "n": 67,
+     "headline": "CalPERS chopping hedge fund allocation",
+     "expected": {
+      "pension_id": "calpers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "calpers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "6c3c69675b34ed7c24b1ab4af8f6ae8f"
+    },
+    {
+     "n": 66,
+     "headline": "Monte Tarbox Named Interim CIO of NYC Pension System",
+     "expected": {
+      "pension_id": "nyc_funds",
+      "signal_type": "leadership_change"
+     },
+     "output": {
+      "signal_type": "leadership_change",
+      "pension_id": "nyc_funds",
+      "completed": false,
+      "confidence": 0.7
+     },
+     "trace_id": "4ba2014558f123ba4d4a8d6b015d4869"
+    },
+    {
+     "n": 65,
+     "headline": "SFERS eyes smaller buyouts, growth strategies as it plans PE pacing rebound",
+     "expected": {
+      "pension_id": "sfers",
+      "signal_type": "none"
+     },
+     "output": {
+      "signal_type": "none",
+      "pension_id": "sfers",
+      "completed": false,
+      "confidence": 0.9
+     },
+     "trace_id": "820eb3b91939d54b2381867c1a47a3c5"
+    }
+   ]
+  }
+ },
+ "all": {
+  "n": 130,
+  "precision": 0.926829268292683,
+  "recall": 0.9047619047619048,
+  "link_accuracy": 0.9923076923076923,
+  "flagged": 41,
+  "labelled_signals": 42,
+  "errors": 0
+ }
+}

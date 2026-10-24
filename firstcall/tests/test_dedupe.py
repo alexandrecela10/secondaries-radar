@@ -26,11 +26,20 @@ def test_syndicated_story_counts_once(tmp_path, items):
 
 
 def test_one_signal_per_type_per_day(tmp_path):
-    rows = [raw("CalPERS sells private equity stakes to Lexington", "https://a.com/1", 0),
+    rows = [raw("CalPERS shops private equity stakes to buyers", "https://a.com/1", 0),
             raw("CalPERS offloads buyout fund interests in secondary deal", "https://b.com/2", 0)]
     con = store.connect(tmp_path / "t.duckdb")
     pipeline.process_many(con, rows, KeywordClassifier(), T0 + timedelta(days=1), "batch")
     assert con.execute("SELECT count(*) FROM gold_signals").fetchone()[0] == 1
+
+
+def test_closed_and_open_sale_on_one_day_stay_two_signals(tmp_path):
+    rows = [raw("CalPERS sells private equity stakes to Lexington", "https://a.com/1", 0),
+            raw("CalPERS offloads buyout fund interests in secondary deal", "https://b.com/2", 0)]
+    con = store.connect(tmp_path / "t.duckdb")
+    pipeline.process_many(con, rows, KeywordClassifier(), T0 + timedelta(days=1), "batch")
+    got = con.execute("SELECT completed FROM gold_signals ORDER BY completed").fetchall()
+    assert got == [(False,), (True,)]
 
 
 def test_replaying_twice_changes_nothing(tmp_path, items):

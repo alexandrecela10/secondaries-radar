@@ -1,7 +1,9 @@
-"""Public list of about 50 US public pensions and the linker.
+"""Public list of about 60 US public pensions and the linker.
 
 Real names, used only to link public news. Never joined with synthetic data (PRD D-3).
 Acronym aliases match case-sensitively on word boundaries. Long names match case-insensitively.
+Short forms ("Washington State", "NYC") link only when a pension or finance word sits in the
+same headline, so sports, weather or city news never links.
 """
 from __future__ import annotations
 
@@ -73,12 +75,31 @@ PENSIONS: list[tuple[str, str, str, list[str]]] = [
     ("sdcers", "San Diego City Employees' Retirement System", "CA", ["SDCERS", "San Diego city pension", "San Diego City Employees"]),
 ]
 
+# Short forms that are also ordinary place names. They link only with a context word nearby.
+SHORT_FORMS: dict[str, list[str]] = {
+    "wsib": ["Washington State", "Washington state's pension"],
+    "nyc_funds": ["NYC", "New York City", "NYC teachers", "New York City teachers"],
+    "nystrs": ["New York teachers", "NY teachers", "New York State teachers"],
+    "nyscrf": ["New York State"],
+    "psers": ["Pennsylvania teachers", "Pennsylvania school pension"],
+}
+
+# Pension or finance words. A short form needs one of these in the headline, outside the match.
+CONTEXT = re.compile(
+    r"\b(pensions?|retirement|retirees?|comptroller|trustees|private[- ]equity|private[- ]markets?|PE|"
+    r"secondar(y|ies)|CIO|chief investment officer|(asset )?allocation|fund stakes?|LP stakes?|"
+    r"buyouts?|alternatives)\b",
+    re.IGNORECASE,
+)
+
 # Text that looks like a pension but is not one (PRD section 6 "Pension Bros" case).
 NOT_A_PENSION = re.compile(
     r"Pension\s*Bros|PensionBee|Pensions?\s*&\s*Investments|Pension\s*Fund\s*Online|Pensioenfonds|"
-    r"Pension Protection Fund|Pensions Regulator|Pension Benefit Guaranty",
+    r"Pension Protection Fund|Pensions Regulator|Pension Benefit Guaranty|Washington State University",
     re.IGNORECASE,
 )
+_POSSESSIVE = re.compile(r"(\w)['’]s\b")
+_FORMER = re.compile(r"\b(former|ex-)\s*$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -99,33 +120,54 @@ def _alias_pattern(alias: str) -> re.Pattern[str]:
     escaped = re.escape(alias).replace(r"\ ", r"\s+").replace("'", "['’]?")
     is_acronym = alias.isupper() or (alias.replace(" ", "").isalpha() and sum(c.isupper() for c in alias) >= 3 and len(alias) <= 8)
     flags = 0 if is_acronym else re.IGNORECASE
-    return re.compile(rf"(?<![\w-]){escaped}(?![\w-])", flags)
+    # Optional plural ("NYC Pensions"); possessives are stripped from the text before matching.
+    return re.compile(rf"(?<![\w-]){escaped}s?(?![\w-])", flags)
 
 
 ALL: dict[str, Pension] = {p[0]: Pension(p[0], p[1], p[2], tuple(p[3])) for p in PENSIONS}
-_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    (pid, _alias_pattern(a)) for pid, _, _, aliases in PENSIONS for a in sorted(aliases, key=len, reverse=True)
-]
+# (pension id, pattern, needs a context word)
+_PATTERNS: list[tuple[str, re.Pattern[str], bool]] = [
+    (pid, _alias_pattern(a), False) for pid, _, _, aliases in PENSIONS for a in sorted(aliases, key=len, reverse=True)
+] + [(pid, _alias_pattern(a), True) for pid, forms in SHORT_FORMS.items() for a in forms]
+
+
+def mask(text: str, label: str = "[Pension]") -> str:
+    """Replace every pension name or short form with a label (public docs show live rankings anonymised)."""
+    text = _POSSESSIVE.sub(r"\1", text)
+    for _, pat, _ in sorted(_PATTERNS, key=lambda t: -len(t[1].pattern)):
+        text = pat.sub(label, text)
+    return text
+
+
+def _has_context(text: str, start: int, end: int) -> bool:
+    return bool(CONTEXT.search(text[:start] + " " + text[end:]))
 
 
 def link(headline: str) -> Link:
     """Link a headline to at most one pension.
 
-    Rules: decoys removed first; the earliest mention wins; if two different pensions
-    tie on position, no link. Outlet suffixes must be stripped by the caller.
+    Rules: decoys removed first; short forms need a context word; the earliest mention wins,
+    except a mention right after "former" or "ex-" goes last; at the same position the longer
+    alias wins; two different pensions on the same span give no link. Outlet suffixes must be
+    stripped by the caller.
     """
-    text = NOT_A_PENSION.sub(" ", headline)
-    hits: dict[str, int] = {}
-    for pid, pat in _PATTERNS:
-        m = pat.search(text)
-        if m and (pid not in hits or m.start() < hits[pid]):
-            hits[pid] = m.start()
+    text = _POSSESSIVE.sub(r"\1", NOT_A_PENSION.sub(" ", headline))
+    hits: dict[str, tuple[int, int, int]] = {}      # pid -> (demoted, start, -length)
+    for pid, pat, gated in _PATTERNS:
+        for m in pat.finditer(text):
+            if gated and not _has_context(text, m.start(), m.end()):
+                continue
+            key = (1 if _FORMER.search(text[: m.start()]) else 0, m.start(), -(m.end() - m.start()))
+            if pid not in hits or key < hits[pid]:
+                hits[pid] = key
+            break
     if not hits:
         return Link(None, "no alias found")
     ordered = sorted(hits.items(), key=lambda kv: kv[1])
     if len(ordered) > 1 and ordered[0][1] == ordered[1][1]:
         return Link(None, f"ambiguous: {ordered[0][0]} and {ordered[1][0]}")
-    pid = ordered[0][0]
+    pid, (demoted, start, _) = ordered[0]
     others = [p for p, _ in ordered[1:]]
-    reason = f"alias match at {ordered[0][1]}" + (f"; also mentions {', '.join(others)}" if others else "")
+    reason = f"alias match at {start}" + (" (after 'former')" if demoted else "") + (
+        f"; also mentions {', '.join(others)}" if others else "")
     return Link(pid, reason)

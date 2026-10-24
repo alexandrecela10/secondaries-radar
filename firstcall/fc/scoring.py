@@ -2,6 +2,7 @@
 
 score = 1 - exp(-S), S = sum(weight x confidence x 0.5 ** (age_days / half_life)).
 Point in time (D-5): a score at T uses only signals published on or before T.
+A sale that already closed is evidence only when the rulebook says so (v2): it adds nothing to S.
 """
 from __future__ import annotations
 
@@ -18,6 +19,7 @@ class SignalInput:
     signal_type: str
     confidence: float
     published_at: datetime
+    completed: bool = False
 
 
 @dataclass(frozen=True)
@@ -40,6 +42,12 @@ class Score:
     contributions: tuple[Contribution, ...]
 
 
+def inputs(signals: list[dict]) -> list[SignalInput]:
+    """Gold signal rows to scoring inputs."""
+    return [SignalInput(s["signal_id"], s["signal_type"], s["confidence"], s["published_at"],
+                        bool(s.get("completed") or False)) for s in signals]
+
+
 def decay(age_days: float, half_life_days: float) -> float:
     return 0.5 ** (age_days / half_life_days)
 
@@ -47,6 +55,8 @@ def decay(age_days: float, half_life_days: float) -> float:
 def contribution(sig: SignalInput, as_of: datetime, rb: Rulebook) -> Contribution | None:
     age = (as_of - sig.published_at).total_seconds() / 86400
     if age < 0 or age > rb.window_days:      # future (not yet known) or out of window
+        return None
+    if sig.completed and not rb.completed_sales_count:   # a closed sale: evidence, not a fresh signal
         return None
     w = rb.weights.get(sig.signal_type, 0.0)
     d = decay(age, rb.half_life_days)

@@ -65,3 +65,5 @@ class Classification(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     quote: str = Field(max_length=QUOTE_MAX)
     rationale: str = Field(default="", max_length=300)
+    # A sale that already closed. Shown as evidence, never counted toward PREPARE (rulebook v2).
+    completed: bool = False

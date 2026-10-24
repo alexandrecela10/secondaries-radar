@@ -6,6 +6,7 @@ in EVALS and written to measurements/evals.json at the end of the session.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,6 +16,10 @@ from quicklook import pipeline, store, synth
 from quicklook.config import ROOT, Workspace
 from quicklook.parse import OfflineParser
 from quicklook.reference import Reference
+
+# Tests never send traces or call the model, even when keys sit in .env.
+os.environ["QUICKLOOK_TRACING"] = "off"
+os.environ["QUICKLOOK_OFFLINE"] = "1"
 
 EVALS: dict = {}
 
@@ -28,7 +33,8 @@ class Env:
     ref: Reference
 
     def offer_file(self, code: str) -> Path:
-        return self.offers / f"{code.lower()}.eml"
+        files = {o["code"].lower(): o["file"] for o in self.labels["offers"]}
+        return self.offers / files.get(code.lower(), f"{code.lower()}.eml")
 
     def con(self, read_only: bool = True):
         return store.connect(self.ws, read_only=read_only)
@@ -40,7 +46,7 @@ def env(tmp_path_factory) -> Env:
     synth.run(data, seed=42)
     ws = Workspace(root=data / "main", reference_dir=data / "reference")
     parser = OfflineParser()
-    for f in sorted((data / "offers").glob("*.eml")):
+    for f in sorted((data / "offers").glob("*.eml")) + sorted((data / "offers" / "more").glob("*.eml")):
         pipeline.process_email(f.read_bytes(), ws, parser, channel="test")
     labels = json.loads((data / "fixtures" / "labels.json").read_text())
     return Env(data, ws, data / "offers", labels, Reference(data / "reference"))

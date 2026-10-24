@@ -19,6 +19,28 @@ BUYER_SIDE = re.compile(
     re.IGNORECASE,
 )
 
+# A sale that already happened: "sold", "sells", "closes sale", "Buyer acquires X from".
+COMPLETED = re.compile(
+    r"\b(clos(e|es|ed)|complet\w*|finali[sz]\w*|seal(s|ed)?|wrap(s|ped)? up)\b.{0,50}\b(sale|deal|transaction)\b"
+    r"|\b(sale|deal|transaction)\b.{0,20}\b(closes|closed|completed|done)\b"
+    r"|\b(was|were) (the )?(sole |lead |only )?buyers?\b"
+    r"|\b(sold|sells?)\b"          # headline present tense reports a done deal; "to sell" is prospective
+    r"|\b(acquires?|acquired|buys?|bought|purchases?|purchased)\b.{0,80}\bfrom\b",
+    re.IGNORECASE,
+)
+# Words that say the sale is still ahead. They win over COMPLETED.
+PROSPECTIVE = re.compile(
+    r"\b(plans?|planning|weighs?|weighing|consider\w*|explor\w*|eyes?|mulls?|seeks?|looks? to|could|may|"
+    r"might|to sell|gears? up|prepar\w*|hires?|hired|taps?|tapped|launch\w*|shops?|shopping|emerges?|"
+    r"in talks|nears?|nearing|readies|readying)\b",
+    re.IGNORECASE,
+)
+
+
+def is_completed_sale(headline: str) -> bool:
+    return bool(COMPLETED.search(headline)) and not PROSPECTIVE.search(headline)
+
+
 RULES: list[tuple[str, float, re.Pattern[str]]] = [
     ("sale_or_advisor", 0.85, re.compile(
         rf"\b(sells?|selling|sold|offload\w*|unload\w*|divest\w*|dispos\w*|sale of|sales? of)\b.{{0,60}}\b{PE}\b"
@@ -64,7 +86,7 @@ RULES: list[tuple[str, float, re.Pattern[str]]] = [
 
 class KeywordClassifier:
     name = "keyword"
-    version = "kw-1"
+    version = "kw-3"     # bump on any rule change: stored labels from other versions are redone
 
     def classify(self, headline: str, pension_name: str | None = None) -> Classification:
         text = headline
@@ -74,7 +96,9 @@ class KeywordClassifier:
                 continue
             m = pattern.search(text)
             if m:
-                return Classification(signal_type=signal, confidence=conf, quote=headline[:300],
-                                      rationale=f"rule {signal}@{conf}: '{m.group(0)[:80]}'")
+                done = signal == "sale_or_advisor" and is_completed_sale(text)
+                return Classification(signal_type=signal, confidence=conf, quote=headline[:300], completed=done,
+                                      rationale=f"rule {signal}@{conf}{' completed' if done else ''}: "
+                                                f"'{m.group(0)[:70]}'")
         return Classification(signal_type="none", confidence=0.9 if not buyer else 0.8, quote=headline[:300],
                               rationale="buyer-side secondaries news" if buyer else "no rule matched")

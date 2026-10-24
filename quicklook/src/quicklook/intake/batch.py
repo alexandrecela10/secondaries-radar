@@ -40,11 +40,17 @@ def run_loop(workspace: str, maildir: Path, interval: float, offline: bool, once
         stopping = True
 
     signal.signal(signal.SIGTERM, stop)
+    if once:
+        n = run_once(ws, maildir, parser)
+        print(f"Batch scan of {maildir.name}/new: {n} email{'s' if n != 1 else ''} processed into {ws.root.name}"
+              f" ({parser.name} parser).", flush=True)
+        return
     print(f"Batch intake on {maildir} every {interval:g}s, workspace {ws.root}", flush=True)
     while not stopping:
         run_once(ws, maildir, parser)
-        if once:
-            return
+        from ..tracing import get_tracer
+
+        get_tracer().flush()
         end = time.monotonic() + interval
         while not stopping and time.monotonic() < end:
             time.sleep(min(0.2, interval))

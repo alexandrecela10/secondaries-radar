@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from . import pensions, store
 from .config import rulebook
-from .scoring import SignalInput, score
+from .scoring import inputs, score
 
 DISCLAIMER = ("PREPARE and WATCH describe our own preparation. They are not statements that a pension "
               "is selling. Evidence is public headlines with links.")
@@ -18,7 +18,7 @@ def pension_scores(con, as_of: datetime) -> list[dict]:
     pids = [r[0] for r in con.execute("SELECT DISTINCT pension_id FROM gold_signals ORDER BY 1").fetchall()]
     for pid in pids:
         sigs = store.load_signals(con, pid)
-        sc = score([SignalInput(s["signal_id"], s["signal_type"], s["confidence"], s["published_at"]) for s in sigs], as_of)
+        sc = score(inputs(sigs), as_of)
         if not sc.contributions:
             continue
         by_id = {s["signal_id"]: s for s in sigs}
@@ -37,38 +37,66 @@ def classifier_banner(con) -> str:
     return "Offline classifier in use (keyword rules). Set ANTHROPIC_API_KEY to use Claude."
 
 
-def weekly_text(con, as_of: datetime, watch_limit: int = 8) -> str:
+def closed_sales(con, as_of: datetime, days: int = 90) -> list[dict]:
+    """Closed-sale stories in the last `days`: shown as evidence, never scored (rulebook v2)."""
+    cur = con.execute("""SELECT * FROM gold_signals WHERE completed AND published_at <= ? AND published_at > ?
+                         ORDER BY published_at DESC""", [as_of, as_of - timedelta(days=days)])
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
+def weekly_text(con, as_of: datetime, watch_limit: int = 8, anon: bool = False) -> str:
+    """The Monday list. PREPARE first, then the top of WATCH, then closed sales as evidence only.
+    anon=True replaces pension names with letters and hides links, for public docs."""
+    from .journey import decision_note, last_decision
+
     rows = pension_scores(con, as_of)
     week = (as_of - timedelta(days=as_of.weekday())).date()
     lines = [f"FIRST CALL   week of {week}   as of {as_of.date()}   rulebook v{rulebook().version}",
              classifier_banner(con), "-" * 78]
     prepare = [r for r in rows if r["verdict"] == "PREPARE"]
     watch = [r for r in rows if r["verdict"] == "WATCH"]
-    for r in prepare + watch[:watch_limit]:
+    shown = prepare + watch[:watch_limit]
+    labels = {r["pension_id"]: f"Pension {chr(65 + i)}" for i, r in enumerate(shown)}
+    for r in shown:
         t = r["top"]
+        pid = labels[r["pension_id"]] if anon else r["pension_id"]
+        quote = pensions.mask(t["quote"]) if anon else t["quote"]
+        note = "" if anon else decision_note(last_decision(con, r["pension_id"]))
         more = f"   {r['n'] - 1} more signal{'s' if r['n'] != 2 else ''}" if r["n"] > 1 else ""
-        lines.append(f"{r['verdict']:<8} {r['pension_id']:<14} score {r['score']:.2f}  \"{t['quote'][:70]}\"")
-        lines.append(f"{'':<23}{t['outlet'] or 'unknown outlet'}, {t['published_at'].date()}{more}")
-        lines.append(f"{'':<23}{t['link'][:90]}")
+        lines.append(f"{r['verdict']:<8} {pid:<14} score {r['score']:.2f}  \"{quote[:70]}\"")
+        lines.append(f"{'':<23}{t['outlet'] or 'unknown outlet'}, {t['published_at'].date()}{more}"
+                     + (f"   {note}" if note else ""))
+        if not anon:
+            lines.append(f"{'':<23}{t['link'][:90]}")
     if not prepare:
         lines.append(f"No pension crossed PREPARE. {len(watch)} on WATCH.")
     else:
         lines.append(f"{len(prepare)} on PREPARE, {len(watch)} on WATCH"
                      + (f" (top {watch_limit} shown)." if len(watch) > watch_limit else "."))
-    lines += ["-" * 78, DISCLAIMER]
+    done = closed_sales(con, as_of)
+    if done:
+        lines.append(f"Closed sales in the last 90 days (evidence only, not scored): {len(done)}")
+        for s in done[:3]:
+            who = "[Pension]" if anon else s["pension_id"]
+            quote = pensions.mask(s["quote"]) if anon else s["quote"]
+            lines.append(f"  {s['published_at'].date()}  {who:<12} \"{quote[:60]}\" ({s['outlet'] or 'unknown'})")
+    lines += ["-" * 78, DISCLAIMER, "Next: firstcall why <pension>, firstcall timeline <pension>, "
+              "firstcall act <pension> prepare --owner <name>, firstcall dismiss <pension> --reason \"...\""]
     return "\n".join(lines)
 
 
 def why_text(con, pension_id: str, as_of: datetime) -> str:
+    from .journey import last_decision, resolve, unknown
+
     rb = rulebook()
-    if pension_id not in pensions.ALL:
-        matches = [p for p in pensions.ALL if pension_id.lower() in p]
-        if len(matches) != 1:
-            return f"Unknown pension '{pension_id}'. Try one of: {', '.join(sorted(pensions.ALL)[:12])} ..."
-        pension_id = matches[0]
+    asked = pension_id
+    pension_id = resolve(pension_id)
+    if pension_id is None:
+        return unknown(asked)
     p = pensions.ALL[pension_id]
     sigs = store.load_signals(con, pension_id)
-    sc = score([SignalInput(s["signal_id"], s["signal_type"], s["confidence"], s["published_at"]) for s in sigs], as_of)
+    sc = score(inputs(sigs), as_of)
     by_id = {s["signal_id"]: s for s in sigs}
     lines = [f"{sc.verdict}: {p.name} ({pension_id}), score {sc.score:.2f} as of {as_of.date()}",
              f"score = 1 - exp(-S), S = {sc.S:.3f}; PREPARE at {rb.prepare_threshold} or more; "
@@ -84,9 +112,21 @@ def why_text(con, pension_id: str, as_of: datetime) -> str:
             f"  {s['outlet'] or 'unknown outlet'}, {s['published_at'].date()}, copies {s['n_copies']}",
             f"  {s['link']}",
         ]
-    outside = [s for s in sigs if s["signal_id"] not in {c.signal_id for c in sc.contributions}]
+    counted = {c.signal_id for c in sc.contributions}
+    closed = [s for s in sigs if s.get("completed") and s["published_at"] <= as_of
+              and (as_of - s["published_at"]).days <= rb.window_days]
+    for s in closed:
+        lines += [f"- closed sale, evidence only (weight 0 under rulebook v{rb.version})",
+                  f"  \"{s['quote']}\"", f"  {s['outlet'] or 'unknown outlet'}, {s['published_at'].date()}",
+                  f"  {s['link']}"]
+    outside = [s for s in sigs if s["signal_id"] not in counted and s not in closed]
     if outside:
         lines.append(f"\n{len(outside)} older or later signal(s) outside the window are not counted.")
+    d = last_decision(con, pension_id)
+    if d:
+        lines.append(f"\nLast decision: {d['action']} by {d['decided_by']} on {d['decided_at'].date()}"
+                     + (f", owner {d['owner']}" if d["owner"] else "") + (f": {d['reason']}" if d["reason"] else "")
+                     + f" (rulebook v{d['rulebook_version']}, score then {d['score']:.2f})")
     lines += ["", DISCLAIMER]
     return "\n".join(lines)
 
