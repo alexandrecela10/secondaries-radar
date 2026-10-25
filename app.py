@@ -778,13 +778,16 @@ with tab_hood:
            "computed numbers (the diagram just below this box). Because the raw copy is kept, any result can be "
            "rebuilt from scratch after a fix, and every number in a memo can point back to the row it came from.")
 
-        md("#### 4. Point in time: no hindsight")
-        md("A verdict may only use what we knew on the day the offer arrived. This matters most for the price check. "
-           "Take Hornbeam:")
+        md("#### 4. No hindsight: only what we knew that day")
+        md("Every fact has two dates: when it happened, and when we found out. The tool may only use facts we had "
+           "found out by the time the offer arrived.")
         st.graphviz_chart(hood.POINT_IN_TIME, width="stretch")
-        md("The broker prices from the 30 June value. We were told of the write-down on 10 September, before the "
-           "offer arrived, so it counts, and it is why we would pass. Had we learnt of it in November, it would not "
-           "count, even in a test run later. Tests that peek at the future look better than the tool will ever be.")
+        md("Hornbeam arrived on 22 October. We had known about the write-down since 10 September, so it counts, and "
+           "it is why the price looks too high. Had the offer arrived on 5 September, the write-down would already "
+           "have happened, but we would not have known. So it would not count.")
+        md("This matters most in testing. When we rerun old offers, the database already holds later news. Letting "
+           "the tool use it would be like judging a betting tip after watching the match: it looks smarter than it "
+           "could have been.")
 
         md("#### 5. Evals: an exam with the answers held back")
         md("An eval is an exam: we run the tool on cases where we already know the right answer and count how often "

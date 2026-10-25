@@ -56,12 +56,10 @@ EVAL_SPLIT = """digraph {
 
 POINT_IN_TIME = """digraph {
   rankdir=LR; node [shape=box, style="rounded", fontname="Helvetica", fontsize=11];
-  a [label="30 June\\nthe value the broker\\nprices from"];
   b [label="2 September\\nCalder Packaging\\nwritten down"];
   c [label="10 September\\nthe fund tells us", color="#15803d"];
-  d [label="22 October\\nHornbeam offer arrives:\\nthe write-down counts", color="#15803d"];
-  e [label="After 22 October\\nanything we learn later\\ndoes not count, even in tests", color="#c2410c"];
-  a -> b -> c -> d -> e;
+  d [label="22 October\\nHornbeam offer arrives", color="#15803d"];
+  b -> c -> d;
 }"""
 
 def measured_table(path: Path) -> str:
