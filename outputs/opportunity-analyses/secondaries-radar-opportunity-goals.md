@@ -1,4 +1,4 @@
-# Goals: Secondaries Radar, First Call opportunity analysis
+# Goals: Secondaries Radar, Seller Watch opportunity analysis
 
 **Passing bar:** all criteria pass.
 

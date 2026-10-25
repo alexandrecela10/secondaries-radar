@@ -9,7 +9,7 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 
 ## TL;DR
 
-**Overall:** requires significant work on scope, the value case and First Call's framing. The governance design (sourced numbers, rulebook, overrides, no send capability) was praised by every reviewer.
+**Overall:** requires significant work on scope, the value case and Seller Watch's framing. The governance design (sourced numbers, rulebook, overrides, no send capability) was praised by every reviewer.
 
 **Critical blockers:** 6. **Important gaps:** 5. **Conflicts:** 2.
 
@@ -22,9 +22,9 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 ### 1. The value case rests on its weakest input
 **Flagged by:** Executive, Skeptic, UXR.
 **Issue:** about 91% of the AED 16M is one direct deal at a 2% better price. It's unattributed, gross not net, and analyst hours aren't cash unless redeployed.
-**Fix:** show low / base / high ranges net of build and run cost. Quick Look is the base value. First Call is an option, shown as break-even: a $200M deal priced 0.1% better is worth AED 0.73M.
+**Fix:** show low / base / high ranges net of build and run cost. Offer Check is the base value. Seller Watch is an option, shown as break-even: a $200M deal priced 0.1% better is worth AED 0.73M.
 
-### 2. First Call's backtest and premise don't hold as written
+### 2. Seller Watch's backtest and premise don't hold as written
 **Flagged by:** Skeptic, Executive, UXR.
 **Issue:** 5 to 7 hand-picked public sales is too few, with selection and look-ahead bias. The top signal ("engage secondary advisor") means an auction is starting, so of course it precedes the press. Public pensions usually must run a competitive process, so "direct deal" may rarely happen.
 **Fix:** reframe the outcome as "prepare early, bid first and best", which includes earlier, better-informed bids inside an auction. Measure lead time from the first signal that is not a sale announcement. Present 2 sales and 2 controls as worked timelines, not a statistic.
@@ -49,7 +49,7 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 **Issue:** in real life, offers arrive under NDA. The PRD doesn't say where they go, what reaches an external model, or how offer data is kept apart from seller scoring.
 **Fix:** add a short deployment note:
 - **Demo:** all offers synthetic.
-- **Real deployment:** in-region model hosting, NDA and data processing agreement review, and an information barrier so offer data never feeds First Call.
+- **Real deployment:** in-region model hosting, NDA and data processing agreement review, and an information barrier so offer data never feeds Seller Watch.
 
 ### 6. Scope is 6 to 8 days, not 3
 **Flagged by:** Engineering (complexity XL), Skeptic, Executive.
@@ -87,18 +87,18 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 
 ### Conflict 1: scope
 - **Narrow** (Skeptic, Engineering, Executive):
-  - Build Quick Look end to end.
-  - First Call becomes one timeline slide.
+  - Build Offer Check end to end.
+  - Seller Watch becomes one timeline slide.
   - Cut streaming, PDF parsing and chat.
 - **PM's stated goals:** both gates, plus streaming as a learning exercise.
 - **Recommendation:**
-  - **Quick Look:** complete (M1, M2).
-  - **First Call:** thin but real. Manual ingest, 2 sales and 2 controls, a call briefing, and prices only for funds we own (M3, one day).
+  - **Offer Check:** complete (M1, M2).
+  - **Seller Watch:** thin but real. Manual ingest, 2 sales and 2 controls, a call briefing, and prices only for funds we own (M3, one day).
   - **Chat:** keep it thin. It is the override and "why" surface.
   - **PDF offers:** a stretch goal.
   - **Streaming spike:** timeboxed after M3, outside the demo's critical path.
 
-### Conflict 2: what First Call promises
+### Conflict 2: what Seller Watch promises
 - **Original:** "find sellers before anyone else, agree a direct deal."
 - **Reviewers:** large buyers already see every broker process, and public pensions must run auctions.
 - **Recommendation:** promise preparation, not exclusivity. "We know who will sell and what we'd pay, weeks before the offer arrives, so our first bid is our best one." This survives both objections and is still worth money.
@@ -118,7 +118,7 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 | Customer | Associate: "I'd use it, but check its work." Partner: "Skeptical until the backtest" | Would use it |
 
 **Interview questions the executive reviewer would ask:**
-1. Drop First Call. What is Quick Look's net annual value, and how would you measure it in production?
+1. Drop Seller Watch. What is Offer Check's net annual value, and how would you measure it in production?
 2. Where does an NDA offer physically go when the parser reads it, and who signs off?
 3. Which component would a second team adopt first, and what would change for them?
 
@@ -126,8 +126,8 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 
 ## Action items
 
-- [ ] Decide Conflict 1 (scope) and Conflict 2 (First Call promise). Owner: PM
+- [ ] Decide Conflict 1 (scope) and Conflict 2 (Seller Watch promise). Owner: PM
 - [ ] Approve D1 (pseudonymise managers). Owner: PM
 - [ ] Revise PRD: blockers 1 to 6 and the gaps above. Owner: Claude
-- [ ] Revise opportunity analysis: value ranges, First Call framing, Today wording. Owner: Claude
+- [ ] Revise opportunity analysis: value ranges, Seller Watch framing, Today wording. Owner: Claude
 - [ ] 1 or 2 practitioner calls on triage time and teaser contents. Owner: PM

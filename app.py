@@ -1,7 +1,7 @@
 """Secondaries Radar: a guided demo, written to you.
 
-Quick Look runs live with no key: the offline parser reads the offer, and matching, metrics and
-verdicts are plain code. First Call replays a committed snapshot of one real news run.
+Offer Check runs live with no key: the offline parser reads the offer, and matching, metrics and
+verdicts are plain code. Seller Watch replays a committed snapshot of one real news run.
 Optional live mode: with ANTHROPIC_API_KEY in Streamlit secrets, Claude can read pasted text,
 capped at 3 calls per visitor and 30 per day.
 
@@ -21,7 +21,7 @@ from demo import fcd, hood, ql
 SESSION_CAP = 3
 DAILY_CAP = 30
 TEAM = ["layla", "sam", "priya", "jonah"]
-FOOTER = ("Synthetic buyer and offers, invented names. First Call uses public headlines and short quotes. "
+FOOTER = ("Synthetic buyer and offers, invented names. Seller Watch uses public headlines and short quotes. "
           "Not investment advice. Not a statement of any pension's intent.")
 
 st.set_page_config(page_title="Secondaries Radar", layout="wide")
@@ -105,14 +105,14 @@ def quiz(key: str, questions: list[tuple[str, list[str], int, str]]):
 st.title("Secondaries Radar")
 md("You work at a fund that buys private equity stakes from investors who want out early. This is an "
    "**LP-led secondary**: a pension or an insurer sells its share of funds, and you buy it, usually below the "
-   "funds' reported value. Two tools help your team. **Quick Look** reads a broker's sale offer and says look "
-   "closer or pass, with every number sourced. **First Call** reads public news and lists pensions that show "
+   "funds' reported value. Two tools help your team. **Offer Check** reads a broker's sale offer and says look "
+   "closer or pass, with every number sourced. **Seller Watch** reads public news and lists pensions that show "
    "signs they may sell, so you can prepare before an offer arrives. **The model reads; code decides.**")
 
 with st.sidebar:
     st.markdown("### How to use this demo")
     md("Each tab follows one person through one job, step by step. Every control changes the result live.")
-    md("- **Quick Look**: you are Layla, an associate, at 09:00.\n- **First Call**: you are Omar, a partner, "
+    md("- **Offer Check**: you are Layla, an associate, at 09:00.\n- **Seller Watch**: you are Omar, a partner, "
        "on Monday at 08:00.\n- **Under the hood**: how it is built and measured.")
     st.divider()
     ok, why_not = live_available()
@@ -130,15 +130,15 @@ with st.sidebar:
         st.rerun()
     cap(FOOTER)
 
-tab_ql, tab_fc, tab_hood = st.tabs(["Quick Look", "First Call", "Under the hood"])
+tab_ql, tab_fc, tab_hood = st.tabs(["Offer Check", "Seller Watch", "Under the hood"])
 
-# ================================================================== QUICK LOOK
+# ================================================================== OFFER CHECK
 
 with tab_ql:
     st.header("You are Layla, a secondaries associate")
     md("A broker emails a sale offer at 09:00. Your head of team wants a sourced \"look closer or pass\" by 10:00, "
        "so they can decide whether to sign the NDA (the non-disclosure agreement that opens the data room). "
-       "Before the NDA, the broker hides fund names. Quick Look works out which funds they are from their numbers.")
+       "Before the NDA, the broker hides fund names. Offer Check works out which funds they are from their numbers.")
 
     # ---- the offer
     codes = ql.offer_codes()
@@ -192,7 +192,7 @@ with tab_ql:
             st.warning("The parser read it as an offer.")
         except ql.ParseError as e:
             st.error(esc(f"Could not read this offer: {e}. It goes to the review queue, with no verdict. "
-                         "Quick Look never guesses an offer out of an email that is not one."))
+                         "Offer Check never guesses an offer out of an email that is not one."))
     else:
         offer = ql.load_offer(choice)
 
@@ -420,35 +420,35 @@ with tab_ql:
         cap("Use the copy icon at the top right of the box.")
 
         # ---- rule changes
-        st.subheader("Why rule changes are tested")
-        md("Each version is tested on labelled offers: the **tune** offers shaped the rules, and the **holdout** "
-           "offers were kept aside. v2 lowered one bar to fix Willow, and did worse on the holdout. v3 took price "
-           "out of the fit score and judged it with what our own fund reports say.")
-        rows = []
-        books = [("Rulebook v1", ql.load_rulebook("v1")), ("Rulebook v2", ql.load_rulebook("v2")),
-                 ("Rulebook v3", ql.load_rulebook("v3"))]
-        if rb.sha == "edited-in-demo":
-            books.append(("Your rulebook", rb))
-        results = {}
-        for name, b in books:
-            a = ql.agreement(b)
-            results[name] = a
-            rows.append({"rulebook": name, "tune offers agreed": f"{a['tune']['kept']} of {a['tune']['total']}",
-                         "holdout offers agreed": f"{a['holdout']['kept']} of {a['holdout']['total']}",
-                         "good offers marked PASS (tune)": a["tune"]["good_passed"],
-                         "good offers marked PASS (holdout)": a["holdout"]["good_passed"]})
-        table(rows)
-        md("v2 fixed Willow and lost its grip on old, tail-end funds: **that is overfitting.** v3 agrees with all 14 "
-           "holdout offers, but marks PASS on two tune offers labelled good. **Myrtle**: our reports show its funds "
-           "down 6% since June, and at par the seller asks 17 points over what we would pay; the label was written "
-           "before the price check existed. **Poplar**: v2 said LOOK CLOSER only because the price rule propped up "
-           "its score; we can identify managers behind just 22% of its value. Both are open questions for the team, "
-           "not tuned away.")
-        which = st.radio("Show the holdout offers for", list(results), horizontal=True, key="ql_hold_which")
-        table(results[which]["holdout"]["rows"])
-        st.info("Here you can look at the holdout as often as you like. That is the trap. If you tune the rules "
-                "until the holdout agrees, it stops being a holdout. The command line logs every look "
-                "(`radar rules test --holdout`) for that reason.")
+        with st.expander("Why rule changes are tested: three rule versions compared"):
+            md("Each version is tested on labelled offers: the **tune** offers shaped the rules, and the **holdout** "
+               "offers were kept aside. v2 lowered one bar to fix Willow, and did worse on the holdout. v3 took price "
+               "out of the fit score and judged it with what our own fund reports say.")
+            rows = []
+            books = [("Rulebook v1", ql.load_rulebook("v1")), ("Rulebook v2", ql.load_rulebook("v2")),
+                     ("Rulebook v3", ql.load_rulebook("v3"))]
+            if rb.sha == "edited-in-demo":
+                books.append(("Your rulebook", rb))
+            results = {}
+            for name, b in books:
+                a = ql.agreement(b)
+                results[name] = a
+                rows.append({"rulebook": name, "tune offers agreed": f"{a['tune']['kept']} of {a['tune']['total']}",
+                             "holdout offers agreed": f"{a['holdout']['kept']} of {a['holdout']['total']}",
+                             "good offers marked PASS (tune)": a["tune"]["good_passed"],
+                             "good offers marked PASS (holdout)": a["holdout"]["good_passed"]})
+            table(rows)
+            md("v2 fixed Willow and lost its grip on old, tail-end funds: **that is overfitting.** v3 agrees with all 14 "
+               "holdout offers, but marks PASS on two tune offers labelled good. **Myrtle**: our reports show its funds "
+               "down 6% since June, and at par the seller asks 17 points over what we would pay; the label was written "
+               "before the price check existed. **Poplar**: v2 said LOOK CLOSER only because the price rule propped up "
+               "its score; we can identify managers behind just 22% of its value. Both are open questions for the team, "
+               "not tuned away.")
+            which = st.radio("Show the holdout offers for", list(results), horizontal=True, key="ql_hold_which")
+            table(results[which]["holdout"]["rows"])
+            st.info("Here you can look at the holdout as often as you like. That is the trap. If you tune the rules "
+                    "until the holdout agrees, it stops being a holdout. The command line logs every look "
+                    "(`radar rules test --holdout`) for that reason.")
         quiz("ql", [
             ("Fund 4 shows DPI 0.84x and TVPI 1.71x. What does TVPI minus DPI tell you?",
              ["Cash already returned", "Remaining value still in the fund, per dollar paid in", "The fees paid"], 1,
@@ -467,7 +467,7 @@ with tab_ql:
              "The tune offers shaped the rule. Only the holdout says how it does on offers it has not seen."),
         ])
 
-# ================================================================== FIRST CALL
+# ================================================================== SELLER WATCH
 
 with tab_fc:
     st.header("You are Omar, a partner planning the week")
@@ -569,27 +569,27 @@ with tab_fc:
            "A real investor would push back on one thing: a news monitor sees only what is reported. Many sales are "
            "run quietly by an adviser and surface only when they close.")
 
-    st.subheader("08:06. See how it built up")
-    tl = fcd.timeline(pension, frb)
-    df = pd.DataFrame(tl["rows"])
-    df["week"] = pd.to_datetime(df["week"])
-    line = alt.Chart(df).mark_line(point=True).encode(
-        x=alt.X("week:T", title=None),
-        y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1]), title="how strong the signs are"),
-        tooltip=[alt.Tooltip("week:T", title="week"), alt.Tooltip("score:Q", title="total", format=".2f")])
-    rule = alt.Chart(pd.DataFrame({"y": [tl["threshold"]]})).mark_rule(strokeDash=[6, 4], color="#c2410c").encode(y="y:Q")
-    label = alt.Chart(pd.DataFrame({"y": [tl["threshold"]], "t": ["start preparing"]})).mark_text(
-        align="left", dx=4, dy=-6, color="#c2410c").encode(y="y:Q", text="t:N", x=alt.value(0))
-    layers = [line, rule, label]
-    if tl["signals"]:
-        sdf = pd.DataFrame([{"date": m["date"], "kind": m["type"] + (" (already completed)" if m["closed"] else ""),
-                             "headline": m["headline"], "outlet": m["outlet"]} for m in tl["signals"]])
-        sdf["date"] = pd.to_datetime(sdf["date"])
-        layers.append(alt.Chart(sdf).mark_rule(color="#64748b", opacity=0.5).encode(
-            x="date:T", tooltip=["date:T", "kind:N", "headline:N", "outlet:N"]))
-    st.altair_chart(alt.layer(*layers).properties(height=260), width="stretch")
-    cap("Each point is the pension's total at the end of a week. The dashed line is where we start preparing. Grey "
-        "lines mark news items: hover to read them.")
+    with st.expander("08:06. See how it built up"):
+        tl = fcd.timeline(pension, frb)
+        df = pd.DataFrame(tl["rows"])
+        df["week"] = pd.to_datetime(df["week"])
+        line = alt.Chart(df).mark_line(point=True).encode(
+            x=alt.X("week:T", title=None),
+            y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1]), title="how strong the signs are"),
+            tooltip=[alt.Tooltip("week:T", title="week"), alt.Tooltip("score:Q", title="total", format=".2f")])
+        rule = alt.Chart(pd.DataFrame({"y": [tl["threshold"]]})).mark_rule(strokeDash=[6, 4], color="#c2410c").encode(y="y:Q")
+        label = alt.Chart(pd.DataFrame({"y": [tl["threshold"]], "t": ["start preparing"]})).mark_text(
+            align="left", dx=4, dy=-6, color="#c2410c").encode(y="y:Q", text="t:N", x=alt.value(0))
+        layers = [line, rule, label]
+        if tl["signals"]:
+            sdf = pd.DataFrame([{"date": m["date"], "kind": m["type"] + (" (already completed)" if m["closed"] else ""),
+                                 "headline": m["headline"], "outlet": m["outlet"]} for m in tl["signals"]])
+            sdf["date"] = pd.to_datetime(sdf["date"])
+            layers.append(alt.Chart(sdf).mark_rule(color="#64748b", opacity=0.5).encode(
+                x="date:T", tooltip=["date:T", "kind:N", "headline:N", "outlet:N"]))
+        st.altair_chart(alt.layer(*layers).properties(height=260), width="stretch")
+        cap("Each point is the pension's total at the end of a week. The dashed line is where we start preparing. Grey "
+            "lines mark news items: hover to read them.")
 
     st.subheader("08:08. Decide")
     md("**Prepare** means you assign an analyst to get ready. **Dismiss** means you think it is noise: say why, so we "
@@ -620,93 +620,92 @@ with tab_fc:
                 "rules": d["rulebook"]} for d in reversed(ss.fc_decisions)])
         cap("In this demo, decisions stay in your browser session.")
 
-    st.subheader("Did it warn early? Two real past sales")
-    md("**No. In both cases the tool flagged the pension only once the sale was reported.** So treat First Call as a "
-       "news monitor that shows its evidence, not a forecast. Two cases are an example, not proof. "
-       "Each replay uses only the news published by that day.")
-    clf = st.radio("Who sorted the stored headlines", ["keyword", "claude"], horizontal=True,
-                   format_func=lambda c: {"keyword": "Keyword rules (offline)", "claude": "Claude (saved run)"}[c],
-                   key="fc_case_clf")
-    for case in fcd.cases(clf):
-        rep = fcd.case_replay(case, frb)
-        with st.container(border=True):
-            gt = case["ground_truth"]
-            md(f"#### {case['name']}, {case['case'][-4:]}")
-            md(f"The sale was first reported on {fcd.nice_date(gt['date'])}: "
-               f"[{gt['headline']}]({fcd.CASE_LINKS[case['case']]}), {gt['outlet']}.")
-            m1, m2, m3 = st.columns(3)
-            m1.metric("First flagged as worth preparing for",
-                      fcd.nice_date(rep["first_prepare"]) if rep["first_prepare"] else "never")
-            m2.metric("Sale first reported", fcd.nice_date(rep["sale_day"]))
-            m3.metric("Weeks of early warning", f"{rep['weeks_of_warning']:g}")
-            cdf = pd.DataFrame(rep["rows"])
-            cdf["week"] = pd.to_datetime(cdf["week"])
-            ch = alt.Chart(cdf).mark_line().encode(x=alt.X("week:T", title=None),
-                                                   y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1]),
-                                                           title="how strong the signs are"),
-                                                   tooltip=["week:T", alt.Tooltip("score:Q", format=".2f")])
-            thr_rule = alt.Chart(pd.DataFrame({"y": [frb.prepare_threshold]})).mark_rule(
-                strokeDash=[6, 4], color="#c2410c").encode(y="y:Q")
-            sale = alt.Chart(pd.DataFrame({"x": [pd.to_datetime(rep["sale_day"])]})).mark_rule(
-                color="#15803d").encode(x="x:T")
-            st.altair_chart(alt.layer(ch, thr_rule, sale).properties(height=200), width="stretch")
-            cap("Dashed: where we start preparing. Green: the day the sale was first reported.")
-            table([{"date": fcd.nice_date(s["date"]), "kind": fcd.SIGNAL_WORDS[s["type"]],
-                    "note": "already completed, context only" if s["completed"] else "",
-                    "headline": s["headline"], "outlet": s["outlet"], "link": s["link"]} for s in case["signals"]],
-                  column_config={"link": st.column_config.LinkColumn("link", display_text="open")})
-    md("Why no early warning: one report of a sale, on its own, lands just under the line. In the New York City case, "
-       "a correct report 12 weeks before the sale stayed just below it. With Claude's labels, New York City crosses "
-       "the line 12 weeks early, but only because two stories about dropping fossil-fuel investments were counted as "
-       "private equity reviews. A buyer would not count those. Proposed fix, not applied yet: let one confident sale "
-       "report be enough on its own.")
-    with st.expander("Exact numbers"):
-        md("Example: one fresh sale report with certainty 0.85 gives S = 1.0 x 0.85 = 0.85 and a total of "
-           "1 - e^-0.85 = 0.57, under the line at 0.6. The proposed rule: a sale report with certainty 0.8 or more puts the pension past the line on its own.")
+    with st.expander("Did it warn early? Two real past sales"):
+        md("**No. In both cases the tool flagged the pension only once the sale was reported.** So treat Seller Watch as a "
+           "news monitor that shows its evidence, not a forecast. Two cases are an example, not proof. "
+           "Each replay uses only the news published by that day.")
+        clf = st.radio("Who sorted the stored headlines", ["keyword", "claude"], horizontal=True,
+                       format_func=lambda c: {"keyword": "Keyword rules (offline)", "claude": "Claude (saved run)"}[c],
+                       key="fc_case_clf")
+        for case in fcd.cases(clf):
+            rep = fcd.case_replay(case, frb)
+            with st.container(border=True):
+                gt = case["ground_truth"]
+                md(f"#### {case['name']}, {case['case'][-4:]}")
+                md(f"The sale was first reported on {fcd.nice_date(gt['date'])}: "
+                   f"[{gt['headline']}]({fcd.CASE_LINKS[case['case']]}), {gt['outlet']}.")
+                m1, m2, m3 = st.columns(3)
+                m1.metric("First flagged as worth preparing for",
+                          fcd.nice_date(rep["first_prepare"]) if rep["first_prepare"] else "never")
+                m2.metric("Sale first reported", fcd.nice_date(rep["sale_day"]))
+                m3.metric("Weeks of early warning", f"{rep['weeks_of_warning']:g}")
+                cdf = pd.DataFrame(rep["rows"])
+                cdf["week"] = pd.to_datetime(cdf["week"])
+                ch = alt.Chart(cdf).mark_line().encode(x=alt.X("week:T", title=None),
+                                                       y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1]),
+                                                               title="how strong the signs are"),
+                                                       tooltip=["week:T", alt.Tooltip("score:Q", format=".2f")])
+                thr_rule = alt.Chart(pd.DataFrame({"y": [frb.prepare_threshold]})).mark_rule(
+                    strokeDash=[6, 4], color="#c2410c").encode(y="y:Q")
+                sale = alt.Chart(pd.DataFrame({"x": [pd.to_datetime(rep["sale_day"])]})).mark_rule(
+                    color="#15803d").encode(x="x:T")
+                st.altair_chart(alt.layer(ch, thr_rule, sale).properties(height=200), width="stretch")
+                cap("Dashed: where we start preparing. Green: the day the sale was first reported.")
+                table([{"date": fcd.nice_date(s["date"]), "kind": fcd.SIGNAL_WORDS[s["type"]],
+                        "note": "already completed, context only" if s["completed"] else "",
+                        "headline": s["headline"], "outlet": s["outlet"], "link": s["link"]} for s in case["signals"]],
+                      column_config={"link": st.column_config.LinkColumn("link", display_text="open")})
+        md("Why no early warning: one report of a sale, on its own, lands just under the line. In the New York City case, "
+           "a correct report 12 weeks before the sale stayed just below it. With Claude's labels, New York City crosses "
+           "the line 12 weeks early, but only because two stories about dropping fossil-fuel investments were counted as "
+           "private equity reviews. A buyer would not count those. Proposed fix, not applied yet: let one confident sale "
+           "report be enough on its own.")
+        cap("Exact numbers. Example: one fresh sale report with certainty 0.85 gives S = 1.0 x 0.85 = 0.85 and a "
+            "total of 1 - e^-0.85 = 0.57, under the line at 0.6. The proposed rule: a sale report with certainty 0.8 "
+            "or more puts the pension past the line on its own.")
 
-    st.subheader("Play: test a headline")
-    md("Paste a headline. The offline rules say what kind of news it is and which pension it names, if any. Then you "
-       "see what it alone would mean today, with your settings.")
-    hl = st.text_input("Headline", value="CalPERS hires Evercore to run secondary sale of private equity stakes",
-                       key="fc_headline")
-    use_claude = False
-    if live_key():
-        use_claude = st.checkbox("Also ask Claude (live, counts against your limit)", key="fc_claude")
-    if hl.strip():
-        c = fcd.classify(hl, frb)
-        md(f"**{c['type']}**" + (" (a sale that already happened: context only)" if c["completed"] else "")
-           + f". About: **{c['pension'] or 'no pension we follow'}**. Certainty: {fcd.certainty(c['confidence'])}.")
-        if c["signal_type"] == "none" or c["weight"] == 0:
-            md("On its own, it adds nothing.")
-        elif c["verdict_alone"] == "PREPARE":
-            md("On its own, today, it would make that pension **worth preparing for**.")
-        else:
-            md("On its own, today, it would put that pension on the **keep an eye on** list. More news would be needed "
-               "to reach the line.")
-        with st.expander("Exact numbers"):
-            md(f"{c['classifier']}: {c['rationale']} Pension match: {c['link_reason']}.")
+    with st.expander("Play: test a headline"):
+        md("Paste a headline. The offline rules say what kind of news it is and which pension it names, if any. Then you "
+           "see what it alone would mean today, with your settings.")
+        hl = st.text_input("Headline", value="CalPERS hires Evercore to run secondary sale of private equity stakes",
+                           key="fc_headline")
+        use_claude = False
+        if live_key():
+            use_claude = st.checkbox("Also ask Claude (live, counts against your limit)", key="fc_claude")
+        if hl.strip():
+            c = fcd.classify(hl, frb)
+            md(f"**{c['type']}**" + (" (a sale that already happened: context only)" if c["completed"] else "")
+               + f". About: **{c['pension'] or 'no pension we follow'}**. Certainty: {fcd.certainty(c['confidence'])}.")
+            if c["signal_type"] == "none" or c["weight"] == 0:
+                md("On its own, it adds nothing.")
+            elif c["verdict_alone"] == "PREPARE":
+                md("On its own, today, it would make that pension **worth preparing for**.")
+            else:
+                md("On its own, today, it would put that pension on the **keep an eye on** list. More news would be needed "
+                   "to reach the line.")
+            cap(f"Exact numbers. {c['classifier']}: {c['rationale']} Pension match: {c['link_reason']}.")
             if c["signal_type"] != "none":
-                md(f"Weight {c['weight']:.1f} x certainty {c['confidence']:.2f} x fade 1.00 = {c['value']:.3f}, "
-                   f"total {c['score_alone']:.2f}, line {frb.prepare_threshold:g}: {c['verdict_alone']}.")
-        if use_claude:
-            ok, why_not = live_available()
-            if not ok:
-                st.warning(why_not)
-            elif st.button("Ask Claude"):
-                from fc.classify.base import ClassifierError
-                from fc.classify.claude import ClaudeClassifier
+                cap(f"Weight {c['weight']:.1f} x certainty {c['confidence']:.2f} x fade 1.00 = {c['value']:.3f}, "
+                    f"total {c['score_alone']:.2f}, line {frb.prepare_threshold:g}: {c['verdict_alone']}.")
+            if use_claude:
+                ok, why_not = live_available()
+                if not ok:
+                    st.warning(why_not)
+                elif st.button("Ask Claude"):
+                    from fc.classify.base import ClassifierError
+                    from fc.classify.claude import ClaudeClassifier
 
-                count_live_call()
-                try:
-                    with st.spinner("Asking Claude..."):
-                        res = ClaudeClassifier(client=anthropic_client()).classify(hl.strip()[:400], c["pension"])
-                    md(f"Claude says: **{fcd.SIGNAL_WORDS[res.signal_type]}**"
-                       + (" (already completed)" if res.completed else "")
-                       + f". Certainty: {fcd.certainty(res.confidence)}. {res.rationale}")
-                except ClassifierError as e:
-                    st.error(esc(f"Claude did not return a valid label: {e}"))
-    cap("Try: \"PSERS board to review private equity allocation\", \"Blackstone acquires PE portfolio from NYC "
-        "pension\", or \"Pension Bros raises $20 million\".")
+                    count_live_call()
+                    try:
+                        with st.spinner("Asking Claude..."):
+                            res = ClaudeClassifier(client=anthropic_client()).classify(hl.strip()[:400], c["pension"])
+                        md(f"Claude says: **{fcd.SIGNAL_WORDS[res.signal_type]}**"
+                           + (" (already completed)" if res.completed else "")
+                           + f". Certainty: {fcd.certainty(res.confidence)}. {res.rationale}")
+                    except ClassifierError as e:
+                        st.error(esc(f"Claude did not return a valid label: {e}"))
+        cap("Try: \"PSERS board to review private equity allocation\", \"Blackstone acquires PE portfolio from NYC "
+            "pension\", or \"Pension Bros raises $20 million\".")
     quiz("fc", [
         ("A pension's private equity sits at 14% when its plan says 10%. Why might it sell?",
          ["To get back to its plan", "Because private equity lost money", "Because rules forbid 14%"], 0,
@@ -724,9 +723,98 @@ with tab_fc:
 
 with tab_hood:
     st.header("Under the hood")
+    with st.expander("New to this? The choices behind it, in plain English"):
+        md("Building a tool like this means making a handful of choices about data and AI. Each one has a cheaper or "
+           "simpler option and a more powerful one. Here is what we picked, why, and what we gave up.")
+        table([
+            {"choice": "Collect news and emails live, or on a schedule?", "we picked": "On a schedule (batch)",
+             "why": "The sources only update every 15 minutes, and decisions take a day or weeks",
+             "what we gave up": "Up to 15 minutes of freshness"},
+            {"choice": "Let the AI decide, or only read?", "we picked": "The AI reads; code decides",
+             "why": "Same input, same answer, every time. Every verdict can be checked",
+             "what we gave up": "Code misses cases its rules were not written for"},
+            {"choice": "Written rules, or a trained model?", "we picked": "Rules the team writes and edits",
+             "why": "About 30 offers with known answers is far too few to train a model",
+             "what we gave up": "People must keep the rules up to date"},
+            {"choice": "Use any data, or only what we knew that day?", "we picked": "Only what we knew that day",
+             "why": "No hindsight in verdicts or in tests", "what we gave up": "Two dates to keep on every fact"},
+            {"choice": "Trust it, or test it?", "we picked": "Test it on answers we hold back",
+             "why": "Shows how it does on cases it has never seen", "what we gave up": "Someone has to write the answers"},
+            {"choice": "A database server, or a file?", "we picked": "One database file (DuckDB)",
+             "why": "Nothing to install or run for a demo", "what we gave up": "One writer at a time"},
+        ])
+
+        md("#### 1. Live stream or batch: when do we collect?")
+        md("A **live stream** is like a phone line that stays open: each news item is handled the second it arrives. "
+           "A **batch** is like the post: items pile up, and a job collects and handles them on a schedule, then "
+           "stops. A stream is fresher. A batch has fewer parts that can break, and costs nothing between runs.")
+        st.graphviz_chart(hood.STREAM_VS_BATCH, width="stretch")
+        md("We built both, over the same processing code, and measured them. Both gave identical results and "
+           "survived a crash with nothing lost or counted twice. **Batch won both times.** The news sources only "
+           "publish every 15 minutes, so a stream cannot be fresher than that, and a pension's sale plays out over "
+           "weeks. For news, the stream needed 3 moving parts running all month (2,160 hours); batch needs 1, "
+           "running about 11 hours a month. A stream earns its cost where minutes matter: trading, fraud, cash "
+           "positions.")
+
+        md("#### 2. The AI reads; code decides")
+        md("A language model is very good at reading messy text: a broker's email, a headline. It is less good at "
+           "giving the same answer twice, or showing exactly why. So the AI has one job, filling in a fixed form "
+           "(which funds are in the offer, what kind of news this is). Plain code then does the maths and applies "
+           "the team's rules. If the AI fills the form wrongly, a check blocks the row instead of passing it on.")
+        md("The gain: every verdict can be rerun and traced, and the tool still works with no AI at all (this demo "
+           "runs on offline rules by default). The cost: the rules only know what they were written for, so a new "
+           "kind of offer needs a person to add a rule.")
+
+        md("#### 3. Raw, checked, computed: keeping data in layers")
+        md("Data moves through three layers, like a kitchen: raw ingredients as delivered, then washed and cut, then "
+           "the plated dish. Here that is the email as received, then rows that passed the checks, then the "
+           "computed numbers (the diagram just below this box). Because the raw copy is kept, any result can be "
+           "rebuilt from scratch after a fix, and every number in a memo can point back to the row it came from.")
+
+        md("#### 4. Point in time: no hindsight")
+        md("A verdict may only use what we knew on the day the offer arrived. This matters most for the price check. "
+           "Take Hornbeam:")
+        st.graphviz_chart(hood.POINT_IN_TIME, width="stretch")
+        md("The broker prices from the 30 June value. We were told of the write-down on 10 September, before the "
+           "offer arrived, so it counts, and it is why we would pass. Had we learnt of it in November, it would not "
+           "count, even in a test run later. Tests that peek at the future look better than the tool will ever be.")
+
+        md("#### 5. Evals: an exam with the answers held back")
+        md("An eval is an exam: we run the tool on cases where we already know the right answer and count how often "
+           "it agrees. The trick is to split the cases. The **tune** set is used to write the rules. The "
+           "**holdout** set is locked away and only used to mark the final result.")
+        st.graphviz_chart(hood.EVAL_SPLIT, width="stretch")
+        ev = []
+        for v in ("v1", "v2", "v3"):
+            a = ql.agreement(ql.load_rulebook(v))
+            for split, label in (("tune", "tune set (seen)"), ("holdout", "holdout set (unseen)")):
+                ev.append({"rules": f"version {v[1]}", "set": label,
+                           "agreed": round(100 * a[split]["kept"] / a[split]["total"])})
+        bars = alt.Chart(pd.DataFrame(ev)).mark_bar().encode(
+            x=alt.X("agreed:Q", title="% of offers where the tool agreed with the answer", scale=alt.Scale(domain=[0, 100])),
+            y=alt.Y("set:N", title=None), row=alt.Row("rules:N", title=None, header=alt.Header(labelAngle=0, labelAlign="left")),
+            color=alt.Color("set:N", legend=None, scale=alt.Scale(range=["#2563eb", "#94a3b8"])),
+            tooltip=["rules:N", "set:N", "agreed:Q"]).properties(height=44, width=420)
+        st.altair_chart(bars)
+        md("Version 2 scored better on the cases it was written from and worse on the locked ones. That is "
+           "**overfitting**: the rules learnt the examples, not the job. Without the holdout we would have shipped "
+           "the worse version. Two more words you will see: **precision** is how often a flag is right; **recall** "
+           "is how many of the real cases get flagged.")
+
+        md("#### 6. Tracing: a flight recorder for every run")
+        md("Each run records what the AI was given, what it returned, how long each step took and what it cost. "
+           "When a verdict looks wrong, you replay the record instead of guessing. We use Langfuse for this. The "
+           "trade-off: records include the text the AI read, so in a real deployment they must stay where the "
+           "data is allowed to be. Examples are in the Tracing section below.")
+
+        md("#### What a real deployment would change")
+        md("- **Where the AI runs**: offers arrive under a confidentiality agreement, so the model would be hosted in "
+           "our region and keep no data.\n"
+           "- **Storage**: a shared database server once several people use it at once.\n"
+           "- **Answers for the exams**: written by 2 or 3 analysts working separately, not by the builder or an AI.")
     st.subheader("The model reads; code decides")
-    md("The AI model has one job: turn text into fixed fields, the fund lines of an offer for Quick Look and the kind "
-       "of news for First Call. Matching, numbers and verdicts are plain, tested code. So every verdict can be "
+    md("The AI model has one job: turn text into fixed fields, the fund lines of an offer for Offer Check and the kind "
+       "of news for Seller Watch. Matching, numbers and verdicts are plain, tested code. So every verdict can be "
        "rerun and checked, and this demo works with no model at all.")
     st.graphviz_chart(hood.DIAGRAM, width="stretch")
     md("1. **Receive**: an email or a news headline, stored exactly as it came in.\n"
@@ -743,10 +831,10 @@ with tab_hood:
        "instead of guessing. We send traces to Langfuse, a tool built for this.")
     lf = hood.langfuse_examples()
     if lf.get("traces"):
-        cap(f"Rendered from the Langfuse API (exported {lf['exported_at'][:10]}). Two real runs. First Call headlines "
+        cap(f"Rendered from the Langfuse API (exported {lf['exported_at'][:10]}). Two real runs. Seller Watch headlines "
             "are left out because they name pensions. This demo itself sends nothing to Langfuse.")
-        for feature, title in (("quicklook", "Quick Look: one offer email, Project Cedar"),
-                               ("firstcall", "First Call: one overnight news run")):
+        for feature, title in (("quicklook", "Offer Check: one offer email, Project Cedar"),
+                               ("firstcall", "Seller Watch: one overnight news run")):
             t = hood.trace(feature)
             if not t:
                 continue
@@ -781,7 +869,7 @@ with tab_hood:
     st.subheader("Evals: is the model right?")
     n, pos = hood.holdout_size()
     md(f"An eval runs the model on examples where we already know the answer and counts how often it is right. "
-       f"Example from First Call: **{n} real headlines were set aside for testing**, never used to tune anything. "
+       f"Example from Seller Watch: **{n} real headlines were set aside for testing**, never used to tune anything. "
        f"{pos} of them are real signs that can come before a sale. On those:")
     for line in hood.classifier_in_words():
         md(f"- {line}")
@@ -797,13 +885,13 @@ with tab_hood:
                "signs, the share that were caught. Dev is the set we tuned on; holdout is the fair test.")
             table(ex["firstcall"])
             if ex["quicklook"]:
-                md("Quick Look, Claude against the offline rules on the same offers:")
+                md("Offer Check, Claude against the offline rules on the same offers:")
                 table(ex["quicklook"])
             cap("Rendered from the Langfuse API (experiments list with scores).")
 
-    md("**Quick Look tests**")
+    md("**Offer Check tests**")
     table(hood.quicklook_evals())
-    md("**Quick Look verdicts against the answers we set**, recomputed now from the snapshot:")
+    md("**Offer Check verdicts against the answers we set**, recomputed now from the snapshot:")
     table(hood.verdict_evals())
     cap("Version 2 agrees on every offer used to write it, but on fewer new offers than version 1. That is "
         "overfitting: the rules learnt the examples, not the job.")
@@ -830,7 +918,7 @@ with tab_hood:
        "- **One asking price** for the whole portfolio is compared with a range built only from funds we own.\n"
        "- **The answers** in the tests were written by the builder or an AI agent. A real test needs 2 or 3 analysts "
        "labelling on their own.\n"
-       "- **First Call** matches a headline to a pension by its name. \"New York pensions\" stays unmatched.\n"
+       "- **Seller Watch** matches a headline to a pension by its name. \"New York pensions\" stays unmatched.\n"
        "- **Live mode**, when on, sends pasted text to Anthropic. A real desk would use a model in its own region "
        "that keeps no data, under its confidentiality and data processing agreements.")
     md("Code and docs: [github.com/alexandrecela10/secondaries-radar](https://github.com/alexandrecela10/secondaries-radar). "

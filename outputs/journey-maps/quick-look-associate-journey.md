@@ -1,4 +1,4 @@
-# Journey: Quick Look, associate triages Project Cedar
+# Journey: Offer Check, associate triages Project Cedar
 
 **Persona:** Layla, secondaries associate. Reads 5 to 10 broker offers a week. Reports to the head of secondaries, who decides on NDAs.
 **Job to be done:** When a broker sends a sale offer, I want a sourced "look closer or pass" call with its reasons, so I can tell my head of team by 10:00 whether to sign the NDA.

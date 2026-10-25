@@ -1,4 +1,4 @@
-"""Quick Look data functions for the demo. No Streamlit here, so tests can call every one.
+"""Offer Check data functions for the demo. No Streamlit here, so tests can call every one.
 
 Everything is the production code from `quicklook/`: the offline parser reads the email,
 `pipeline.compute` matches lines, computes metrics and applies the rulebook. Nothing is stored:

@@ -1,7 +1,7 @@
 """Under-the-hood data for the demo: the pattern diagram, measured tables and eval results.
 
 Every number is read from files committed in the repo (outputs/decisions/*.md and */measurements/*.json),
-or recomputed from the Quick Look snapshot, so the page cannot drift from the evidence.
+or recomputed from the Offer Check snapshot, so the page cannot drift from the evidence.
 """
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ from . import ql
 
 ROOT = Path(__file__).resolve().parents[1]
 DECISIONS = [
-    ("Quick Look intake: batch, every minute", ROOT / "outputs" / "decisions" / "quick-look-collection-architecture.md"),
-    ("First Call news: batch, every 15 minutes", ROOT / "outputs" / "decisions" / "first-call-collection-architecture.md"),
+    ("Offer Check intake: batch, every minute", ROOT / "outputs" / "decisions" / "quick-look-collection-architecture.md"),
+    ("Seller Watch news: batch, every 15 minutes", ROOT / "outputs" / "decisions" / "first-call-collection-architecture.md"),
 ]
 
 DIAGRAM = """digraph {
@@ -29,6 +29,40 @@ DIAGRAM = """digraph {
   {rank=same; read}
 }"""
 
+
+# Diagrams for "The choices behind it, in plain English".
+STREAM_VS_BATCH = """digraph {
+  rankdir=LR; node [shape=box, style="rounded", fontname="Helvetica", fontsize=11];
+  graph [fontname="Helvetica", fontsize=11];
+  subgraph cluster_s { label="Live stream: handle each item the moment it arrives"; color="#c2410c";
+    s1 [label="News source\\nnew items every 15 min"]; s2 [label="Watcher\\nalways on"];
+    s3 [label="Queue\\nholds items in order"]; s4 [label="Worker\\nalways on"]; s5 [label="Same processing code"];
+    s1 -> s2 -> s3 -> s4 -> s5; }
+  subgraph cluster_b { label="Batch: collect on a schedule, handle together, stop"; color="#15803d";
+    b1 [label="News source\\nnew items every 15 min"]; b2 [label="Scheduled job\\nwakes every 15 min"];
+    b5 [label="Same processing code"];
+    b1 -> b2 -> b5; }
+}"""
+
+EVAL_SPLIT = """digraph {
+  rankdir=LR; node [shape=box, style="rounded", fontname="Helvetica", fontsize=11];
+  all [label="Offers where we\\nalready know the answer"];
+  tune [label="Tune set\\nused to write the rules"];
+  hold [label="Holdout set\\nlocked away", color="#2563eb"];
+  rules [label="The rules"];
+  test [label="Fair score\\non offers the rules never saw", color="#2563eb"];
+  all -> tune -> rules -> test; all -> hold -> test;
+}"""
+
+POINT_IN_TIME = """digraph {
+  rankdir=LR; node [shape=box, style="rounded", fontname="Helvetica", fontsize=11];
+  a [label="30 June\\nthe value the broker\\nprices from"];
+  b [label="2 September\\nCalder Packaging\\nwritten down"];
+  c [label="10 September\\nthe fund tells us", color="#15803d"];
+  d [label="22 October\\nHornbeam offer arrives:\\nthe write-down counts", color="#15803d"];
+  e [label="After 22 October\\nanything we learn later\\ndoes not count, even in tests", color="#c2410c"];
+  a -> b -> c -> d -> e;
+}"""
 
 def measured_table(path: Path) -> str:
     """The first markdown table under the 'Measured' heading of a decision doc."""
@@ -161,7 +195,7 @@ def experiment_rows() -> dict[str, list[dict]]:
 
 
 def classifier_in_words() -> list[str]:
-    """The First Call holdout result as counts, from the committed eval files."""
+    """The Seller Watch holdout result as counts, from the committed eval files."""
     out = []
     for f, name in (("eval_claude.json", "Claude"), ("eval_keyword.json", "The offline keyword rules")):
         h = _json(f"firstcall/measurements/{f}").get("splits", {}).get("holdout")

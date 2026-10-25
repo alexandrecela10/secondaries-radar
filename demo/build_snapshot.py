@@ -2,10 +2,10 @@
 
     .venv/bin/python demo/build_snapshot.py [--firstcall-db firstcall/data/firstcall.duckdb] [--as-of 2026-10-24]
 
-Quick Look: the synthetic universe, the 30 offer emails and their labels (seed 42), copied from a
+Offer Check: the synthetic universe, the 30 offer emails and their labels (seed 42), copied from a
 fresh `synth.run`. Generating takes about 10 seconds, so the app reads this copy instead.
 
-First Call: one real batch run, exported from a local First Call database. Real pension names,
+Seller Watch: one real batch run, exported from a local Seller Watch database. Real pension names,
 headlines and links, since all of it is public news. Only headline, outlet, date, link and a quote
 of 300 characters or less are kept, never the article.
 """
@@ -42,7 +42,7 @@ def build_quicklook() -> None:
         for f in sorted((tmp / "offers").glob("*.eml")) + sorted((tmp / "offers" / "more").glob("*.eml")):
             shutil.copy(f, dest / "offers" / f.name)
         shutil.copy(tmp / "fixtures" / "labels.json", dest / "labels.json")
-    print(f"Quick Look snapshot: {len(list((dest / 'offers').glob('*.eml')))} emails, reference and labels in {dest}")
+    print(f"Offer Check snapshot: {len(list((dest / 'offers').glob('*.eml')))} emails, reference and labels in {dest}")
 
 
 def build_firstcall(db: Path, as_of_day: str) -> None:
@@ -89,7 +89,7 @@ def build_firstcall(db: Path, as_of_day: str) -> None:
             "note": "Real public headlines and links. Not a statement of any pension's intent."}
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "firstcall_snapshot.json").write_text(json.dumps(snap, indent=1, ensure_ascii=False) + "\n")
-    print(f"First Call snapshot: {len(names)} pensions, {len(signals)} signals as of {as_of.date()} "
+    print(f"Seller Watch snapshot: {len(names)} pensions, {len(signals)} signals as of {as_of.date()} "
           f"in {OUT / 'firstcall_snapshot.json'}")
 
 
@@ -104,7 +104,7 @@ def main() -> int:
     if a.firstcall_db.exists():
         build_firstcall(a.firstcall_db, a.as_of)
     else:
-        print(f"No First Call database at {a.firstcall_db}; kept the committed First Call snapshot. "
+        print(f"No Seller Watch database at {a.firstcall_db}; kept the committed Seller Watch snapshot. "
               "Run `cd firstcall && make collect-batch` first to rebuild it.")
     return 0
 

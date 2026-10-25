@@ -1,4 +1,4 @@
-"""First Call data functions for the demo. No Streamlit here, so tests can call every one.
+"""Seller Watch data functions for the demo. No Streamlit here, so tests can call every one.
 
 Scores come from `fc.scoring`, the production code, over a committed snapshot of one real
 batch run (real public headlines and links) and over the two worked historical cases. Your weights and threshold re-score everything instantly.
