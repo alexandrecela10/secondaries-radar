@@ -6,7 +6,12 @@
 #       showed v1 passes Willow, a good offer (funds we know well, full price). The fit
 #       score punishes any offer concentrated in one region, so 0.7 failed most offers.
 #       Risk: tuned on 9 offers labelled by one person. Re-check with real labels.
-version: 2
+#       Copy: config/history/rulebook_v2.yaml.
+#   v3: price leaves the fit score and becomes its own question. Our range now adds what our
+#       own fund reports told us after the broker's date (company sales, write-downs). PASS if
+#       the asking price is more than 10 points above the top of our range. 10, not 0: before an
+#       NDA the guidance is indicative, so only a wide gap is worth walking away from.
+version: 3
 threshold: 0.6
 confidence:
   data_matched_strong: 0.9   # at or above: strong
@@ -33,9 +38,5 @@ quick_look:
     op: ">="
     value: 0.55
     weight: 2
-  - id: max_price
-    description: Asking price within our range
-    metric: guidance_minus_range_top
-    op: "<="
-    value: 0
-    weight: 2
+price:
+  veto_gap: 0.10   # PASS if the ask is above the top of our range by more than 10 points

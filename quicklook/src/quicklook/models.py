@@ -134,6 +134,7 @@ class Verdict(BaseModel):
     veto_rule: str | None
     data_matched: float
     margin: float | None  # None when a veto decides (counts as clear)
+    price_view: Literal["cheap", "expensive", "no view"] = "no view"  # asking price against our range, our data
     band: Literal["high", "medium", "low"]
     headline: str
     headline_segments: list = Field(default_factory=list)  # text, or [metric, kind, shown]

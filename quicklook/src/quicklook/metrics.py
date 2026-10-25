@@ -26,12 +26,14 @@ REGISTRY: dict[str, tuple[str, str]] = {
     "share_value_venture": ("v1", "Share of value in venture funds"),
     "top5_concentration": ("v1", "Share of value in the 5 largest lines"),
     "fit_score": ("v1", "The fit of the strategy, region and vintage mix to our plan (0 to 1)"),
-    "price_range_low": ("v1", "Low end of our price range for funds we own, as % of value"),
-    "price_range_high": ("v1", "High end of our price range for funds we own, as % of value"),
+    "price_range_low": ("v2", "Low end of our price range for funds we own, as % of the broker's value"),
+    "price_range_high": ("v2", "High end of our price range for funds we own, as % of the broker's value"),
     "asking_price_mid": ("v1", "Midpoint of the broker's pricing guidance, as % of value"),
-    "guidance_minus_range_top": ("v1", "Asking price minus the top of our range"),
+    "guidance_minus_range_top": ("v2", "Asking price minus the top of our range"),
+    "worth_today_owned_usd": ("v1", "What the funds we own are worth today by our own reports, USD millions"),
+    "worth_change_owned": ("v1", "Change in the value of funds we own since the broker's date, by our own reports"),
 }
-LINE_PRICE_VERSION = "v1"
+LINE_PRICE_VERSION = "v2"
 EXPOSURE_VERSION = "v1"
 
 
@@ -49,6 +51,7 @@ class LineFact:
     match_confidence: float | None = None
     price_low: float | None = None
     price_high: float | None = None
+    worth_usd: float | None = None  # broker's value updated with what our fund reports told us since
 
 
 def mv(name: str, value: float | None, note: str = "") -> MetricValue:
@@ -129,19 +132,32 @@ def fund_age(vintage: int, on: dt.date) -> float:
     return (on - dt.date(vintage, 1, 1)).days / 365.25
 
 
+def worth_factor(changes: list[tuple[float, float]], fund_value_ref: float) -> float:
+    """Value today / value at the reference date, from events since then.
+
+    changes: (value before, value after) per event, fund level, same currency as fund_value_ref.
+    A line is a fixed share of its fund, so the line moves by the same factor. Cash paid in or out
+    since the reference date is a price adjustment at closing, not a change in worth: not here.
+    """
+    if fund_value_ref <= 0:
+        return 1.0
+    return 1 + sum(after - before for before, after in changes) / fund_value_ref
+
+
 def line_price_range(strategy: str, vintage: int, reference_date: dt.date, stated_value: float,
-                     implied_value: float) -> tuple[float, float, str]:
+                     implied_value: float, worth: float = 1.0) -> tuple[float, float, str]:
     """Price range for a line in a fund we own, as % of the broker's stated value.
 
     implied_value = line commitment x (fund value / fund size) from our latest report.
-    If our report says the line is worth more than the broker states, our range rises.
+    worth = worth_factor() from what the fund told us since the reference date.
+    If our data says the line is worth more than the broker states, our range rises.
     """
     age = fund_age(vintage, reference_date)
     lo, hi = next((lo, hi) for top, lo, hi in PRICE_BANDS[strategy] if age < top)
     adj = implied_value / stated_value if stated_value else 1.0
     method = (f"{strategy}, age {age:.1f} years: band {lo:.0%} to {hi:.0%} of value, "
-              f"times our value / broker value = {adj:.3f}")
-    return lo * adj, hi * adj, method
+              f"times our value / broker value = {adj:.3f}, times worth today / value at the broker's date = {worth:.3f}")
+    return lo * adj * worth, hi * adj * worth, method
 
 
 def priced_range(lines: list[LineFact]) -> tuple[float | None, float | None]:
@@ -184,6 +200,9 @@ def offer_metrics(lines: list[LineFact], asking_text: str | None, plan: dict) ->
     known = {Tier.SAME_FUND, Tier.SAME_MANAGER}
     lo, hi = priced_range(lines)
     ask = asking_price_range(asking_text)
+    worthed = [l for l in lines if l.tier == Tier.SAME_FUND and l.worth_usd is not None]
+    worth = sum(l.worth_usd for l in worthed) if worthed else None
+    base = _total(worthed)
     ask_mid = (ask[0] + ask[1]) / 2 if ask else None
     out = [
         mv("total_value_usd", _total(lines)),
@@ -204,5 +223,8 @@ def offer_metrics(lines: list[LineFact], asking_text: str | None, plan: dict) ->
         mv("asking_price_mid", ask_mid, "" if ask else "no pricing guidance read"),
         mv("guidance_minus_range_top", None if (ask_mid is None or hi is None) else ask_mid - hi,
            "no price: needs a fund we own and a pricing guidance" if (ask_mid is None or hi is None) else ""),
+        mv("worth_today_owned_usd", worth, "no fund we own in this offer" if worth is None else ""),
+        mv("worth_change_owned", (worth / base - 1) if worth is not None and base > 0 else None,
+           "no fund we own in this offer" if worth is None else ""),
     ]
     return {m.name: m for m in out}

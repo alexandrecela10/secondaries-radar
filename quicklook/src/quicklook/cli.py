@@ -187,6 +187,17 @@ def _why(ws: Workspace, offer: str) -> int:
         veto = " (veto)" if r["veto"] else ""
         print(f"  {r['status']:11s} {r['description']}{veto}: {r['metric']} = {val} {r['op']} {r['threshold']:g}"
               f"  [gold_offer_metrics {oid}:{r['metric']}]")
+    mets = {m["metric"]: m["value"] for m in store.rows(con, "SELECT * FROM gold_offer_metrics WHERE offer_id = ?", [oid])}
+    print(f"Price ({v['price_view']}{', vetoed' if v['veto_rule'] == 'price_veto' else ''}):")
+    for a in store.rows(con, "SELECT * FROM gold_price_adjustments WHERE offer_id = ? ORDER BY line_no", [oid]):
+        print(f"  {a['label']}, {a['fund_name']}: {a['note']} Stake {a['line_change_usd']:+.1f}M USD"
+              f"  [ref_fund_events {a['event_id']}, told {a['reported_at']}]")
+    if mets.get("price_range_high") is not None:
+        chg = mets.get("worth_change_owned")
+        print(f"  Funds we own: worth {'' if chg is None else f'{chg:+.1%} '}against the broker's value; our range "
+              f"{mets['price_range_low']:.0%} to {mets['price_range_high']:.0%}; asking {o['asking_price_text']}.")
+    else:
+        print("  No price view: we own none of these funds.")
     for l in store.rows(con, "SELECT * FROM gold_line_matches WHERE offer_id = ? AND NOT resolved ORDER BY line_no", [oid]):
         names = ", ".join(c["fund_name"] for c in json.loads(l["candidates_json"]))
         print(f"  open: {l['label']} ({l['method']}); candidates: {names or 'none'}")

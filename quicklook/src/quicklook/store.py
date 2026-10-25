@@ -35,7 +35,12 @@ CREATE TABLE IF NOT EXISTS gold_line_matches (
     fund_id VARCHAR, fund_name VARCHAR, manager_id VARCHAR, manager_name VARCHAR, confidence DOUBLE,
     resolved BOOLEAN, method VARCHAR, candidates_json VARCHAR, flags_json VARCHAR, value_usd DOUBLE,
     fx_rate DOUBLE, fx_row_id VARCHAR, price_low DOUBLE, price_high DOUBLE, price_method VARCHAR,
-    our_value_row VARCHAR, compared_series_row VARCHAR, match_version VARCHAR, price_version VARCHAR);
+    our_value_row VARCHAR, compared_series_row VARCHAR, match_version VARCHAR, price_version VARCHAR,
+    worth_usd DOUBLE);
+CREATE TABLE IF NOT EXISTS gold_price_adjustments (
+    row_id VARCHAR PRIMARY KEY, offer_id VARCHAR, line_id VARCHAR, line_no INTEGER, label VARCHAR,
+    fund_id VARCHAR, fund_name VARCHAR, event_id VARCHAR, kind VARCHAR, company VARCHAR, event_date DATE,
+    reported_at DATE, note VARCHAR, fund_change_pct DOUBLE, line_change_usd DOUBLE, version VARCHAR);
 CREATE TABLE IF NOT EXISTS gold_offer_metrics (
     row_id VARCHAR PRIMARY KEY, offer_id VARCHAR, metric VARCHAR, version VARCHAR, value DOUBLE, note VARCHAR);
 CREATE TABLE IF NOT EXISTS gold_exposure (
@@ -47,7 +52,7 @@ CREATE TABLE IF NOT EXISTS gold_rule_results (
     rank INTEGER, rulebook_version VARCHAR);
 CREATE TABLE IF NOT EXISTS gold_verdicts (
     offer_id VARCHAR PRIMARY KEY, verdict VARCHAR, score DOUBLE, threshold DOUBLE, veto_rule VARCHAR,
-    data_matched DOUBLE, margin DOUBLE, band VARCHAR, headline VARCHAR, headline_json VARCHAR, rulebook_version VARCHAR,
+    data_matched DOUBLE, margin DOUBLE, price_view VARCHAR, band VARCHAR, headline VARCHAR, headline_json VARCHAR, rulebook_version VARCHAR,
     rulebook_sha VARCHAR, decided_at TIMESTAMP);
 CREATE TABLE IF NOT EXISTS gold_briefs (
     offer_id VARCHAR PRIMARY KEY, path VARCHAR, sha256 VARCHAR, valid BOOLEAN, problems VARCHAR,
@@ -66,13 +71,13 @@ CREATE TABLE IF NOT EXISTS offer_traces (
     trace_id VARCHAR PRIMARY KEY, offer_id VARCHAR, kind VARCHAR, created_at TIMESTAMP);
 """
 
-OFFER_TABLES = ["silver_offer_lines", "silver_rejects", "gold_line_matches", "gold_offer_metrics", "gold_exposure",
+OFFER_TABLES = ["silver_offer_lines", "silver_rejects", "gold_line_matches", "gold_price_adjustments", "gold_offer_metrics", "gold_exposure",
                 "gold_rule_results", "gold_verdicts", "gold_briefs", "silver_offers"]
 
 # Tables a brief number may cite, with their row key.
 LINEAGE_KEYS = {
     "silver_offers": "offer_id", "silver_offer_lines": "line_id", "gold_line_matches": "line_id",
-    "gold_exposure": "row_id", "gold_rule_results": "row_id", "gold_verdicts": "offer_id",
+    "gold_exposure": "row_id", "gold_price_adjustments": "row_id", "ref_fund_events": "event_id", "gold_rule_results": "row_id", "gold_verdicts": "offer_id",
     "silver_rejects": "row_id", "overrides": "override_id", "decisions": "decision_id",
     "line_resolutions": "resolution_id", "ref_fund_series": "row_id", "ref_fx_rates": "row_id", "bronze_emails": "message_id",
 }
@@ -83,7 +88,7 @@ def connect(ws: Workspace, read_only: bool = False) -> duckdb.DuckDBPyConnection
     con = duckdb.connect(str(ws.db_path), read_only=read_only)
     if not read_only:
         con.execute(SCHEMA)
-    for name in ("funds", "managers", "fund_series", "holdings", "fx_rates"):
+    for name in ("funds", "managers", "fund_series", "holdings", "fx_rates", "fund_events"):
         p = ws.reference_dir / f"{name}.parquet"
         if p.exists():
             con.execute(f"CREATE OR REPLACE TEMP VIEW ref_{name} AS SELECT * FROM read_parquet('{p}')")

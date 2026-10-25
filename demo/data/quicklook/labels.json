@@ -1369,6 +1369,109 @@
       ]
     },
     {
+      "code": "Hornbeam",
+      "file": "hornbeam.eml",
+      "message_id": "hornbeam-20261022@harbourline.example",
+      "pm_label": "PASS",
+      "rationale": "Looks fine at the June values. Our own reports show two write-downs since, so at high 80s we would overpay.",
+      "fmt": "body",
+      "reference_date": "2026-06-30",
+      "injection": false,
+      "is_test_offer": true,
+      "split": "tune",
+      "archetype": "hand-designed",
+      "lines": [
+        {
+          "line_no": 1,
+          "label": "Fund 1",
+          "true_fund_id": "F079",
+          "true_manager_id": "M27",
+          "expected_tier": "same_fund",
+          "expected_resolved": true,
+          "expected_manager_id": "M27",
+          "selector": "owned",
+          "value_usd": 60.1,
+          "shown": {
+            "vintage": 2018,
+            "currency": "USD",
+            "commitment": 53.5,
+            "pct_called": 0.92,
+            "dpi": 0.55,
+            "tvpi": 1.78,
+            "value": 60.1
+          },
+          "true_strategy": "buyout",
+          "true_status": "owned"
+        },
+        {
+          "line_no": 2,
+          "label": "Fund 2",
+          "true_fund_id": "F068",
+          "true_manager_id": "M24",
+          "expected_tier": "same_fund",
+          "expected_resolved": true,
+          "expected_manager_id": "M24",
+          "selector": "owned",
+          "value_usd": 35.1,
+          "shown": {
+            "vintage": 2017,
+            "currency": "USD",
+            "commitment": 61.0,
+            "pct_called": 0.92,
+            "dpi": 0.7,
+            "tvpi": 1.33,
+            "value": 35.1
+          },
+          "true_strategy": "buyout",
+          "true_status": "owned"
+        },
+        {
+          "line_no": 3,
+          "label": "Fund 3",
+          "true_fund_id": "F033",
+          "true_manager_id": "M12",
+          "expected_tier": "same_manager",
+          "expected_resolved": true,
+          "expected_manager_id": "M12",
+          "selector": "tracked1",
+          "value_usd": 25.0,
+          "shown": {
+            "vintage": 2020,
+            "currency": "USD",
+            "commitment": 17.0,
+            "pct_called": 0.89,
+            "dpi": 0.36,
+            "tvpi": 2.0,
+            "value": 25.0
+          },
+          "true_strategy": "buyout",
+          "true_status": "tracked"
+        },
+        {
+          "line_no": 4,
+          "label": "Fund 4",
+          "true_fund_id": "F115",
+          "true_manager_id": "M39",
+          "expected_tier": "unknown",
+          "expected_resolved": true,
+          "expected_manager_id": null,
+          "selector": "outside_none",
+          "value_usd": 10.1,
+          "shown": {
+            "vintage": 2017,
+            "currency": "USD",
+            "commitment": 10.5,
+            "pct_called": 0.95,
+            "dpi": 0.75,
+            "tvpi": 1.76,
+            "value": 10.1
+          },
+          "true_strategy": "infra",
+          "true_status": "outside"
+        }
+      ]
+    },
+    {
       "code": "Aspen",
       "file": "more/aspen.eml",
       "message_id": "aspen-20261016@harbourline.example",

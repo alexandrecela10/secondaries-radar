@@ -116,8 +116,9 @@ def _match_all(lines, offer_id, known_at, ref, ref_date, resolutions, currency):
             m = match.analyst_pick(m, ref.funds[pick["fund_id"]], ref, pick["user_name"])
         rate, fx_row = ref.fx_rate(line.currency or currency, ref_date)
         value_usd = line.value * rate
-        lo = hi = None
+        lo = hi = worth_usd = None
         method = our_row = None
+        adjustments = []
         if m.tier == Tier.SAME_FUND:
             fund = ref.funds[m.fund_id]
             latest = ref.latest(m.fund_id, known_at)
@@ -125,9 +126,26 @@ def _match_all(lines, offer_id, known_at, ref, ref_date, resolutions, currency):
                 our_vpc = latest.nav / fund["size_m"]
                 # value / commitment is a ratio, so currency cancels out
                 implied = line.commitment * our_vpc if line.commitment else line.value
+                # Price check: what the fund told us after the broker's date, as known when the offer arrived.
+                events = ref.events_since(m.fund_id, ref_date, known_at)
+                worth = 1.0
+                if events:
+                    worth = metrics.worth_factor([(e.value_before, e.value_after) for e in events],
+                                                 events[0].fund_value_ref)
+                for e in events:
+                    pct = (e.value_after - e.value_before) / e.fund_value_ref
+                    adjustments.append(dict(
+                        row_id=f"{line_id}:{e.event_id}", offer_id=offer_id, line_id=line_id, line_no=line.line_no,
+                        label=line.label, fund_id=m.fund_id, fund_name=fund["name"], event_id=e.event_id,
+                        kind=e.kind, company=e.company, event_date=e.event_date, reported_at=e.reported_at,
+                        note=e.note, fund_change_pct=pct, line_change_usd=line.value * rate * pct,
+                        version=metrics.LINE_PRICE_VERSION))
+                worth_usd = line.value * rate * worth
                 lo, hi, method = metrics.line_price_range(fund["strategy"], fund["vintage"], ref_date,
-                                                          line.value, implied)
+                                                          line.value, implied, worth)
                 method += f"; our report for {latest.as_of_date.isoformat()}"
+                if events:
+                    method += f"; {len(events)} event{'s' if len(events) > 1 else ''} since {ref_date.isoformat()}"
                 our_row = latest.row_id
         fund_name = ref.funds[m.fund_id]["name"] if m.fund_id else None
         mgr_name = ref.manager_name(m.manager_id) if m.manager_id else None
@@ -137,11 +155,13 @@ def _match_all(lines, offer_id, known_at, ref, ref_date, resolutions, currency):
             confidence=m.confidence, resolved=m.resolved, method=m.method,
             candidates_json=json.dumps([c.model_dump() for c in m.candidates]), flags_json=json.dumps(m.flags),
             value_usd=value_usd, fx_rate=rate, fx_row_id=fx_row, price_low=lo, price_high=hi, price_method=method,
+            worth_usd=worth_usd, adjustments_json=json.dumps(adjustments, default=str),
             our_value_row=our_row, compared_series_row=m.compared_series_row, match_version=match.VERSION,
             price_version=metrics.LINE_PRICE_VERSION))
         facts.append(metrics.LineFact(line_id=line_id, value_usd=value_usd, strategy=line.strategy,
                                       region=line.region, vintage=line.vintage, tier=m.tier, resolved=m.resolved,
-                                      match_confidence=m.confidence, price_low=lo, price_high=hi))
+                                      match_confidence=m.confidence, price_low=lo, price_high=hi,
+                                      worth_usd=worth_usd))
     return match_rows, facts
 
 
@@ -205,7 +225,9 @@ def _write_gold(con, offer_id, content, parsed, parser, lines, rejects, match_ro
         for r in rejects:
             store.insert(con, "silver_rejects", r)
         for r in match_rows:
-            store.insert(con, "gold_line_matches", r)
+            for a in json.loads(r["adjustments_json"]):
+                store.insert(con, "gold_price_adjustments", a)
+            store.insert(con, "gold_line_matches", {k: v for k, v in r.items() if k != "adjustments_json"})
         for m in mvals.values():
             store.insert(con, "gold_offer_metrics", dict(row_id=f"{offer_id}:{m.name}", offer_id=offer_id,
                                                          metric=m.name, version=m.version, value=m.value, note=m.note))
@@ -219,6 +241,7 @@ def _write_gold(con, offer_id, content, parsed, parser, lines, rejects, match_ro
         store.insert(con, "gold_verdicts", dict(
             offer_id=offer_id, verdict=verdict.verdict, score=verdict.score, threshold=verdict.threshold,
             veto_rule=verdict.veto_rule, data_matched=verdict.data_matched, margin=verdict.margin,
+            price_view=verdict.price_view,
             band=verdict.band, headline=verdict.headline, headline_json=json.dumps(verdict.headline_segments),
             rulebook_version=verdict.rulebook_version,
             rulebook_sha=verdict.rulebook_sha, decided_at=content.date.replace(tzinfo=None)))
