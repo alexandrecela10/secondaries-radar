@@ -103,11 +103,12 @@ def quiz(key: str, questions: list[tuple[str, list[str], int, str]]):
 # ------------------------------------------------------------------ header and sidebar
 
 st.title("Secondaries Radar")
-md("You work at a fund that buys private equity stakes from investors who want out early. This is an "
-   "**LP-led secondary**: a pension or an insurer sells its share of funds, and you buy it, usually below the "
-   "funds' reported value. Two tools help your team. **Offer Check** reads a broker's sale offer and says look "
-   "closer or pass, with every number sourced. **Seller Watch** reads public news and lists pensions that show "
-   "signs they may sell, so you can prepare before an offer arrives. **The model reads; code decides.**")
+md("For a fund that buys stakes in private equity funds from pensions and insurers who want out early. That trade is "
+   "an **LP-led secondary**.")
+st.success("**Together: be the first call, then bid at the right price.** Seller Watch spots pensions in the news "
+           "in ways that often come before a sale, so you are ready before a broker calls. When an offer arrives, "
+           "Offer Check tells you within minutes whether it deserves an NDA, and whether the price is right by our "
+           "own fund data, which other bidders do not have. Every number and every news item is sourced.")
 
 with st.sidebar:
     st.markdown("### How to use this demo")
@@ -135,6 +136,9 @@ tab_ql, tab_fc, tab_hood = st.tabs(["Offer Check", "Seller Watch", "Under the ho
 # ================================================================== OFFER CHECK
 
 with tab_ql:
+    st.info("**Offer Check: decide on a sale offer in minutes, not a day.** It recognises funds the broker does not "
+            "name, checks them against our rules, and flags when the asking price is wrong by what our own fund "
+            "reports say since the broker's valuation date. You get a sourced verdict and a note ready to send.")
     st.header("You are Layla, a secondaries associate")
     md("A broker emails a sale offer at 09:00. Your head of team wants a sourced \"look closer or pass\" by 10:00, "
        "so they can decide whether to sign the NDA (the non-disclosure agreement that opens the data room). "
@@ -470,6 +474,9 @@ with tab_ql:
 # ================================================================== SELLER WATCH
 
 with tab_fc:
+    st.info("**Seller Watch: know who may sell before the broker calls.** Every Monday, a short list of US public "
+            "pensions in the news in ways that often come before a sale, each with the article to read. It is a "
+            "monitor, not a forecast: it shows the evidence and you decide.")
     st.header("You are Omar, a partner planning the week")
     md("You look after our relationships with large US public pensions. On Monday at 08:00 you have 10 minutes. "
        "You want to know which pensions are in the news in ways that often come before a sale of fund stakes, so "
@@ -812,117 +819,121 @@ with tab_hood:
            "our region and keep no data.\n"
            "- **Storage**: a shared database server once several people use it at once.\n"
            "- **Answers for the exams**: written by 2 or 3 analysts working separately, not by the builder or an AI.")
-    st.subheader("The model reads; code decides")
-    md("The AI model has one job: turn text into fixed fields, the fund lines of an offer for Offer Check and the kind "
-       "of news for Seller Watch. Matching, numbers and verdicts are plain, tested code. So every verdict can be "
-       "rerun and checked, and this demo works with no model at all.")
+    st.subheader("How it works")
+    md("The AI turns text into a fixed form. Plain code does the rest: matches funds, computes the numbers, applies "
+       "the team's rules and checks that every number has a source. So every verdict can be rerun and checked.")
     st.graphviz_chart(hood.DIAGRAM, width="stretch")
-    md("1. **Receive**: an email or a news headline, stored exactly as it came in.\n"
-       "2. **Read**: the model, or the offline rules, fill a fixed form. Any row that does not fit is blocked and "
-       "logged.\n"
-       "3. **Compute**: code matches funds, computes the numbers, using only what was known on that day.\n"
-       "4. **Decide**: the team's rules, written in plain English, give the verdict.\n"
-       "5. **Show**: every number says where it came from. A checker rejects any brief with a number it cannot "
-       "trace.")
 
-    st.subheader("Tracing: a record of every run")
-    md("Every run leaves a record of what the model read, what it returned, how long it took and what it cost. "
-       "That record is a trace. When a verdict looks wrong, you open its trace and see which step went wrong, "
-       "instead of guessing. We send traces to Langfuse, a tool built for this.")
+    st.subheader("Tracing: open a real run")
+    md("Every run leaves a record in Langfuse: what went in, what came out, how long each step took, what it cost "
+       "and the checks run on it. When a verdict looks wrong, you open its record instead of guessing.")
     lf = hood.langfuse_examples()
+    runs = {"quicklook": "Offer Check: one offer email (Project Cedar)",
+            "firstcall": "Seller Watch: one overnight news run"}
     if lf.get("traces"):
-        cap(f"Rendered from the Langfuse API (exported {lf['exported_at'][:10]}). Two real runs. Seller Watch headlines "
-            "are left out because they name pensions. This demo itself sends nothing to Langfuse.")
-        for feature, title in (("quicklook", "Offer Check: one offer email, Project Cedar"),
-                               ("firstcall", "Seller Watch: one overnight news run")):
-            t = hood.trace(feature)
-            if not t:
-                continue
-            sm = hood.trace_summary(t)
-            with st.container(border=True):
-                md(f"**{title}**")
-                calls = "once" if sm["model_calls"] == 1 else f"{sm['model_calls']} times"
-                rest = sm["seconds"] - sm["model_seconds"]
-                md(f"{sm['steps']} steps in {sm['seconds']:.1f} seconds, run on {sm['when']}. The model ({sm['model']}) "
-                   f"was called {calls}, took {sm['model_seconds']:.1f} of those seconds and used {sm['tokens']:,} "
-                   f"tokens, for USD {sm['cost']:.3f}. The other {rest:.1f} seconds are "
-                   + (f"mostly {sm['fetches']} news searches." if sm["fetches"] else "plain code."))
-                srows = hood.trace_steps(t)
-                gdf = pd.DataFrame(srows)
-                gantt = alt.Chart(gdf).mark_bar(cornerRadius=2).encode(
-                    y=alt.Y("order:O", axis=alt.Axis(labelExpr="''", ticks=False, title=None)),
-                    x=alt.X("start_s:Q", title="seconds from the start"), x2="end_s:Q",
-                    color=alt.Color("kind:N", title="kind of step",
-                                    scale=alt.Scale(domain=["span", "generation", "retriever", "guardrail"],
-                                                    range=["#64748b", "#c2410c", "#2563eb", "#15803d"])),
-                    tooltip=["step:N", "what it does:N", "took:N", "tokens:N", "cost (USD):N", "result:N"])
-                labels = alt.Chart(gdf).mark_text(align="left", dx=4, fontSize=11).encode(
-                    y=alt.Y("order:O"), x="end_s:Q", text="name:N")
-                st.altair_chart(alt.layer(gantt, labels).properties(height=max(160, 18 * len(srows))), width="stretch")
-                cap("Like the Langfuse timeline: one bar per step, in order. Orange bars are model calls.")
-                with st.expander("The trace as a tree"):
-                    table([{k: r[k] for k in ("step", "what it does", "kind", "took", "model", "tokens", "cost (USD)",
-                                              "result")} for r in srows], height=min(600, 38 + 35 * len(srows)))
+        feature = st.radio("Run", list(runs), format_func=runs.get, horizontal=True, key="hood_run",
+                           label_visibility="collapsed")
+        t = hood.trace(feature)
+        sm = hood.trace_summary(t)
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Time", f"{sm['seconds']:.1f} s")
+        m2.metric("Cost", f"USD {sm['cost']:.3f}")
+        m3.metric("AI calls", sm["model_calls"])
+        m4.metric("Tokens", f"{sm['tokens']:,}")
+        rest = sm["seconds"] - sm["model_seconds"]
+        cap(f"Run on {sm['when']}. The AI ({sm['model']}) took {sm['model_seconds']:.1f} of the {sm['seconds']:.1f} "
+            "seconds; the rest is " + (f"mostly {sm['fetches']} news searches." if sm["fetches"] else "plain code.")
+            + (" This run used rules version 2; the app now uses version 3." if feature == "quicklook" else ""))
+        c_in, c_out = st.columns(2)
+        with c_in:
+            md("**What went in**")
+            st.code(t["input"], language=None, wrap_lines=True)
+        with c_out:
+            md("**What came out**")
+            st.code(t["output"], language=None, wrap_lines=True)
+        checks = hood.score_words(t)
+        if checks:
+            md("**Checks saved on this run**\n" + "\n".join(f"- {esc(c)}" for c in checks))
+
+        md("**Step by step.** One bar per step, in order. Orange bars are AI calls.")
+        srows = hood.trace_steps(t)
+        gdf = pd.DataFrame(srows)
+        gantt = alt.Chart(gdf).mark_bar(cornerRadius=2).encode(
+            y=alt.Y("order:O", axis=alt.Axis(labelExpr="''", ticks=False, title=None)),
+            x=alt.X("start_s:Q", title="seconds from the start"), x2="end_s:Q",
+            color=alt.Color("kind:N", title="kind of step",
+                            scale=alt.Scale(domain=["span", "generation", "retriever", "guardrail"],
+                                            range=["#64748b", "#c2410c", "#2563eb", "#15803d"])),
+            tooltip=["step:N", "what it does:N", "took:N", "tokens:N", "cost (USD):N", "result:N"])
+        labels = alt.Chart(gdf).mark_text(align="left", dx=4, fontSize=11).encode(
+            y=alt.Y("order:O"), x="end_s:Q", text="name:N")
+        st.altair_chart(alt.layer(gantt, labels).properties(height=max(140, 16 * len(srows))), width="stretch")
+        gens = [i for i, s in enumerate(t["steps"]) if s["type"] == "GENERATION"]
+        i = st.selectbox("Open one step", range(len(t["steps"])), index=gens[0] if gens else 0,
+                         format_func=lambda k: hood.step_label(t["steps"][k]), key=f"hood_step_{feature}")
+        step = t["steps"][i]
+        facts = [f"took {step['duration_ms'] / 1000:.2f} s"]
+        if step.get("model"):
+            facts.append(f"AI model {step['model']}")
+        if step.get("tokens_in"):
+            facts.append(f"{step['tokens_in']:,} tokens in, {step['tokens_out']:,} out")
+        if step.get("cost_usd"):
+            facts.append(f"USD {step['cost_usd']:.4f}")
+        cap(esc(f"{hood.STEP_WORDS.get(step['name'], step['name']).capitalize()}: " + ", ".join(facts) + "."))
+        s_in, s_out = st.columns(2)
+        with s_in:
+            md("**In**")
+            st.code(step.get("input") or "(nothing)", language=None, wrap_lines=True)
+        with s_out:
+            md("**Out**")
+            st.code(step.get("output") or "(nothing)", language=None, wrap_lines=True)
+        cap(f"Exported from the Langfuse API on {lf['exported_at'][:10]}. Long text is cut short. This demo itself "
+            "sends nothing to Langfuse.")
     else:
-        md("No exported traces in this copy. Run `python demo/export_langfuse.py` with Langfuse keys to add two.")
+        md("No exported runs in this copy. Run `python demo/export_langfuse.py` with Langfuse keys to add two.")
 
-    st.subheader("Evals: is the model right?")
-    n, pos = hood.holdout_size()
-    md(f"An eval runs the model on examples where we already know the answer and counts how often it is right. "
-       f"Example from Seller Watch: **{n} real headlines were set aside for testing**, never used to tune anything. "
-       f"{pos} of them are real signs that can come before a sale. On those:")
-    for line in hood.classifier_in_words():
-        md(f"- {line}")
-    md("So Claude caught 2 more real signs than the rules, at about the same accuracy. With only 23 real signs, one "
-       "headline moves the result by about 4 points, so treat the two as close.")
-    cap("Simplification a real investor would flag: the answers were labelled by an AI agent and are still to be "
-        "checked by a person. A real test needs 2 or 3 analysts labelling on their own.")
-    ex = hood.experiment_rows()
-    if ex["firstcall"]:
-        with st.expander("The same comparison in Langfuse, every run side by side"):
-            md("Each run of a dataset in Langfuse is an experiment. A change to the prompt or the model is compared on "
-               "the same items. Precision: of the headlines flagged, the share that were right. Recall: of the real "
-               "signs, the share that were caught. Dev is the set we tuned on; holdout is the fair test.")
+    st.subheader("Evals: is it right?")
+    md("An eval runs the tool on cases where we already know the answer and counts how often it agrees. Each result "
+       "below is on cases kept aside, never used to tune anything.")
+    md("\n".join(f"- {line}" for line in hood.headline_results()))
+    cap("Simplification a real investor would flag: the answers were written by the builder or an AI agent. A real "
+        "test needs 2 or 3 analysts labelling on their own.")
+    with st.expander("All the eval results"):
+        md("**Seller Watch: Claude against keyword rules, on headlines kept aside**")
+        for line in hood.classifier_in_words():
+            md(f"- {line}")
+        ex = hood.experiment_rows()
+        if ex["firstcall"]:
+            md("Every run of the same comparison in Langfuse. Precision: of the headlines flagged, the share that were "
+               "right. Recall: of the real signs, the share that were caught.")
             table(ex["firstcall"])
-            if ex["quicklook"]:
-                md("Offer Check, Claude against the offline rules on the same offers:")
-                table(ex["quicklook"])
-            cap("Rendered from the Langfuse API (experiments list with scores).")
+        md("**Offer Check tests**")
+        table(hood.quicklook_evals())
+        md("**Offer Check verdicts, by rules version**")
+        table(hood.verdict_evals())
+        pc = hood.parser_comparison()
+        if pc:
+            md(f"**Claude against the offline rules, reading 29 offers.** Same result: {pc['match']:.0%} of lines "
+               f"matched right and {pc['fields']:.0%} of fields read right. Claude took {pc['claude_s']:.1f} seconds "
+               f"per offer against {pc['offline_s']:.2f}. The offline rules were written for these generated emails, "
+               "so the next useful test is emails written by hand.")
+        if ex["quicklook"]:
+            table(ex["quicklook"])
 
-    md("**Offer Check tests**")
-    table(hood.quicklook_evals())
-    md("**Offer Check verdicts against the answers we set**, recomputed now from the snapshot:")
-    table(hood.verdict_evals())
-    cap("Version 2 agrees on every offer used to write it, but on fewer new offers than version 1. That is "
-        "overfitting: the rules learnt the examples, not the job.")
-    pc = hood.parser_comparison()
-    if pc:
-        md(f"**Claude against the offline rules, reading 29 offers.** Same result: {pc['match']:.0%} of lines matched "
-           f"right and {pc['fields']:.0%} of fields read right, with the same verdicts. Claude took {pc['claude_s']:.1f} "
-           f"seconds per offer against {pc['offline_s']:.2f}, and used {pc['tokens']:,} tokens. A real investor would "
-           "discount the tie: the offline rules were written for these generated emails. The next useful test is "
-           "emails written by hand, in formats the rules have never seen.")
-
-    st.subheader("Collecting: live stream or batch, measured")
-    md("**Batch won both times.** Each tool was built two ways, a live stream and a scheduled batch, over the same "
-       "processing code. We picked the simpler one that is fresh enough, gives the same answers and recovers "
-       "from a crash.")
-    for title, path in hood.DECISIONS:
-        with st.expander(title):
+    with st.expander("Stream or batch: the measurements"):
+        for title, path in hood.DECISIONS:
+            md(f"**{title}**")
             st.markdown(esc(hood.measured_table(path)))
             cap(f"From {path.relative_to(hood.ROOT)}.")
 
-    st.subheader("What a real investor would question")
-    md("- **Price range is a rule of thumb**: a band by strategy and fund age. A real desk rolls the reported value "
-       "forward, adds cash flows since that date, and checks against its own past bids.\n"
-       "- **One asking price** for the whole portfolio is compared with a range built only from funds we own.\n"
-       "- **The answers** in the tests were written by the builder or an AI agent. A real test needs 2 or 3 analysts "
-       "labelling on their own.\n"
-       "- **Seller Watch** matches a headline to a pension by its name. \"New York pensions\" stays unmatched.\n"
-       "- **Live mode**, when on, sends pasted text to Anthropic. A real desk would use a model in its own region "
-       "that keeps no data, under its confidentiality and data processing agreements.")
-    md("Code and docs: [github.com/alexandrecela10/secondaries-radar](https://github.com/alexandrecela10/secondaries-radar). "
-       "Rebuild the snapshot with `python demo/build_snapshot.py`.")
+    with st.expander("What a real investor would question"):
+        md("- **The price range** starts from a rule of thumb by strategy and fund age, then moves with what our own "
+           "fund reports say since the broker's date. A real desk also checks against its own past bids.\n"
+           "- **One asking price** for the whole portfolio is compared with a range built only from funds we own.\n"
+           "- **Seller Watch** matches a headline to a pension by its name. \"New York pensions\" stays unmatched.\n"
+           "- **Live mode**, when on, sends pasted text to Anthropic. A real desk would use a model in its own region "
+           "that keeps no data, under its confidentiality and data processing agreements.")
+    md("Code and docs: [github.com/alexandrecela10/secondaries-radar](https://github.com/alexandrecela10/secondaries-radar).")
 
 st.divider()
 cap(FOOTER)
