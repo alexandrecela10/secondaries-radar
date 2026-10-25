@@ -1,0 +1,629 @@
+{
+ "exported_at": "2026-10-25T11:41:45+00:00",
+ "source": "Langfuse public API",
+ "traces": [
+  {
+   "feature": "quicklook",
+   "name": "quick-look-offer",
+   "id": "1ddd6e5f0bcacfc7b81624e7010271d1",
+   "timestamp": "2026-10-25T11:39:35.932Z",
+   "environment": "demo",
+   "latency_s": 12.642,
+   "cost_usd": 0.029724,
+   "steps": [
+    {
+     "name": "quick-look-offer",
+     "type": "SPAN",
+     "depth": 0,
+     "start_ms": 0,
+     "duration_ms": 12642,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "Project Cedar: LOOK CLOSER"
+    },
+    {
+     "name": "intake",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 45,
+     "duration_ms": 5,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": ""
+    },
+    {
+     "name": "parse",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 51,
+     "duration_ms": 12193,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 3397,
+     "tokens_out": 2293,
+     "cost_usd": 0.029724,
+     "prompt_version": "parse-v2",
+     "summary": "12 fund lines read from the email"
+    },
+    {
+     "name": "match",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 12295,
+     "duration_ms": 1,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "11 of 12 lines matched to a fund"
+    },
+    {
+     "name": "metrics",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 12296,
+     "duration_ms": 1,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": ""
+    },
+    {
+     "name": "verdict",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 12297,
+     "duration_ms": 0,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "LOOK CLOSER"
+    },
+    {
+     "name": "brief",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 12376,
+     "duration_ms": 16,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "31905 bytes of HTML"
+    },
+    {
+     "name": "validator",
+     "type": "GUARDRAIL",
+     "depth": 1,
+     "start_ms": 12392,
+     "duration_ms": 223,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "every number sourced"
+    }
+   ]
+  },
+  {
+   "feature": "firstcall",
+   "name": "run-batch",
+   "id": "c3a5604007e9948e80af45f228e783ee",
+   "timestamp": "2026-10-24T23:04:47.223Z",
+   "environment": "development",
+   "latency_s": 42.371,
+   "cost_usd": 0.032137999999,
+   "steps": [
+    {
+     "name": "run-batch",
+     "type": "SPAN",
+     "depth": 0,
+     "start_ms": 0,
+     "duration_ms": 42371,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "758 fetched, 12 classified"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 2,
+     "duration_ms": 615,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension private equity allocation over target\": 76 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 617,
+     "duration_ms": 941,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension secondary sale private equity\": 81 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 1559,
+     "duration_ms": 827,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension overallocated private equity\": 33 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 2386,
+     "duration_ms": 969,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension liquidity private markets\": 27 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 3355,
+     "duration_ms": 1249,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension board private equity review\": 80 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 4605,
+     "duration_ms": 1082,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension sells private equity stakes\": 77 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 5687,
+     "duration_ms": 941,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension denominator effect private equity\": 50 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 6628,
+     "duration_ms": 1098,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension hires adviser secondary sale\": 22 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 7727,
+     "duration_ms": 785,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"retirement system private equity pacing\": 38 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 8512,
+     "duration_ms": 1204,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension private equity allocation cut\": 74 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 9716,
+     "duration_ms": 951,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension chief investment officer named\": 100 headlines"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 10667,
+     "duration_ms": 1099,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"state investment board private equity\": 100 headlines"
+    },
+    {
+     "name": "dedupe-items",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 11775,
+     "duration_ms": 8,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "758 headlines, 658 unique"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 12976,
+     "duration_ms": 2115,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 842,
+     "tokens_out": 106,
+     "cost_usd": 0.002744,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 15350,
+     "duration_ms": 2905,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 847,
+     "tokens_out": 111,
+     "cost_usd": 0.002804,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 18362,
+     "duration_ms": 1472,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 844,
+     "tokens_out": 102,
+     "cost_usd": 0.002708,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 19895,
+     "duration_ms": 1585,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 845,
+     "tokens_out": 80,
+     "cost_usd": 0.00249,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 21525,
+     "duration_ms": 1658,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 841,
+     "tokens_out": 92,
+     "cost_usd": 0.002602,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 23207,
+     "duration_ms": 1998,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 848,
+     "tokens_out": 118,
+     "cost_usd": 0.002876,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 25231,
+     "duration_ms": 1902,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 838,
+     "tokens_out": 88,
+     "cost_usd": 0.002556,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 27152,
+     "duration_ms": 2951,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 851,
+     "tokens_out": 100,
+     "cost_usd": 0.002702,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 30135,
+     "duration_ms": 1433,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 841,
+     "tokens_out": 110,
+     "cost_usd": 0.002781999999,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 31595,
+     "duration_ms": 2461,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 844,
+     "tokens_out": 91,
+     "cost_usd": 0.002598,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 34616,
+     "duration_ms": 2607,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 840,
+     "tokens_out": 111,
+     "cost_usd": 0.00279,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: none"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 38642,
+     "duration_ms": 1474,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 833,
+     "tokens_out": 82,
+     "cost_usd": 0.002486,
+     "prompt_version": "fc-classify-v3",
+     "summary": "label: leadership_change"
+    },
+    {
+     "name": "score-pensions",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 40595,
+     "duration_ms": 460,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "43 WATCH"
+    }
+   ]
+  }
+ ],
+ "experiments": [
+  {
+   "name": "claude-20261024-235848",
+   "dataset_id": "cmvn029hm01ryad0jpflcpto6",
+   "started": "2026-10-24T23:03:32.271Z",
+   "metadata": {
+    "parser": "claude:claude-sonnet-5-5",
+    "prompt_version": "parse-v2"
+   },
+   "scores": {
+    "verdict_agreement_holdout": 0.7142857142857143,
+    "good_offers_passed": 1,
+    "verdict_agreement_tune": 1
+   }
+  },
+  {
+   "name": "claude-20261024-235848",
+   "dataset_id": "cmvn00uzm033iad0o4i18q517",
+   "started": "2026-10-24T23:00:27.926Z",
+   "metadata": {
+    "parser": "claude:claude-sonnet-5-5",
+    "prompt_version": "parse-v2"
+   },
+   "scores": {
+    "field_accuracy_mean": 1,
+    "match_accuracy": 0.9395973154362416
+   }
+  },
+  {
+   "name": "offline-20261024-235704",
+   "dataset_id": "cmvn029hm01ryad0jpflcpto6",
+   "started": "2026-10-24T22:58:37.259Z",
+   "metadata": {
+    "parser": "offline-regex",
+    "prompt_version": "offline-v1"
+   },
+   "scores": {
+    "good_offers_passed": 1,
+    "verdict_agreement_tune": 1,
+    "verdict_agreement_holdout": 0.7142857142857143
+   }
+  },
+  {
+   "name": "offline-20261024-235704",
+   "dataset_id": "cmvn00uzm033iad0o4i18q517",
+   "started": "2026-10-24T22:58:13.035Z",
+   "metadata": {
+    "parser": "offline-regex",
+    "prompt_version": "offline-v1"
+   },
+   "scores": {
+    "field_accuracy_mean": 1,
+    "match_accuracy": 0.9395973154362416
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v3 holdout 2026-10-24 21:36",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:40:20.345Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v3",
+    "split": "holdout"
+   },
+   "scores": {
+    "recall": 0.9130434782608695,
+    "precision": 0.9130434782608695,
+    "link_accuracy": 0.9846153846153847
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v3 dev 2026-10-24 21:36",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:37:53.674Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v3",
+    "split": "dev"
+   },
+   "scores": {
+    "recall": 0.9473684210526315,
+    "precision": 0.8571428571428571,
+    "link_accuracy": 1
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v2 holdout 2026-10-24 21:29",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:32:45.763Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v2",
+    "split": "holdout"
+   },
+   "scores": {
+    "link_accuracy": 0.9846153846153847,
+    "recall": 0.8695652173913043,
+    "precision": 0.9090909090909091
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v2 dev 2026-10-24 21:29",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:29:59.938Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v2",
+    "split": "dev"
+   },
+   "scores": {
+    "precision": 0.95,
+    "recall": 1,
+    "link_accuracy": 1
+   }
+  },
+  {
+   "name": "keyword kw-3 holdout 2026-10-24 21:27",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:28:58.636Z",
+   "metadata": {
+    "classifier": "keyword",
+    "version": "kw-3",
+    "split": "holdout"
+   },
+   "scores": {
+    "recall": 0.8260869565217391,
+    "link_accuracy": 0.9846153846153847,
+    "precision": 0.9047619047619048
+   }
+  },
+  {
+   "name": "keyword kw-3 dev 2026-10-24 21:27",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:28:56.092Z",
+   "metadata": {
+    "classifier": "keyword",
+    "version": "kw-3",
+    "split": "dev"
+   },
+   "scores": {
+    "precision": 0.95,
+    "link_accuracy": 1,
+    "recall": 1
+   }
+  }
+ ]
+}
