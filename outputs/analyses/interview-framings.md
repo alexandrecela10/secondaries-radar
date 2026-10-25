@@ -8,6 +8,8 @@ A secondaries team decides whether an offer deserves an NDA, and it often does t
 
 Quick Look reads a broker's offer and identifies each fund from its numbers. Every investor in a fund shares the same ratios on a given date, so our own quarterly data recognises a fund that the offer doesn't name. On labelled synthetic offers it matched 96% of lines, with no false matches. Then it applies the team's own written rules and gives one sentence: look closer or pass, with the confidence and the reasons. Every number links to its source row. The team can override any verdict, and every override is recorded with its reason. That record becomes the labelled data that improves the rules.
 
+Then price. The broker prices every fund from its value on one past date, often months old. Where we already invest in a fund, its manager has told us what happened since: a company sold above its value, a write-down. Quick Look adds that to the broker's number and says whether the asking price is right by our own data. In the demo, one offer looks cheap and another looks fine until two write-downs make it too expensive. On a $330M offer, each point of price is $3.3M, which is worth more than the hours saved.
+
 First Call reads real public news and flags pensions showing signs they may sell. I tested it on two real past sales, and it gave no early warning. So it ships as monitoring, not as a deal-sourcing claim.
 
 The pattern carries to other teams: the model reads, code decides, every number is sourced, and every human correction is kept.
@@ -46,4 +48,5 @@ Vendors sell market data. Our edge is joining offers with our own fund data, whi
 
 - Labels are mine. A real test needs 2 or 3 analysts and their agreement rate.
 - The price range is a rule of thumb and is shown only for funds we own.
+- The price check is tested on synthetic data that also made the answers (15 of 17 funds closer to the next value than the broker's number). The real test replays our own past fund reports.
 - First Call's evidence is two worked cases, so it illustrates the mechanism and doesn't measure it.
