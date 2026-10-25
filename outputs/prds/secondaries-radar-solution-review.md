@@ -113,7 +113,7 @@ A working demo for a sovereign fund that buys private equity stakes from investo
 | ID | Requirement |
 |---|---|
 | R-1 | Rulebook is a versioned YAML file with a plain-English description per rule. A command prints it as sentences for partners. |
-| R-2 | Price is not a fit rule; it is judged by Q-8. A **price veto** in the rulebook turns the verdict to PASS when the ask is above the top of our range by more than a set gap (default 5 points). **Score** = weighted share of rules met. A rule whose metric can't be computed is excluded and listed as "not checked". **Verdict** positive if score ≥ threshold (default 0.6) and no veto rule fails. |
+| R-2 | Price is not a fit rule; it is judged by Q-8. A **price veto** in the rulebook turns the verdict to PASS when the ask is above the top of our range by more than a set gap (default 10 points: before an NDA the guidance is indicative, so only a wide gap is worth walking away from). **Score** = weighted share of rules met. A rule whose metric can't be computed is excluded and listed as "not checked". **Verdict** positive if score ≥ threshold (default 0.6) and no veto rule fails. |
 | R-3 | **Confidence** shown in words first, then two parts: **data matched** (share of value matched at 0.8 or more, or confidently unknown) and **margin** (absolute gap between score and threshold; a veto counts as clear). Band: high if both are strong, low if either is weak, medium otherwise. |
 | R-4 | **Reasons:** veto rules first, then by weight. Each line: met / not met / not checked, number, threshold, source. |
 | R-5 | **Override** via CLI (`radar override <offer> pass --reason "..."`). Reason required. Stored with user, time, rulebook version and original verdict. Recorded, not learned from, in v1. |
@@ -143,7 +143,7 @@ A working demo for a sovereign fund that buys private equity stakes from investo
 | CLI | `radar why cedar` | Headline sentence and reasons with sources | Good |
 | CLI | Question asking to email a pension | Not possible; the system has no send capability | Reject |
 | Price | Cedar: Fund 4 report (August) says a company held at $X in June was sold for 1.55 × $X | Worth today rises by our share of the gain; price view CHEAP; the adjustment line cites the report row | Good |
-| Price | Another offer: our report says a company in an owned fund was written down by 40% | Worth today falls; ask is above the top of our range by more than 5 points; PASS on price | Good |
+| Price | Another offer: our report says a company in an owned fund was written down by 40% | Worth today falls; ask is above the top of our range by more than 10 points; PASS on price | Good |
 | Price | Offer with no fund we own | Price view: NO VIEW, "we have no extra information on these funds"; verdict from fit only | Bad, handled |
 | Price | A distribution received after June | Shown as a closing adjustment, not added to worth today (no double counting) | Bad, handled |
 | Rulebook | Rule on a metric that doesn't exist | Load fails; error names the rule and lists valid metrics | Reject |
@@ -314,7 +314,7 @@ quick_look:
     value: 0.7
     weight: 2
 price:
-  veto_gap: 0.05   # PASS if the ask is above the top of our range by more than 5 points
+  veto_gap: 0.10   # PASS if the ask is above the top of our range by more than 10 points
 first_call:
   prepare_threshold: 0.6
   signal_weights: {sale_or_advisor: 1.0, allocation_above_target: 0.6, liquidity_need: 0.5, policy_review: 0.4, leadership_change: 0.2}
