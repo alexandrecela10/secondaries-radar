@@ -10,3 +10,6 @@ __pycache__/
 *.env
 .streamlit/secrets.toml
 build/
+
+# First Call: real pension names and links, local only
+demo/data/*.local.json

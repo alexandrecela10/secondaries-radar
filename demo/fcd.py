@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import os
 from datetime import date, datetime, time, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -21,19 +22,134 @@ from fc.scoring import SignalInput, decay, score
 
 ROOT = Path(__file__).resolve().parents[1]
 SNAP = ROOT / "demo" / "data" / "firstcall_snapshot.json"
+SOURCES = ROOT / "demo" / "data" / "firstcall_sources.local.json"   # git-ignored: real names and links
 FC = ROOT / "firstcall"
 SIGNAL_WORDS = {
-    "sale_or_advisor": "Sale or sale adviser",
-    "allocation_above_target": "Private equity above target",
+    "sale_or_advisor": "Reported sale or sale adviser",
+    "allocation_above_target": "Holds more private equity than planned",
     "liquidity_need": "Needs cash",
     "policy_review": "Reviewing or cutting private equity",
-    "leadership_change": "New or departing CIO",
-    "none": "No signal",
+    "leadership_change": "New or departing head of investments",
+    "none": "Nothing that matters for a sale",
 }
+VERDICT_WORDS = {"PREPARE": "Worth preparing for", "WATCH": "Keep an eye on"}
+HIDDEN_LINK = "Link hidden in the public demo because it names the pension."
+DISCLAIMER = "Synthetic buyer. Not investment advice. Not a statement of any pension's intent."
 CASE_LINKS = {
     "wsib_2022": "https://www.privateequityinternational.com/as-philosophies-change-washington-state-gears-up-for-first-secondaries-sale/",
     "nyc_2025": "https://comptroller.nyc.gov/newsroom/nyc-comptroller-lander-and-pension-trustees-close-record-private-equity-secondary-sale",
 }
+
+
+# ------------------------------------------------------------------ sources: public or local
+
+@lru_cache(maxsize=1)
+def local_sources() -> dict | None:
+    """Real names and links for the snapshot, from the git-ignored local file. None when absent."""
+    return json.loads(SOURCES.read_text()) if SOURCES.exists() else None
+
+
+def sources_requested(secret: str | None = None) -> bool:
+    return (os.environ.get("FIRSTCALL_SHOW_SOURCES") or secret or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def show_sources(requested: bool) -> tuple[bool, str]:
+    """(on, note). On only when asked for and the local file exists. Off is the public default."""
+    if not requested:
+        return False, ("Pension names are replaced by letters, and by [Pension] inside headlines. Names of people "
+                       "and amounts are hidden too. Links are hidden in the public demo because a link usually names the "
+                       "pension.")
+    if local_sources() is None:
+        return False, ("Sources were requested, but the local file with real names and links is missing. Run "
+                       "`python demo/build_snapshot.py` on a machine with the First Call database.")
+    return True, "Sources on: real pension names and links, from your local file. Do not publish this view."
+
+
+def pension_name(label: str | None, show: bool) -> str:
+    if label and show and local_sources():
+        return local_sources()["pensions"].get(label, label)
+    return label or "[Pension]"
+
+
+def source(sig: dict, show: bool) -> dict:
+    """Headline, quote, outlet, date and link for one snapshot signal. No link unless sources are on."""
+    out = {"headline": sig["headline"], "quote": sig["quote"], "outlet": sig.get("outlet") or "unknown outlet",
+           "date": nice_date(sig["published"].date() if "published" in sig else sig["date"]), "link": None}
+    real = (local_sources() or {}).get("sources", {}).get(sig.get("id") or sig.get("signal_id")) if show else None
+    if real:
+        out.update(headline=real["headline"], quote=real["quote"], link=real["link"])
+    return out
+
+
+def source_md(src: dict) -> str:
+    """'[headline](link), outlet, date' when we can link; else the headline plus an honest note."""
+    if src["link"]:
+        return f"[{src['headline']}]({src['link']}), {src['outlet']}, {src['date']}"
+    return f"\"{src['headline']}\", {src['outlet']}, {src['date']}. {HIDDEN_LINK}"
+
+
+# ------------------------------------------------------------------ plain words
+
+NUMBERS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"]
+
+
+def count_words(n: int, thing: str = "news item") -> str:
+    return f"{NUMBERS[n] if n < len(NUMBERS) else n} {thing}{'' if n == 1 else 's'}"
+
+
+def nice_date(d) -> str:
+    d = date.fromisoformat(d) if isinstance(d, str) else d
+    return f"{d.day} {d:%B %Y}"
+
+
+def ago(days: int) -> str:
+    if days <= 1:
+        return "this week" if days >= 0 else "later"
+    if days < 14:
+        return "last week" if days >= 7 else f"{days} days ago"
+    if days < 60:
+        return f"{days // 7} weeks ago"
+    if days < 365:
+        return f"{round(days / 30.4)} months ago"
+    return "over a year ago"
+
+
+def distance(score_: float, threshold: float) -> str:
+    """How far a pension is from the line where we start preparing, in words."""
+    if score_ >= threshold - 1e-12:
+        return "past the line where we start preparing"
+    r = score_ / threshold if threshold else 0
+    if r >= 0.8:
+        return "close to the line where we start preparing"
+    if r >= 0.4:
+        return "about half way to the line where we start preparing"
+    return "far from the line where we start preparing"
+
+
+def counts_words(decay_: float) -> str:
+    if decay_ >= 0.75:
+        return "counts almost in full"
+    if decay_ >= 0.4:
+        return "counts about half"
+    return "counts only a little"
+
+
+def certainty(conf: float) -> str:
+    return "high" if conf >= 0.85 else "medium" if conf >= 0.6 else "low"
+
+
+def verdict_sentence(w: dict, show: bool) -> str:
+    """Conclusion first, then the evidence: 'Pension A: keep an eye on it. ... strongest on 7 October: [headline](link).'"""
+    name = pension_name(w["pension"], show)
+    if not w["parts"]:
+        return f"{name}: nothing in the last year that could come before a sale."
+    lead = (f"{name}: worth preparing for." if w["verdict"] == "PREPARE"
+            else f"{name}: keep an eye on it. Not enough yet to start preparing.")
+    top = max(w["parts"], key=lambda p: p["value"])
+    src = source(top, show)
+    ev = f"[{src['headline']}]({src['link']})" if src["link"] else f"\"{src['headline']}\" ({src['outlet']})"
+    return (f"{lead} {count_words(len(w['parts']))} from the last year are the kind that can come before a sale. "
+            f"The strongest is from {src['date']}: {ev}.")
 
 
 @lru_cache(maxsize=1)
@@ -58,7 +174,7 @@ def is_default(rb: Rulebook) -> bool:
 def snapshot() -> dict:
     snap = json.loads(SNAP.read_text())
     for i, s in enumerate(snap["signals"]):
-        s["signal_id"] = f"s{i:03d}"
+        s["signal_id"] = s.get("id") or f"s{i:03d}"
         s["published"] = datetime.fromisoformat(s["published_at"])
     for s in snap["closed_unlisted"]:
         s["published"] = datetime.fromisoformat(s["published_at"])
@@ -89,7 +205,8 @@ def weekly(rb: Rulebook, when: datetime | None = None) -> list[dict]:
         top = next(s for s in sigs if s["signal_id"] == sc.contributions[0].signal_id)
         out.append({"pension": p, "verdict": sc.verdict, "score": round(sc.score, 3), "signals": len(sc.contributions),
                     "top_quote": top["quote"], "top_type": SIGNAL_WORDS[top["signal_type"]], "outlet": top["outlet"],
-                    "date": top["published"].date().isoformat()})
+                    "date": top["published"].date().isoformat(), "top": top,
+                    "age_days": (when.date() - top["published"].date()).days})
     out.sort(key=lambda r: (r["verdict"] != "PREPARE", -r["score"], r["pension"]))
     return out
 
@@ -111,7 +228,7 @@ def why(pension: str, rb: Rulebook, when: datetime | None = None) -> dict:
     parts = []
     for c in sc.contributions:
         s = by_id[c.signal_id]
-        parts.append({"type": SIGNAL_WORDS[c.signal_type], "signal_type": c.signal_type, "weight": c.weight,
+        parts.append({"id": c.signal_id, "published": s["published"], "type": SIGNAL_WORDS[c.signal_type], "signal_type": c.signal_type, "weight": c.weight,
                       "confidence": c.confidence, "age_days": round(c.age_days), "decay": round(c.decay, 2),
                       "value": round(c.value, 3), "quote": s["quote"], "headline": s["headline"],
                       "outlet": s["outlet"], "date": s["published"].date().isoformat(), "copies": s["n_copies"]})
@@ -138,7 +255,8 @@ def timeline(pension: str, rb: Rulebook, weeks: int = 26) -> dict:
     end = as_of().date()
     rows = timeline_rows(_inputs(sigs), end, weeks, rb)
     start = date.fromisoformat(rows[0]["week"]) - timedelta(days=7)
-    marks = [{"date": s["published"].date().isoformat(), "type": SIGNAL_WORDS[s["signal_type"]],
+    marks = [{"id": s["signal_id"], "published": s["published"], "headline": s["headline"],
+              "date": s["published"].date().isoformat(), "type": SIGNAL_WORDS[s["signal_type"]],
               "closed": s["completed"], "quote": s["quote"], "outlet": s["outlet"]}
              for s in sigs if start < s["published"].date() <= end]
     return {"rows": rows, "signals": marks, "threshold": rb.prepare_threshold}

@@ -68,7 +68,8 @@ def test_firstcall_weekly_and_why():
 
 
 def test_firstcall_snapshot_is_anonymised():
-    snap = json.loads(fcd.SNAP.read_text())
+    raw = fcd.SNAP.read_text()
+    snap = json.loads(raw)
     from fc import pensions
 
     for s in snap["signals"] + snap["closed_unlisted"]:
@@ -77,6 +78,44 @@ def test_firstcall_snapshot_is_anonymised():
             assert pensions.mask(s[field]) == s[field], s[field]
         assert "link" not in s
         assert s["pension"] is None or s["pension"].startswith("Pension ")
+    assert "http" not in raw and "news.google" not in raw
+    for p in pensions.ALL.values():   # no real name, of any pension we follow, anywhere in the public file
+        assert p.name not in raw, p.name
+
+
+def test_firstcall_local_sources_stay_out_of_the_public_file():
+    gi = (ROOT / ".gitignore").read_text()
+    assert "demo/data/*.local.json" in gi
+    local = fcd.local_sources()
+    if local is None:
+        pytest.skip("no local sources file on this machine (the public default)")
+    raw = fcd.SNAP.read_text()
+    for real in local["pensions"].values():
+        assert real not in raw
+    for src in local["sources"].values():
+        assert not src["link"] or src["link"] not in raw
+
+
+def test_firstcall_sources_off_and_on():
+    rb = fcd.custom_rulebook()
+    w = fcd.why("Pension A", rb)
+    off = fcd.source(w["parts"][0], show=False)
+    assert off["link"] is None and fcd.HIDDEN_LINK in fcd.source_md(off)
+    s = fcd.verdict_sentence(w, show=False)
+    assert s.startswith("Pension A: keep an eye on it.") and "http" not in s
+    assert fcd.show_sources(False)[0] is False
+    if fcd.local_sources():
+        on = fcd.source(w["parts"][0], show=True)
+        assert on["link"].startswith("http") and fcd.source_md(on).startswith("[")
+        assert not fcd.pension_name("Pension A", True).startswith("Pension ")
+
+
+def test_firstcall_wording_is_plain():
+    rb = fcd.custom_rulebook()
+    text = fcd.verdict_sentence(fcd.why("Pension A", rb), False)
+    for word in ("score", "decay", "threshold", "confidence", "rulebook", "tier", "\u2014"):
+        assert word not in text.lower(), word
+    assert fcd.ago(3) == "3 days ago" and fcd.ago(58) == "8 weeks ago"
 
 
 def test_firstcall_cases_and_classifier():
@@ -92,16 +131,56 @@ def test_under_the_hood():
     for _, path in hood.DECISIONS:
         assert hood.measured_table(path).startswith("| # | Criterion")
     assert hood.quicklook_evals() and hood.verdict_evals() and hood.parser_comparison()
+    for feature in ("quicklook", "firstcall"):
+        t = hood.trace(feature)
+        assert t and hood.trace_steps(t) and hood.trace_summary(t)["model_calls"] >= 1
+    ex = hood.experiment_rows()
+    assert ex["firstcall"] and ex["quicklook"]
+    assert hood.classifier_in_words()[0].startswith("Claude flagged 23 headlines as signs, and 21 were right")
+    raw = hood.LANGFUSE.read_text()
+    from fc import pensions
+
+    assert "sk-lf" not in raw and "pk-lf" not in raw and "@" not in raw
+    for p in pensions.ALL.values():   # trace exports keep no headline and no pension
+        assert p.name not in raw and p.id not in raw.replace("_", " ").split(), p.name
 
 
-def test_app_renders_headless():
+def _render(monkeypatch, show: str):
     from streamlit.testing.v1 import AppTest
 
-    t = time.time()
+    monkeypatch.setenv("FIRSTCALL_SHOW_SOURCES", show)
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
     assert not at.exception, [e.message for e in at.exception]
+    return at
+
+
+def test_app_renders_headless(monkeypatch):
+    t = time.time()
+    at = _render(monkeypatch, "0")
     assert len(at.tabs) == 3
     heads = [s.value for s in at.subheader]
-    for h in ("09:02. Read the verdict", "08:00. Read the list", "Evals"):
+    for h in ("09:02. Read the verdict", "08:00. Read the list", "Tracing: a record of every run",
+              "Evals: is the model right?"):
         assert h in heads
-    assert time.time() - t < 30
+    assert time.time() - t < 60
+
+
+def _fc_text(at) -> str:
+    tab = at.tabs[1]
+    return "\n".join(e.value for part in (tab.markdown, tab.caption, tab.info) for e in part)
+
+
+def test_first_call_tab_sources_off(monkeypatch):
+    text = _fc_text(_render(monkeypatch, "0"))
+    assert "Link hidden in the public demo because it names the pension." in text
+    assert "news.google.com" not in text
+    assert "Not a statement of any pension's intent." in text
+    assert "privateequityinternational.com" in text   # historical cases always link
+    assert "\u2014" not in text
+
+
+def test_first_call_tab_sources_on(monkeypatch):
+    if fcd.local_sources() is None:
+        pytest.skip("no local sources file on this machine")
+    text = _fc_text(_render(monkeypatch, "1"))
+    assert "Sources on" in text and "](https://news.google.com/" in text
