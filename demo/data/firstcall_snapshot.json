@@ -24,6 +24,7 @@
  ],
  "signals": [
   {
+   "id": "s000",
    "pension": "Pension H",
    "signal_type": "sale_or_advisor",
    "confidence": 0.97,
@@ -35,6 +36,7 @@
    "n_copies": 1
   },
   {
+   "id": "s001",
    "pension": "Pension H",
    "signal_type": "policy_review",
    "confidence": 0.8,
@@ -46,6 +48,7 @@
    "n_copies": 1
   },
   {
+   "id": "s002",
    "pension": "Pension E",
    "signal_type": "sale_or_advisor",
    "confidence": 0.95,
@@ -57,6 +60,7 @@
    "n_copies": 1
   },
   {
+   "id": "s003",
    "pension": "Pension F",
    "signal_type": "leadership_change",
    "confidence": 0.97,
@@ -68,6 +72,7 @@
    "n_copies": 1
   },
   {
+   "id": "s004",
    "pension": "Pension H",
    "signal_type": "sale_or_advisor",
    "confidence": 0.96,
@@ -79,6 +84,7 @@
    "n_copies": 1
   },
   {
+   "id": "s005",
    "pension": "Pension H",
    "signal_type": "leadership_change",
    "confidence": 0.97,
@@ -90,6 +96,7 @@
    "n_copies": 1
   },
   {
+   "id": "s006",
    "pension": "Pension A",
    "signal_type": "leadership_change",
    "confidence": 0.8,
@@ -101,6 +108,7 @@
    "n_copies": 1
   },
   {
+   "id": "s007",
    "pension": "Pension A",
    "signal_type": "sale_or_advisor",
    "confidence": 0.93,
@@ -112,6 +120,7 @@
    "n_copies": 1
   },
   {
+   "id": "s008",
    "pension": "Pension A",
    "signal_type": "sale_or_advisor",
    "confidence": 0.8,
@@ -123,6 +132,7 @@
    "n_copies": 1
   },
   {
+   "id": "s009",
    "pension": "Pension C",
    "signal_type": "leadership_change",
    "confidence": 0.8,
@@ -134,6 +144,7 @@
    "n_copies": 1
   },
   {
+   "id": "s010",
    "pension": "Pension H",
    "signal_type": "sale_or_advisor",
    "confidence": 0.8,
@@ -145,6 +156,7 @@
    "n_copies": 1
   },
   {
+   "id": "s011",
    "pension": "Pension H",
    "signal_type": "sale_or_advisor",
    "confidence": 0.9,
@@ -156,6 +168,7 @@
    "n_copies": 1
   },
   {
+   "id": "s012",
    "pension": "Pension P",
    "signal_type": "liquidity_need",
    "confidence": 0.4,
@@ -167,6 +180,7 @@
    "n_copies": 1
   },
   {
+   "id": "s013",
    "pension": "Pension N",
    "signal_type": "policy_review",
    "confidence": 0.6,
@@ -178,6 +192,7 @@
    "n_copies": 1
   },
   {
+   "id": "s014",
    "pension": "Pension C",
    "signal_type": "leadership_change",
    "confidence": 0.97,
@@ -189,6 +204,7 @@
    "n_copies": 1
   },
   {
+   "id": "s015",
    "pension": "Pension O",
    "signal_type": "leadership_change",
    "confidence": 0.97,
@@ -200,6 +216,7 @@
    "n_copies": 1
   },
   {
+   "id": "s016",
    "pension": "Pension A",
    "signal_type": "leadership_change",
    "confidence": 0.95,
@@ -211,6 +228,7 @@
    "n_copies": 1
   },
   {
+   "id": "s017",
    "pension": "Pension L",
    "signal_type": "policy_review",
    "confidence": 0.72,
@@ -222,6 +240,7 @@
    "n_copies": 1
   },
   {
+   "id": "s018",
    "pension": "Pension A",
    "signal_type": "leadership_change",
    "confidence": 0.93,
@@ -233,6 +252,7 @@
    "n_copies": 2
   },
   {
+   "id": "s019",
    "pension": "Pension M",
    "signal_type": "leadership_change",
    "confidence": 0.93,
@@ -244,6 +264,7 @@
    "n_copies": 1
   },
   {
+   "id": "s020",
    "pension": "Pension I",
    "signal_type": "policy_review",
    "confidence": 0.88,
@@ -255,6 +276,7 @@
    "n_copies": 1
   },
   {
+   "id": "s021",
    "pension": "Pension K",
    "signal_type": "policy_review",
    "confidence": 0.6,
@@ -266,6 +288,7 @@
    "n_copies": 1
   },
   {
+   "id": "s022",
    "pension": "Pension H",
    "signal_type": "leadership_change",
    "confidence": 0.8,
@@ -277,6 +300,7 @@
    "n_copies": 1
   },
   {
+   "id": "s023",
    "pension": "Pension H",
    "signal_type": "leadership_change",
    "confidence": 0.6,
@@ -288,6 +312,7 @@
    "n_copies": 1
   },
   {
+   "id": "s024",
    "pension": "Pension F",
    "signal_type": "policy_review",
    "confidence": 0.93,
@@ -299,6 +324,7 @@
    "n_copies": 2
   },
   {
+   "id": "s025",
    "pension": "Pension J",
    "signal_type": "leadership_change",
    "confidence": 0.97,
@@ -310,6 +336,7 @@
    "n_copies": 2
   },
   {
+   "id": "s026",
    "pension": "Pension C",
    "signal_type": "policy_review",
    "confidence": 0.55,
@@ -321,6 +348,7 @@
    "n_copies": 1
   },
   {
+   "id": "s027",
    "pension": "Pension G",
    "signal_type": "policy_review",
    "confidence": 0.82,
@@ -332,6 +360,7 @@
    "n_copies": 1
   },
   {
+   "id": "s028",
    "pension": "Pension C",
    "signal_type": "liquidity_need",
    "confidence": 0.88,
@@ -343,6 +372,7 @@
    "n_copies": 1
   },
   {
+   "id": "s029",
    "pension": "Pension A",
    "signal_type": "sale_or_advisor",
    "confidence": 0.6,
@@ -354,6 +384,7 @@
    "n_copies": 1
   },
   {
+   "id": "s030",
    "pension": "Pension D",
    "signal_type": "policy_review",
    "confidence": 0.93,
@@ -365,6 +396,7 @@
    "n_copies": 1
   },
   {
+   "id": "s031",
    "pension": "Pension B",
    "signal_type": "policy_review",
    "confidence": 0.93,
@@ -376,6 +408,7 @@
    "n_copies": 2
   },
   {
+   "id": "s032",
    "pension": "Pension E",
    "signal_type": "policy_review",
    "confidence": 0.6,
@@ -389,6 +422,7 @@
  ],
  "closed_unlisted": [
   {
+   "id": "c000",
    "pension": null,
    "signal_type": "sale_or_advisor",
    "confidence": 0.9,
@@ -400,6 +434,7 @@
    "n_copies": 1
   },
   {
+   "id": "c001",
    "pension": null,
    "signal_type": "sale_or_advisor",
    "confidence": 0.9,
@@ -411,5 +446,5 @@
    "n_copies": 1
   }
  ],
- "note": "Real public headlines, anonymised. Links withheld. Not a statement of any pension's intent."
+ "note": "Real public headlines, anonymised. Links withheld because they name the pension. Not a statement of any pension's intent."
 }
