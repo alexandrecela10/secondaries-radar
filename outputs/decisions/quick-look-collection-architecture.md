@@ -2,14 +2,14 @@
 decision_id: "QL-ARCH-1"
 date: "2026-10-24"
 product_area: "Secondaries Radar"
-feature: "Quick Look intake"
+feature: "Offer Check intake"
 prd_stage: "Solution Review"
 decided_by: "Build agent, applying the PRD section 9 rule. Pending PM review."
 status: "active"
 supersedes: ""
 ---
 
-# Decision: Collect Quick Look offers with a batch job that polls the mailbox every minute
+# Decision: Collect Offer Check offers with a batch job that polls the mailbox every minute
 
 ## What was decided
 

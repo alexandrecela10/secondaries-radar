@@ -11,8 +11,8 @@
 The fund buys private equity stakes from investors who want out early. The end: buy more of the right stakes, at lower prices, without additional headcount.
 
 This opportunity delivers the first two steps:
-- **First Call (Gate 0):** spot investors likely to sell, before a sale starts.
-- **Quick Look (Gate 1):** decide in under an hour whether a sale offer deserves a closer look, and whether its price is right by what we already know.
+- **Seller Watch (Gate 0):** spot investors likely to sell, before a sale starts.
+- **Offer Check (Gate 1):** decide in under an hour whether a sale offer deserves a closer look, and whether its price is right by what we already know.
 
 ## Problem Statement
 
@@ -30,8 +30,8 @@ The fund hears about most sales late, when a broker sends a short sale summary t
 
 ## Proposed Solution
 
-- **First Call:** a language model, an AI that reads text, flags news and board papers that suggest an investor may sell. Each flag quotes its source with a link. It gives a verdict (prepare, or watch), so the team can get ready weeks before an offer arrives. A partner decides what to do. The system never contacts a seller.
-- **Quick Look:** the language model reads each sale summary and matches every line to a known fund, with a confidence score. Sale offers hide fund names before an NDA, so the system identifies each fund from its numbers (share of commitment paid in, cash returned, total value), which are the same for every investor in a fund. Tested calculations then give a verdict: look closer, or pass.
+- **Seller Watch:** a language model, an AI that reads text, flags news and board papers that suggest an investor may sell. Each flag quotes its source with a link. It gives a verdict (prepare, or watch), so the team can get ready weeks before an offer arrives. A partner decides what to do. The system never contacts a seller.
+- **Offer Check:** the language model reads each sale summary and matches every line to a known fund, with a confidence score. Sale offers hide fund names before an NDA, so the system identifies each fund from its numbers (share of commitment paid in, cash returned, total value), which are the same for every investor in a fund. Tested calculations then give a verdict: look closer, or pass.
 - **Price check:** for funds we already invest in, plain code starts from the broker's value, adds what we have learned since from our own fund reports, and shows what the stake is worth today by our data, next to the asking price. Each adjustment shows its source. The verdict then answers two questions: does it fit us, and is the price right.
 - **Every verdict opens up:** each verdict carries a confidence level and the reasons behind it, each reason tied to a rule and a number.
 - **The team's rulebook:** the team writes down, in plain text, what a good deal looks like for them: fund types, maximum price, minimum share of funds we already know. The AI applies these rules, not its own. The team can edit them at any time.
@@ -55,29 +55,29 @@ The fund hears about most sales late, when a broker sends a short sale summary t
 
 All inputs are assumptions, to replace with the team's real numbers.
 
-| Quick Look | Low | Base | High |
+| Offer Check | Low | Base | High |
 |---|---|---|---|
 | Serious offers per year × hours saved × AED per hour | 150 × 2 × 500 | 300 × 7 × 500 | 400 × 7 × 600 |
 | Gross value per year | AED 0.15M | AED 1.05M | AED 1.68M |
 | Minus run cost and upkeep (0.5 engineer) | AED 0.5M | AED 0.5M | AED 0.5M |
 | **Net, year 1** | **AED -0.35M** | **AED 0.55M** | **AED 1.18M** |
 
-- **First Call is an option, not base value.** It breaks even if a better-prepared bid improves the price by 0.1% on one $200M deal (AED 0.73M).
+- **Seller Watch is an option, not base value.** It breaks even if a better-prepared bid improves the price by 0.1% on one $200M deal (AED 0.73M).
 - **Price check is an option, not base value,** until it is tested on our own past fund reports. Rough size: 2 deals a year × $200M × 40% in funds we own × 1% better price = $1.6M (AED 5.9M). Low case, 1 deal and 0.25%: $0.2M (AED 0.6M). It works both ways: better prices on cheap offers, and fewer overpaid deals on expensive ones.
 - **Hours are capacity, not cash,** unless they go to more deals or deeper work on serious ones.
 
 ## How It Could Be Delivered
 
-A demo-grade working prototype. First Call uses public pension reports (CalPERS and Washington State publish fund-level data), board papers and news, collected on a schedule. Quick Look and our own portfolio use synthetic data. A streaming collection path is built next to the scheduled one as a learning exercise, measured, then retired.
+A demo-grade working prototype. Seller Watch uses public pension reports (CalPERS and Washington State publish fund-level data), board papers and news, collected on a schedule. Offer Check and our own portfolio use synthetic data. A streaming collection path is built next to the scheduled one as a learning exercise, measured, then retired.
 
 ```
-FIRST CALL   2026-10-24
+SELLER WATCH   2026-10-24
 1. Pension A   score 0.81   signal: "allocation review" (board papers, 2026-09-12) [link]
    46 funds, $3.1bn reported value; 58% with managers we know
    Rough price 86-90% of reported value [rule of thumb, v1]
    Call pack ready. Draft note cites 6 numbers.
 
-QUICK LOOK   Project Cedar   received 09:00
+OFFER CHECK   Project Cedar   received 09:00
 Fits us:   YES   9 of 12 managers known (78% of value), fund types match
 Price:     LOOKS CHEAP on the 3 funds we own (41% of value)
            Broker value (June)   $135M
@@ -96,10 +96,10 @@ Fund 9 (9% of value): not identified. Ostrova or Brennick? [pick]
 |---|---|
 | **Dream outcome** | "We call the seller before anyone else, with a price they take seriously, we know when an offer is cheap or expensive before other buyers do, and we spend our time only on offers worth it." For the data leader: one checkable AI pattern, proven on one high-value team, that other teams can reuse. |
 | **Perceived likelihood** | Medium. A test on real past pension sales is evidence investors accept. Every number showing its source raises belief. Verdicts follow the team's own rules and can be overruled, so the team stays in control. |
-| **Time delay** | Quick Look pays off on the first offer. First Call pays off months later, when a direct deal closes. |
+| **Time delay** | Offer Check pays off on the first offer. Seller Watch pays off months later, when a direct deal closes. |
 | **Effort & sacrifice** | Write the rulebook once, then read a one-page verdict and a ranked seller list. The partner keeps the relationship and the call. |
 
-**Verdict.** Strong ratio. Quick Look gives fast proof, First Call gives the large gain. The cheapest lever is belief: open every demo with one real past sale, signal date then sale date, and one number traced to its source.
+**Verdict.** Strong ratio. Offer Check gives fast proof, Seller Watch gives the large gain. The cheapest lever is belief: open every demo with one real past sale, signal date then sale date, and one number traced to its source.
 
 ## Recommendation
 

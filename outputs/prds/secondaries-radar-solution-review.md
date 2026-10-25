@@ -1,4 +1,4 @@
-# Secondaries Radar: Quick Look and First Call
+# Secondaries Radar: Offer Check and Seller Watch
 
 **Stage:** Solution Review (demo build), v3: price check added
 **Last Updated:** 2026-10-25
@@ -13,12 +13,12 @@
 
 A working demo for a sovereign fund that buys private equity stakes from investors who want out early.
 
-- **Quick Look (full build):** reads a broker's sale offer as it arrives by email, identifies which funds it contains from their numbers (names are hidden before an NDA), and gives a verdict with plain-language reasons in minutes. The verdict answers two questions: does this offer fit us, and is the price right, judged by what we know as an investor in the same funds.
-- **First Call (thin build):** reads real news as it is published, flags pensions showing signs they may sell, and quotes the evidence. The promise is preparation: we know who may sell weeks before the offer arrives, so our first bid is our best one.
+- **Offer Check (full build):** reads a broker's sale offer as it arrives by email, identifies which funds it contains from their numbers (names are hidden before an NDA), and gives a verdict with plain-language reasons in minutes. The verdict answers two questions: does this offer fit us, and is the price right, judged by what we know as an investor in the same funds.
+- **Seller Watch (thin build):** reads real news as it is published, flags pensions showing signs they may sell, and quotes the evidence. The promise is preparation: we know who may sell weeks before the offer arrives, so our first bid is our best one.
 - **Both:** the team sets the rules for a good deal and can overrule any verdict. The AI never invents a number and never contacts anyone.
 - **Engineering experiment:** each feature gets a real-time and a batch collection path. Objective criteria pick one (section 9).
 
-**Users:** an analyst (Quick Look, daily) and a partner (First Call, weekly).
+**Users:** an analyst (Offer Check, daily) and a partner (Seller Watch, weekly).
 
 ---
 
@@ -47,12 +47,12 @@ A working demo for a sovereign fund that buys private equity stakes from investo
 | Serious offers per year | 150 | 300 | 400 |
 | Hours saved per offer | 2 | 7 | 7 |
 | Cost per analyst hour | AED 500 | AED 500 | AED 600 |
-| **Quick Look gross value** | AED 0.15M | AED 1.05M | AED 1.68M |
+| **Offer Check gross value** | AED 0.15M | AED 1.05M | AED 1.68M |
 | Run cost (model calls, hosting) | AED 0.05M | AED 0.05M | AED 0.05M |
 | Build and upkeep (0.5 engineer) | AED 0.45M | AED 0.45M | AED 0.45M |
-| **Quick Look net, year 1** | AED -0.35M | AED 0.55M | AED 1.18M |
+| **Offer Check net, year 1** | AED -0.35M | AED 0.55M | AED 1.18M |
 
-- **First Call is an option, not base value.** Break-even: a better-prepared bid that improves the price by 0.1% on one $200M deal pays AED 0.73M.
+- **Seller Watch is an option, not base value.** Break-even: a better-prepared bid that improves the price by 0.1% on one $200M deal pays AED 0.73M.
 - **Price check is an option, not base value,** until tested on our own past fund reports. Rough size: 2 deals a year × $200M × 40% in funds we own × 1% better price = $1.6M (AED 5.9M); low case 1 deal at 0.25%: $0.2M (AED 0.6M). It works both ways: better prices when cheap, fewer overpaid deals when expensive.
 - **Hours are capacity, not cash,** unless they go to more deals or deeper work on serious ones.
 
@@ -64,10 +64,10 @@ A working demo for a sovereign fund that buys private equity stakes from investo
 |---|---|
 | **Dream outcome** | "We prepare before the offer arrives, price what we know from our own data, and spend time only on offers worth it." For the data leader: one checkable AI pattern other teams can reuse. |
 | **Perceived likelihood** | Medium. Matching from numbers is checkable line by line. Sourced numbers, the team's rules and overrides keep the team in control. |
-| **Time delay** | Quick Look pays off on the first offer. First Call pays off when a prepared bid wins. |
+| **Time delay** | Offer Check pays off on the first offer. Seller Watch pays off when a prepared bid wins. |
 | **Effort & sacrifice** | Agree the rulebook once, then read a one-page verdict and a weekly list of flagged pensions. |
 
-**Verdict:** strong for Quick Look, optional upside for First Call. Cheapest lever is belief: in the demo, show one offer line matched to our fund by its ratios, and one real news item flagged with its quote.
+**Verdict:** strong for Offer Check, optional upside for Seller Watch. Cheapest lever is belief: in the demo, show one offer line matched to our fund by its ratios, and one real news item flagged with its quote.
 
 ---
 
@@ -78,13 +78,13 @@ A working demo for a sovereign fund that buys private equity stakes from investo
 | ID | Requirement |
 |---|---|
 | D-1 | **Synthetic, our side:** about 40 managers, 120 funds, quarterly series per fund (called, distributed, value), our holdings, sale offers and rulebook. Seeded and reproducible. Invented names only. |
-| D-2 | **Real, First Call only:** news headlines from Google News RSS and the GDELT index. Store headline, link, source, publish time and a quote of 300 characters or less. A public list of about 50 US public pensions for linking. |
-| D-3 | **No join of real and synthetic data.** First Call never compares real pensions with our synthetic portfolio, so no statement about a real firm's holdings is ever produced. |
+| D-2 | **Real, Seller Watch only:** news headlines from Google News RSS and the GDELT index. Store headline, link, source, publish time and a quote of 300 characters or less. A public list of about 50 US public pensions for linking. |
+| D-3 | **No join of real and synthetic data.** Seller Watch never compares real pensions with our synthetic portfolio, so no statement about a real firm's holdings is ever produced. |
 | D-4 | **Layers:** bronze (as received), silver (typed, validated, deduplicated), gold (metrics). A failed schema check blocks the row and logs it. Bronze stays out of git. |
 | D-5 | **Point in time:** a metric at date T uses only data reported on or before T. Every view shows its as-of date. The price check deliberately uses data up to the day the offer arrived, after the broker's reference date: that gap is the edge. |
 | D-6 | **Synthetic, since the reference date:** for funds we own, events reported to us after the offer's reference date: a company sold (value in June, sale value), a write-down (old value, new value), each with date, our share and a short note as it would appear in a fund report. Plus the fund's next quarterly value, for testing only, never shown to the price check. |
 
-### 5.2 Quick Look
+### 5.2 Offer Check
 
 | ID | Requirement |
 |---|---|
@@ -98,7 +98,7 @@ A working demo for a sovereign fund that buys private equity stakes from investo
 | Q-9 | **Unidentified lines** appear inside the reasons, not as a separate step: "Fund 9 (9% of value): not identified. Two funds we track fit: A or B. Know which?" A pick is recorded with the user, and the system's answer is kept next to it. |
 | Q-7 | **Brief:** one-page HTML within 2 minutes of the email arriving. Headline sentence first, then reasons, then lines. Each reason expands to its rule, number and source row. **Message to the head of team:** decision and ask first, then 3 to 5 plain bullets (who sells what and when, what we know, price, what is missing), then confidence in words. No scores, thresholds, rule ids or version numbers. Marked internal: it contains information from our own fund reports. |
 
-### 5.3 First Call
+### 5.3 Seller Watch
 
 | ID | Requirement |
 |---|---|
@@ -183,11 +183,11 @@ Each feature builds both paths over the same input and the same processing code.
 
 | Feature | Real-time path | Batch path |
 |---|---|---|
-| Quick Look | Local mail server receives an email and emits an event at once | A job checks the mailbox every N minutes |
-| First Call | Poller publishes each new article to a stream (Redpanda, or a local log if Docker is down); a consumer classifies continuously | A job fetches and classifies every N minutes |
+| Offer Check | Local mail server receives an email and emits an event at once | A job checks the mailbox every N minutes |
+| Seller Watch | Poller publishes each new article to a stream (Redpanda, or a local log if Docker is down); a consumer classifies continuously | A job fetches and classifies every N minutes |
 
 **Objective criteria, measured:**
-1. **Freshness need:** p95 latency must be under 10% of the decision window (Quick Look: 1 working day; First Call: 4 weeks).
+1. **Freshness need:** p95 latency must be under 10% of the decision window (Offer Check: 1 working day; Seller Watch: 4 weeks).
 2. **Correctness parity:** both paths produce identical outputs on the same replay.
 3. **Recovery:** kill mid-run, restart: 0 duplicates, 0 missed.
 4. **Moving parts:** processes and services to run.
@@ -217,7 +217,7 @@ Each feature builds both paths over the same input and the same processing code.
 | Price | Our fund reports are confidential | Used for our own decision only; memo marked internal; never sent to a seller or broker |
 | Use | Blind trust | Confidence in words; reasons first; override needs a reason |
 | Use | Verdict read as a claim about a real pension | PREPARE / WATCH wording; quotes and links only |
-| Data path | Confidential offers sent to an outside model | Demo is synthetic. Real use: in-region hosted model, NDA and data processing agreement review, offer data kept apart from First Call |
+| Data path | Confidential offers sent to an outside model | Demo is synthetic. Real use: in-region hosted model, NDA and data processing agreement review, offer data kept apart from Seller Watch |
 | Publish | Real pension names in a public repo | Public version shows only historical, reported cases; `/name-audit`; disclaimer |
 
 ---
@@ -226,13 +226,13 @@ Each feature builds both paths over the same input and the same processing code.
 
 | Milestone | Delivers | Passing criteria |
 |---|---|---|
-| M1 Quick Look core | Synthetic generator; parser; fingerprint matching; rulebook; verdict; brief; override CLI | Match accuracy 90% or more; 0 good offers passed; validator passes |
-| M2 Quick Look intake | Email real-time and batch paths; measurements | Section 9 criteria measured; decision filed |
-| M3 First Call | Real news, both paths; classifier; pension score; 2 worked cases | Live items classified; parity and recovery measured; decision filed |
+| M1 Offer Check core | Synthetic generator; parser; fingerprint matching; rulebook; verdict; brief; override CLI | Match accuracy 90% or more; 0 good offers passed; validator passes |
+| M2 Offer Check intake | Email real-time and batch paths; measurements | Section 9 criteria measured; decision filed |
+| M3 Seller Watch | Real news, both paths; classifier; pension score; 2 worked cases | Live items classified; parity and recovery measured; decision filed |
 | M5 Price check | Events since the reference date; worth today; price view; price veto; Cedar cheap and one offer expensive; plain memo; Fund 9 inline | Estimate closer to next value than broker's for 70% or more of owned funds (synthetic); 0 good offers passed; validator passes |
 | M4 Wrap | Architecture doc; streaming learning notes; eval report | All evals in one command |
 
-**Kill criteria:** if neither worked case shows 8 weeks or more of warning, First Call is presented as monitoring only.
+**Kill criteria:** if neither worked case shows 8 weeks or more of warning, Seller Watch is presented as monitoring only.
 
 ---
 
@@ -241,7 +241,7 @@ Each feature builds both paths over the same input and the same processing code.
 - **D1 (closed):** no pseudonymisation needed, because real and synthetic data never join (D-3).
 - **D2:** confidence uses fixed, visible rules, not model judgement.
 - **D3:** the model parses; code matches. Matching is auditable and testable.
-- **D4:** First Call promises preparation, not exclusive access.
+- **D4:** Seller Watch promises preparation, not exclusive access.
 - **D5:** price is a separate question from fit, decided by our own data on funds we own, with a team-set veto.
 - [ ] Practitioner calls on triage time and what pre-NDA offers contain. @Alexandre
 - [ ] Set `ANTHROPIC_API_KEY` to run the model path. @Alexandre
@@ -250,13 +250,13 @@ Each feature builds both paths over the same input and the same processing code.
 
 ## Annex A: Napkin sketch
 
-### Screen 1, Quick Look brief: Project Cedar
+### Screen 1, Offer Check brief: Project Cedar
 **JTBD.** When an offer lands, the analyst wants a verdict with its reasons, so they can decide in under an hour.
 **Primary CTA.** Keep verdict (or override in the CLI).
 
 ```
 +--------------------------------------------------------------+
-| QUICK LOOK  Project Cedar   received 09:00   values at 06-30 |
+| OFFER CHECK  Project Cedar   received 09:00   values at 06-30 |
 | LOOK CLOSER: fits us, and the price looks cheap by our data. |
 | Medium confidence: 1 fund (9% of value) not identified.      |
 |--------------------------------------------------------------|
@@ -274,13 +274,13 @@ Each feature builds both paths over the same input and the same processing code.
 +--------------------------------------------------------------+
 ```
 
-### Screen 2, First Call: weekly list
+### Screen 2, Seller Watch: weekly list
 **JTBD.** When the partner plans the week, they want the pensions worth preparing for, with the evidence, so the first bid is ready before the offer.
 **Primary CTA.** Open evidence.
 
 ```
 +--------------------------------------------------------------+
-| FIRST CALL   week of 2026-10-26                              |
+| SELLER WATCH   week of 2026-10-26                              |
 | PREPARE  [Pension]   "PE allocation at 14% vs 10% target"    |
 |          [outlet], 2026-10-21 [link]   2 more signals         |
 | WATCH    [Pension]   "board to review private markets plan"  |

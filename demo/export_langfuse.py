@@ -6,8 +6,8 @@ Reads LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY and LANGFUSE_BASE_URL (or LANGFUS
 shell or the repo .env. Key values are never printed or written.
 
 What is kept: the tree of steps (name, kind, parent, start offset, duration), model name, tokens and
-cost, plus a short summary per step. First Call headlines name real pensions, so for First Call only
-the label the model returned is kept, never the headline, the pension or the link. Quick Look data is
+cost, plus a short summary per step. Seller Watch headlines name real pensions, so for Seller Watch only
+the label the model returned is kept, never the headline, the pension or the link. Offer Check data is
 synthetic. Output: demo/data/langfuse_examples.json (committed; safe to publish).
 """
 from __future__ import annotations
