@@ -5,14 +5,9 @@
 Quick Look: the synthetic universe, the 30 offer emails and their labels (seed 42), copied from a
 fresh `synth.run`. Generating takes about 10 seconds, so the app reads this copy instead.
 
-First Call: one real batch run, exported from a local First Call database and anonymised.
-Pensions become "Pension A", "Pension B" in score order, and every pension name in a headline
-or quote becomes "[Pension]". Only headline, outlet, date and a quote of 300 characters or less
-are kept. Links are dropped from this public file: an article URL often names the pension.
-
-A second, git-ignored file, demo/data/firstcall_sources.local.json, keeps the real pension name,
-headline, quote and link for each signal id. The app shows it only when FIRSTCALL_SHOW_SOURCES=1
-(or the Streamlit secret of that name) is set, so a local run can open every source.
+First Call: one real batch run, exported from a local First Call database. Real pension names,
+headlines and links, since all of it is public news. Only headline, outlet, date, link and a quote
+of 300 characters or less are kept, never the article.
 """
 from __future__ import annotations
 
@@ -31,21 +26,6 @@ os.environ.setdefault("FC_NO_DOTENV", "1")
 OUT = ROOT / "demo" / "data"
 QUOTE_MAX = 300
 
-
-import re
-
-# A person's name or a fund's size can name the pension as surely as its name does.
-_PERSON_AFTER = re.compile(r"\b((?i:names?|named|appoints?|appointed|taps?|hires?))\s+((?:[A-Z][\w.'’-]+\s+){1,5})(as)\b")
-_PERSON_BEFORE = re.compile(r"^((?:[A-Z][\w.'’-]+\s+){1,2}[A-Z][\w'’-]+)\s+(Named|Appointed|Tapped)\b")
-_AMOUNT = re.compile(r"\$\s?\d[\d.,]*\s?(?:bn|billion|b|m|mn|million)?\b", re.IGNORECASE)
-_SUFFIX = re.compile(r"\[Pension\]\s?/\s?[A-Z]{2,}\b")
-
-
-def redact(text: str) -> str:
-    text = _PERSON_AFTER.sub(lambda m: f"{m[1]} [person] {m[3]}", text)
-    text = _PERSON_BEFORE.sub(lambda m: f"[person] {m[2]}", text)
-    text = _SUFFIX.sub("[Pension]", text)
-    return _AMOUNT.sub("$[amount]", text)
 
 
 def build_quicklook() -> None:
@@ -90,40 +70,27 @@ def build_firstcall(db: Path, as_of_day: str) -> None:
         if sc.contributions:
             ranked.append((sc.score, pid))
     ranked.sort(key=lambda t: (-t[0], t[1]))
-    labels = {pid: f"Pension {chr(65 + i)}" if i < 26 else f"Pension {chr(65 + i // 26 - 1)}{chr(65 + i % 26)}"
-              for i, (_, pid) in enumerate(ranked)}
+    names = {pid: pensions.ALL[pid].name for _, pid in ranked}
 
-    def clean(text: str | None) -> str:
-        return redact(pensions.mask(text or ""))[:QUOTE_MAX]
-
-    signals, closed, sources = [], [], {}
+    signals, closed = [], []
     for r in rows:
-        in_list = r["pension_id"] in labels
+        in_list = r["pension_id"] in names
         if not in_list and not r["completed"]:
             continue
-        sid = f"s{len(signals):03d}" if in_list else f"c{len(closed):03d}"
-        sources[sid] = {"pension": pensions.ALL[r["pension_id"]].name if r["pension_id"] in pensions.ALL else None,
-                        "headline": r["headline"], "quote": (r["quote"] or "")[:QUOTE_MAX], "link": r["link"]}
-        item = {"id": sid, "pension": labels.get(r["pension_id"]), "signal_type": r["signal_type"],
-                "confidence": round(float(r["confidence"]), 3), "completed": bool(r["completed"]),
-                "published_at": r["published_at"].astimezone(timezone.utc).isoformat(),
-                "outlet": r["outlet"], "headline": clean(r["headline"]), "quote": clean(r["quote"]),
-                "n_copies": int(r["n_copies"] or 1)}
-        if in_list:
-            signals.append(item)
-        else:
-            closed.append(dict(item, pension=None))
+        item = {"id": f"s{len(signals):03d}" if in_list else f"c{len(closed):03d}",
+                "pension": pensions.ALL[r["pension_id"]].name if r["pension_id"] in pensions.ALL else None,
+                "signal_type": r["signal_type"], "confidence": round(float(r["confidence"]), 3),
+                "completed": bool(r["completed"]), "published_at": r["published_at"].astimezone(timezone.utc).isoformat(),
+                "outlet": r["outlet"], "headline": (r["headline"] or "")[:QUOTE_MAX],
+                "quote": (r["quote"] or "")[:QUOTE_MAX], "link": r["link"], "n_copies": int(r["n_copies"] or 1)}
+        (signals if in_list else closed).append(item)
     snap = {"as_of": as_of.isoformat(), "rulebook_version": rulebook().version, "classifiers": classifiers,
-            "pensions": [labels[pid] for _, pid in ranked], "signals": signals, "closed_unlisted": closed,
-            "note": "Real public headlines, anonymised. Links withheld because they name the pension. Not a statement of any pension's intent."}
+            "pensions": [names[pid] for _, pid in ranked], "signals": signals, "closed_unlisted": closed,
+            "note": "Real public headlines and links. Not a statement of any pension's intent."}
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "firstcall_snapshot.json").write_text(json.dumps(snap, indent=1, ensure_ascii=False) + "\n")
-    local = {"as_of": as_of.isoformat(), "note": "Local only, git-ignored. Real names and links. Never publish.",
-             "pensions": {labels[pid]: pensions.ALL[pid].name for _, pid in ranked}, "sources": sources}
-    (OUT / "firstcall_sources.local.json").write_text(json.dumps(local, indent=1, ensure_ascii=False) + "\n")
-    print(f"First Call snapshot: {len(labels)} pensions, {len(signals)} signals as of {as_of.date()} "
-          f"in {OUT / 'firstcall_snapshot.json'}; real names and links in {OUT / 'firstcall_sources.local.json'} "
-          "(git-ignored)")
+    print(f"First Call snapshot: {len(names)} pensions, {len(signals)} signals as of {as_of.date()} "
+          f"in {OUT / 'firstcall_snapshot.json'}")
 
 
 def main() -> int:

@@ -1,7 +1,7 @@
 """Secondaries Radar: a guided demo, written to you.
 
 Quick Look runs live with no key: the offline parser reads the offer, and matching, metrics and
-verdicts are plain code. First Call replays a committed, anonymised snapshot of one real news run.
+verdicts are plain code. First Call replays a committed snapshot of one real news run.
 Optional live mode: with ANTHROPIC_API_KEY in Streamlit secrets, Claude can read pasted text,
 capped at 3 calls per visitor and 30 per day.
 
@@ -130,7 +130,7 @@ with st.sidebar:
         st.rerun()
     cap(FOOTER)
 
-tab_ql, tab_fc, tab_hood = st.tabs(["Quick Look: you are Layla", "First Call: you are Omar", "Under the hood"])
+tab_ql, tab_fc, tab_hood = st.tabs(["Quick Look", "First Call", "Under the hood"])
 
 # ================================================================== QUICK LOOK
 
@@ -470,13 +470,6 @@ with tab_ql:
 # ================================================================== FIRST CALL
 
 with tab_fc:
-    try:
-        _fc_secret = str(st.secrets.get("FIRSTCALL_SHOW_SOURCES", "") or "")
-    except Exception:  # no secrets file: the public default
-        _fc_secret = ""
-    show, sources_note = fcd.show_sources(fcd.sources_requested(_fc_secret))
-    fname = lambda label: fcd.pension_name(label, show)  # noqa: E731
-
     st.header("You are Omar, a partner planning the week")
     md("You look after our relationships with large US public pensions. On Monday at 08:00 you have 10 minutes. "
        "You want to know which pensions are in the news in ways that often come before a sale of fund stakes, so "
@@ -498,8 +491,8 @@ with tab_fc:
         frb = fcd.custom_rulebook(weights, thr)
         if not fcd.is_default(frb):
             st.info("You are using your own settings. Everything below, including the two past cases, uses them.")
-        cap("Try: move the line down to 0.35. Pension A becomes worth preparing for on one sale report. Then look at "
-            "the New York City case below: does it now warn early, and on what evidence?")
+        cap("Try: move the line down to 0.35. New York City Retirement Systems becomes worth preparing for on one "
+            "sale report. Then look at its 2025 case below: does it now warn early, and on what evidence?")
         cap(f"Exact rule: total = 1 - exp(-S), where S adds weight x certainty x 0.5^(age / {b.half_life_days:.0f} "
             f"days) for each item in the last {b.window_days} days. The line is at {b.prepare_threshold:g} by default "
             f"(rules version {b.version}).")
@@ -510,7 +503,6 @@ with tab_fc:
        f"public pensions, or to none, sorted it by kind and updated each pension's total. What you see is one real "
        f"run, as of **{fcd.nice_date(fcd.as_of().date())}**. We keep only the headline, outlet, date and a short "
        "quote, never the article.")
-    (st.info if show else st.caption)(esc(sources_note))
     cap(f"Headlines were sorted by: {', '.join(snap['classifiers'])}.")
 
     st.subheader("08:00. Read the list")
@@ -522,41 +514,36 @@ with tab_fc:
     md(f"**{n_prep} worth preparing for, {len(rows) - n_prep} to keep an eye on.**" if n_prep
        else f"**No pension is worth preparing for this week. {len(rows)} to keep an eye on.**")
     if rows:
-        md("Top of the list. " + fcd.verdict_sentence(fcd.why(rows[0]["pension"], frb), show))
+        md("Top of the list. " + fcd.verdict_sentence(fcd.why(rows[0]["pension"], frb)))
     list_rows = []
     for r in rows:
-        src = fcd.source(r["top"], show)
-        row = {"our call": fcd.VERDICT_WORDS[r["verdict"]], "pension": fname(r["pension"]),
+        src = fcd.source(r["top"])
+        row = {"our call": fcd.VERDICT_WORDS[r["verdict"]], "pension": r["pension"],
                "in short": f"{fcd.count_words(r['signals'])}, " + ("" if r["signals"] == 1 else "the strongest ")
                + fcd.ago(r["age_days"]),
                "how close to the line": fcd.distance(r["score"], frb.prepare_threshold).split(" the line")[0]
                .replace(" way to", " way").replace("close to", "close").replace("far from", "far"),
                "strongest news": src["headline"], "outlet": src["outlet"], "date": src["date"]}
-        if show:
-            row["link"] = src["link"]
+        row["link"] = src["link"]
         row["your decision"] = notes.get(r["pension"], "")
         list_rows.append(row)
-    table(list_rows, column_config={"link": st.column_config.LinkColumn("link", display_text="open")} if show else None)
-    if not show:
-        cap(fcd.HIDDEN_LINK.replace("Link", "Links").replace("it names", "they name"))
+    table(list_rows, column_config={"link": st.column_config.LinkColumn("link", display_text="open")})
     with st.expander("Exact numbers"):
-        table([{"pension": fname(r["pension"]), "verdict": r["verdict"], "total": r["score"],
+        table([{"pension": r["pension"], "verdict": r["verdict"], "total": r["score"],
                 "line": frb.prepare_threshold, "items counted": r["signals"]} for r in rows])
     closed = fcd.closed_sales()
     if closed:
         md("**Sales already completed in the last 90 days.** Shown for context. They add nothing to the list: once a "
            "sale is done, there is nothing left to prepare for.")
         for s in closed:
-            who = fname(s["pension"]) if s["pension"] else ("" if not show else
-                                                             (fcd.local_sources() or {}).get("sources", {}).get(s.get("id"), {}).get("pension") or "")
-            md(f"- {who + ': ' if who else ''}{fcd.source_md(fcd.source(s, show))}")
+            md(f"- {s['pension'] + ': ' if s['pension'] else ''}{fcd.source_md(fcd.source(s))}")
 
     st.subheader("08:03. Check the evidence")
-    pension = st.selectbox("Open a pension", [r["pension"] for r in rows], format_func=fname, key="fc_pension")
+    pension = st.selectbox("Open a pension", [r["pension"] for r in rows], key="fc_pension")
     w = fcd.why(pension, frb)
-    md(fcd.verdict_sentence(w, show))
+    md(fcd.verdict_sentence(w))
     for p in w["parts"]:
-        src = fcd.source(p, show)
+        src = fcd.source(p)
         with st.container(border=True):
             md(f"**{p['type']}.** {fcd.source_md(src)}")
             if src["quote"] and src["quote"] != src["headline"]:
@@ -564,7 +551,7 @@ with tab_fc:
             cap(f"From {fcd.ago(p['age_days'])}, so it {fcd.counts_words(p['decay'])}."
                 + (f" Seen in {p['copies']} outlets, counted once." if p["copies"] > 1 else ""))
     for s in w["closed"]:
-        cap("Sale already completed, shown for context only: " + fcd.source_md(fcd.source(s, show)))
+        cap("Sale already completed, shown for context only: " + fcd.source_md(fcd.source(s)))
     if w["outside"]:
         cap(f"{fcd.count_words(w['outside'], 'older news item')} from more than a year ago no longer count.")
     with st.expander("Exact numbers"):
@@ -596,7 +583,7 @@ with tab_fc:
     layers = [line, rule, label]
     if tl["signals"]:
         sdf = pd.DataFrame([{"date": m["date"], "kind": m["type"] + (" (already completed)" if m["closed"] else ""),
-                             "headline": fcd.source(m, show)["headline"], "outlet": m["outlet"]} for m in tl["signals"]])
+                             "headline": m["headline"], "outlet": m["outlet"]} for m in tl["signals"]])
         sdf["date"] = pd.to_datetime(sdf["date"])
         layers.append(alt.Chart(sdf).mark_rule(color="#64748b", opacity=0.5).encode(
             x="date:T", tooltip=["date:T", "kind:N", "headline:N", "outlet:N"]))
@@ -611,7 +598,7 @@ with tab_fc:
     _rules = f"v{frb.version}" + ("" if fcd.is_default(frb) else " (your settings)")
     with c1:
         owner = st.selectbox("Analyst", TEAM, key="fc_owner")
-        if st.button(f"Prepare for {fname(pension)}", type="primary"):
+        if st.button(f"Prepare for {pension}", type="primary"):
             ss.fc_decisions.append({"pension": pension, "action": "prepare", "owner": owner, "reason": "",
                                     "at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "score": round(w["score"], 2),
                                     "verdict": w["verdict"], "rulebook": _rules})
@@ -619,7 +606,7 @@ with tab_fc:
     with c2:
         reason = st.text_input("Dismiss, because...", key="fc_reason",
                                placeholder="The cash talk is about paying pensions, not a sale")
-        if st.button(f"Dismiss {fname(pension)}"):
+        if st.button(f"Dismiss {pension}"):
             if len(reason.strip()) < 5:
                 st.warning("Please give a reason. It is how the rules get better.")
             else:
@@ -628,15 +615,15 @@ with tab_fc:
                                         "score": round(w["score"], 2), "verdict": w["verdict"], "rulebook": _rules})
                 st.rerun()
     if ss.fc_decisions:
-        table([{"pension": fname(d["pension"]), "decision": d["action"], "analyst": d["owner"], "reason": d["reason"],
+        table([{"pension": d["pension"], "decision": d["action"], "analyst": d["owner"], "reason": d["reason"],
                 "when": d["at"], "by": "omar", "our call then": fcd.VERDICT_WORDS[d["verdict"]], "total then": d["score"],
                 "rules": d["rulebook"]} for d in reversed(ss.fc_decisions)])
         cap("In this demo, decisions stay in your browser session.")
 
     st.subheader("Did it warn early? Two real past sales")
     md("**No. In both cases the tool flagged the pension only once the sale was reported.** So treat First Call as a "
-       "news monitor that shows its evidence, not a forecast. Two cases are an example, not proof. Real names are "
-       "used here because both sales were publicly reported. Each replay uses only the news published by that day.")
+       "news monitor that shows its evidence, not a forecast. Two cases are an example, not proof. "
+       "Each replay uses only the news published by that day.")
     clf = st.radio("Who sorted the stored headlines", ["keyword", "claude"], horizontal=True,
                    format_func=lambda c: {"keyword": "Keyword rules (offline)", "claude": "Claude (saved run)"}[c],
                    key="fc_case_clf")

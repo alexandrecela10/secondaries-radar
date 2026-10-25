@@ -75,60 +75,38 @@ def test_quicklook_pasted_text():
 def test_firstcall_weekly_and_why():
     rb = fcd.custom_rulebook()
     rows = fcd.weekly(rb)
-    assert rows and rows[0]["pension"] == "Pension A" and all(r["verdict"] == "WATCH" for r in rows)
-    w = fcd.why("Pension A", rb)
+    assert rows and rows[0]["pension"] == "New York City Retirement Systems" and all(r["verdict"] == "WATCH" for r in rows)
+    w = fcd.why("New York City Retirement Systems", rb)
     assert w["parts"] and all({"quote", "outlet", "date", "weight", "decay"} <= p.keys() for p in w["parts"])
-    assert fcd.timeline("Pension A", rb)["rows"]
+    assert fcd.timeline("New York City Retirement Systems", rb)["rows"]
     low = fcd.custom_rulebook(threshold=0.3)
     assert fcd.weekly(low)[0]["verdict"] == "PREPARE"
 
 
-def test_firstcall_snapshot_is_anonymised():
-    raw = fcd.SNAP.read_text()
-    snap = json.loads(raw)
+def test_firstcall_snapshot_names_and_links_every_source():
+    snap = json.loads(fcd.SNAP.read_text())
     from fc import pensions
 
+    names = {p.name for p in pensions.ALL.values()}
     for s in snap["signals"] + snap["closed_unlisted"]:
-        for field in ("headline", "quote"):
-            assert len(s[field]) <= 300
-            assert pensions.mask(s[field]) == s[field], s[field]
-        assert "link" not in s
-        assert s["pension"] is None or s["pension"].startswith("Pension ")
-    assert "http" not in raw and "news.google" not in raw
-    for p in pensions.ALL.values():   # no real name, of any pension we follow, anywhere in the public file
-        assert p.name not in raw, p.name
+        assert len(s["headline"]) <= 300 and len(s["quote"]) <= 300   # a short quote, never the article
+        assert s["link"].startswith("https://"), s["id"]
+        assert s["pension"] is None or s["pension"] in names
+    assert set(snap["pensions"]) <= names
 
 
-def test_firstcall_local_sources_stay_out_of_the_public_file():
-    gi = (ROOT / ".gitignore").read_text()
-    assert "demo/data/*.local.json" in gi
-    local = fcd.local_sources()
-    if local is None:
-        pytest.skip("no local sources file on this machine (the public default)")
-    raw = fcd.SNAP.read_text()
-    for real in local["pensions"].values():
-        assert real not in raw
-    for src in local["sources"].values():
-        assert not src["link"] or src["link"] not in raw
-
-
-def test_firstcall_sources_off_and_on():
+def test_firstcall_sentence_links_its_source():
     rb = fcd.custom_rulebook()
-    w = fcd.why("Pension A", rb)
-    off = fcd.source(w["parts"][0], show=False)
-    assert off["link"] is None and fcd.HIDDEN_LINK in fcd.source_md(off)
-    s = fcd.verdict_sentence(w, show=False)
-    assert s.startswith("Pension A: keep an eye on it.") and "http" not in s
-    assert fcd.show_sources(False)[0] is False
-    if fcd.local_sources():
-        on = fcd.source(w["parts"][0], show=True)
-        assert on["link"].startswith("http") and fcd.source_md(on).startswith("[")
-        assert not fcd.pension_name("Pension A", True).startswith("Pension ")
+    w = fcd.why("New York City Retirement Systems", rb)
+    src = fcd.source(w["parts"][0])
+    assert src["link"].startswith("https://") and fcd.source_md(src).startswith("[")
+    s = fcd.verdict_sentence(w)
+    assert s.startswith("New York City Retirement Systems: keep an eye on it.") and "](https://" in s
 
 
 def test_firstcall_wording_is_plain():
     rb = fcd.custom_rulebook()
-    text = fcd.verdict_sentence(fcd.why("Pension A", rb), False)
+    text = fcd.verdict_sentence(fcd.why("New York City Retirement Systems", rb))
     for word in ("score", "decay", "threshold", "confidence", "rulebook", "tier", "\u2014"):
         assert word not in text.lower(), word
     assert fcd.ago(3) == "3 days ago" and fcd.ago(58) == "8 weeks ago"
@@ -161,10 +139,9 @@ def test_under_the_hood():
         assert p.name not in raw and p.id not in raw.replace("_", " ").split(), p.name
 
 
-def _render(monkeypatch, show: str):
+def _render(monkeypatch):
     from streamlit.testing.v1 import AppTest
 
-    monkeypatch.setenv("FIRSTCALL_SHOW_SOURCES", show)
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
     assert not at.exception, [e.message for e in at.exception]
     return at
@@ -172,7 +149,7 @@ def _render(monkeypatch, show: str):
 
 def test_app_renders_headless(monkeypatch):
     t = time.time()
-    at = _render(monkeypatch, "0")
+    at = _render(monkeypatch)
     assert len(at.tabs) == 3
     heads = [s.value for s in at.subheader]
     for h in ("09:02. Read the verdict", "08:00. Read the list", "Tracing: a record of every run",
@@ -186,17 +163,10 @@ def _fc_text(at) -> str:
     return "\n".join(e.value for part in (tab.markdown, tab.caption, tab.info) for e in part)
 
 
-def test_first_call_tab_sources_off(monkeypatch):
-    text = _fc_text(_render(monkeypatch, "0"))
-    assert "Link hidden in the public demo because it names the pension." in text
-    assert "news.google.com" not in text
+def test_first_call_tab_links_every_news_item(monkeypatch):
+    text = _fc_text(_render(monkeypatch))
+    assert "](https://news.google.com/" in text and "New York City Retirement Systems" in text
+    assert "Link hidden" not in text
     assert "Not a statement of any pension's intent." in text
-    assert "privateequityinternational.com" in text   # historical cases always link
+    assert "privateequityinternational.com" in text   # historical cases link too
     assert "\u2014" not in text
-
-
-def test_first_call_tab_sources_on(monkeypatch):
-    if fcd.local_sources() is None:
-        pytest.skip("no local sources file on this machine")
-    text = _fc_text(_render(monkeypatch, "1"))
-    assert "Sources on" in text and "](https://news.google.com/" in text
