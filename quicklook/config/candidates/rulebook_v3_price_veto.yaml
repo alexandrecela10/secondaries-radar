@@ -1,6 +1,7 @@
-# Candidate v3: make the price rule a veto. Not adopted. Run:
+# Candidate (on top of v2): make the price rule a veto. Not adopted as written; the adopted v3
+# (config/rulebook.yaml) moves price out of the fit score instead, with a 10-point veto. Run:
 #   radar rules test config/candidates/rulebook_v3_price_veto.yaml
-version: 3
+version: 2-price-veto
 threshold: 0.6
 confidence:
   data_matched_strong: 0.9   # at or above: strong

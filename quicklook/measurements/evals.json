@@ -1,16 +1,16 @@
 {
   "briefs_valid": {
-    "valid": 29,
-    "total": 29
+    "valid": 30,
+    "total": 30
   },
   "validator_cases": {
     "correct": 14,
     "total": 14
   },
   "match_accuracy_labelled": {
-    "correct": 140,
-    "total": 149,
-    "accuracy": 0.9395973154362416,
+    "correct": 144,
+    "total": 153,
+    "accuracy": 0.9411764705882353,
     "target": 0.9,
     "misses": [
       [
@@ -65,8 +65,8 @@
     "target": 1.0
   },
   "offline_parse_lines": {
-    "read": 149,
-    "total": 149
+    "read": 153,
+    "total": 153
   },
   "injection": {
     "verdict_with_injection": "PASS",
@@ -74,58 +74,51 @@
     "rule_changes": 0,
     "rule_results_identical": true
   },
+  "price_check_vs_next_value": {
+    "funds_with_news": 17,
+    "ours_closer": 15,
+    "share": 0.8823529411764706,
+    "mean_error_ours": 0.023857090388431305,
+    "mean_error_broker_value": 0.06027252338392836,
+    "target": 0.7,
+    "note": "synthetic: events and next values come from the same generator"
+  },
   "verdicts_vs_pm_labels": {
-    "rulebook": "2",
+    "rulebook": "3",
     "tune": {
+      "kept": 13,
+      "total": 15,
+      "share": 0.8666666666666667,
+      "good_offers_passed": 2
+    },
+    "holdout": {
       "kept": 14,
       "total": 14,
       "share": 1.0,
       "good_offers_passed": 0
     },
-    "holdout": {
-      "kept": 10,
-      "total": 14,
-      "share": 0.7142857142857143,
-      "good_offers_passed": 1
-    },
     "target": 0.8,
     "rulebook_v1": {
       "tune_kept": 11,
-      "tune_good_passed": 3,
+      "tune_good_passed": 4,
       "holdout_kept": 13,
       "holdout_good_passed": 1
     },
     "disagreements": {
-      "Acacia": {
-        "label": "PASS",
-        "verdict": "LOOK CLOSER",
-        "split": "holdout",
-        "archetype": "tail_end",
-        "score": 0.75,
-        "veto": null
-      },
-      "Laurel": {
-        "label": "PASS",
-        "verdict": "LOOK CLOSER",
-        "split": "holdout",
-        "archetype": "tail_end",
-        "score": 0.75,
-        "veto": null
-      },
-      "Magnolia": {
+      "Myrtle": {
         "label": "LOOK",
         "verdict": "PASS",
-        "split": "holdout",
+        "split": "tune",
         "archetype": "known_full_price",
-        "score": 0.5,
-        "veto": null
+        "score": 1.0,
+        "veto": "price_veto"
       },
-      "Pine": {
-        "label": "PASS",
-        "verdict": "LOOK CLOSER",
-        "split": "holdout",
-        "archetype": "tail_end",
-        "score": 0.75,
+      "Poplar": {
+        "label": "LOOK",
+        "verdict": "PASS",
+        "split": "tune",
+        "archetype": "mixed_known",
+        "score": 0.5,
         "veto": null
       }
     }

@@ -201,12 +201,14 @@ with tab_ql:
     if offer is not None:
         # ---- the rulebook (read here, so the verdict below reacts)
         with st.expander("Play: change the rulebook and watch the verdict flip", expanded=False):
-            md("These are the team's rules, in plain English. A verdict is LOOK CLOSER when the **weighted share of "
-               "rules met** reaches the threshold and no veto rule fails. Try: on Cedar, set the price rule's weight "
-               "to 5. Or lower the known-managers bar to 90%.")
-            base_name = st.radio("Start from", ["v2", "v1"], horizontal=True, key="ql_base",
-                                 format_func=lambda v: {"v2": "Rulebook v2 (live today)",
-                                                        "v1": "Rulebook v1 (the PRD's first version)"}[v])
+            md("These are the team's rules, in plain English. Two questions. **Does it fit us?** LOOK CLOSER needs "
+               "the weighted share of rules met to reach the threshold, and no veto to fail. **Is the price right?** "
+               "PASS if the seller asks well above what our own data says we would pay. Try: on Hornbeam, raise the "
+               "price veto to 15 points. Or raise the known-managers bar to 90%.")
+            base_name = st.radio("Start from", ["v3", "v2", "v1"], horizontal=True, key="ql_base",
+                                 format_func=lambda v: {"v3": "Rulebook v3 (live today)",
+                                                        "v2": "v2 (price was one rule among others)",
+                                                        "v1": "v1 (the PRD's first version)"}[v])
             base = ql.load_rulebook(base_name)
             thr = st.slider("Threshold: share of weighted rules that must be met", 0.0, 1.0, float(base.threshold),
                             0.05, key=f"ql_thr_{base_name}")
@@ -226,7 +228,11 @@ with tab_ql:
                 w = c2.slider("Weight", 0.5, 5.0, float(r.weight), 0.5, key=f"ql_w_{base_name}_{r.id}")
                 veto = c3.checkbox("Veto", value=r.veto, key=f"ql_x_{base_name}_{r.id}")
                 edits[r.id] = {"value": v, "weight": w, "veto": veto}
-            rb = ql.custom_rulebook(base, thr, edits)
+            gap = None
+            if base.price is not None:
+                gap = st.slider("Price veto: PASS if the seller asks more than this many points above what we would "
+                                "pay", 0, 30, int(round(base.price.veto_gap * 100)), 1, key=f"ql_gap_{base_name}") / 100
+            rb = ql.custom_rulebook(base, thr, edits, gap)
             if rb.sha == "edited-in-demo":
                 st.info(esc(f"You are using your own edit of rulebook {base_name}. Scroll to \"Why rule changes are "
                             "tested\" to see how it does on labelled offers it was not tuned on."))
@@ -236,6 +242,12 @@ with tab_ql:
 
         picks = ss.ql_picks.setdefault(okey, {})
         r0 = ql.run(offer, rb)            # what code says on its own
+        for g in ql.open_lines(r0):       # your pick for an unidentified fund, from the widget below
+            choice_key = f"ql_pick_{okey}_{g['line_no']}"
+            if ss.get(choice_key) not in (None, "not sure"):
+                picks[g["line_no"]] = ss[choice_key]
+            elif choice_key in ss:
+                picks.pop(g["line_no"], None)
         r = ql.run(offer, rb, picks)      # with your picks
 
         # ---- 09:00
@@ -251,25 +263,48 @@ with tab_ql:
 
         # ---- 09:02
         st.subheader("09:02. Read the verdict")
-        verdict_box(r0.verdict)
-        md(f"Confidence has two visible parts. **Data matched** is the share of value whose fund is settled: "
-           f"**{r0.verdict.data_matched:.0%}**. **Margin** is the gap between the score and the threshold: "
-           + (f"score **{r0.verdict.score:.2f}** against **{r0.verdict.threshold:g}**." if r0.verdict.score is not None
-              else "no score.") + " High needs both to be strong.")
+        verdict_box(r.verdict)
+        if r.picks:
+            cap("Includes your pick for " + ", ".join(f"Fund {n}" for n in sorted(r.picks)) + ".")
+        pc = ql.price_check(r)
+        fits = r.verdict.score is not None and r.verdict.score >= r.verdict.threshold and not (
+            r.verdict.veto_rule and r.verdict.veto_rule != ql.rulebook.PRICE_VETO)
+        price_words = {"cheap": "Looks right by our own data", "expensive": "Looks high by our own data",
+                       "no view": "No view: we own none of these funds"}[pc["view"]]
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Does it fit us?", "Yes" if fits else "No")
+        c2.metric("Is the price right?", "Too high" if pc["vetoed"] else price_words.split(" by")[0].split(":")[0],
+                  help=price_words)
+        c3.metric("How sure?", r.verdict.band.capitalize(),
+                  help="High needs most of the offer identified and a clear margin on fit.")
         with st.expander("How a buyer thinks about this"):
             md("A buyer sees dozens of offers a year and bids on a few. The first read is triage: is it worth "
                "signing an NDA and spending a week on the data room? The biggest edge is **funds you already own**. "
-               "You hold the manager's own quarterly report, so you can price that line from your numbers, not "
-               "the broker's, while other bidders discount for what they do not know.")
+               "The broker prices every fund from its value on one past date. As an investor in the fund, you have "
+               "heard what happened since: companies sold, write-downs. Other bidders have not.")
 
         # ---- 09:05
-        st.subheader("09:05. Check why")
-        md("Each rule, its number, the test, and where the number comes from. Code computes every number from "
-           "the matched lines; the model never does.")
+        st.subheader("09:05. Check why it fits, or not")
+        md("Each rule, its number and where the number comes from. Code computes every number; the model never does.")
         icons = {"met": "Met", "not met": "Not met", "not checked": "Not checked"}
         table([{"": icons[x["status"]], "rule": x["rule"] + (" (veto)" if x["veto"] else ""), "weight": x["weight"],
-                "number": x["number"], "test": x["test"], "source": x["source"]} for x in ql.reasons(r0)])
-        nc = [x for x in ql.reasons(r0) if x["status"] == "not checked"]
+                "number": x["number"], "test": x["test"], "source": x["source"]} for x in ql.reasons(r)])
+        for g in ql.open_lines(r0):
+            line = next(l for l in offer.lines if l.line_no == g["line_no"])
+            share = g["value_usd"] / (r0.values["total_value_usd"] or 1)
+            cands = ql.candidates_for(r0, g["line_no"])
+            lab = {c["fund_id"]: f"{c['name']} ({'we own it' if c['owned'] else 'we track it'})" for c in cands}
+            md(f"**{g['label']} ({share:.0%} of value): not identified.** \"{line.description}, {line.vintage}\" fits "
+               f"{len(cands)} funds we know. Know which one it is?")
+            opts = ["not sure"] + [c["fund_id"] for c in cands]
+            cur = picks.get(g["line_no"], "not sure")
+            st.radio(esc(f"{g['label']} is"), opts, index=opts.index(cur) if cur in opts else 0, horizontal=True,
+                     format_func=lambda x: lab.get(x, x), key=f"ql_pick_{okey}_{g['line_no']}",
+                     label_visibility="collapsed")
+        if r.picks:
+            cap("Your pick is recorded next to what the code said. A fund we own gets a price; a fund we only "
+                "track counts as a manager we know.")
+        nc = [x for x in ql.reasons(r) if x["status"] == "not checked"]
         if nc:
             cap("Not checked: " + "; ".join(f"{x['rule']} ({x['note']})" for x in nc) +
                 ". A rule with no number is left out of the score and lowers confidence by one level.")
@@ -278,8 +313,43 @@ with tab_ql:
             cap("Tiers: a fund we own (ratios match our report), a manager we know (other fund), unknown. "
                 "Nothing is matched silently: each line carries its method.")
 
-        # ---- 09:10
-        st.subheader("09:10. Check a match")
+        # ---- 09:08
+        st.subheader("09:08. Check the price against what we know")
+        if pc["view"] == "no view":
+            md("We own none of these funds, so we know nothing the other bidders don't. No price view.")
+        else:
+            md(f"We own **{pc['n_owned']}** of these funds (**{pc['share_owned']:.0%}** of the value). The broker "
+               f"prices them at their value on **{offer.parsed.reference_date:%d %B}**. Since then, their managers "
+               "have told us things other bidders have not heard.")
+            if pc["adjustments"]:
+                table(pc["adjustments"])
+                more = pc["change"] >= 0
+                md(f"So by our own data, these funds are worth **${pc['worth']:,.1f}M**, against "
+                   f"${pc['broker_value']:,.1f}M at the broker's date: **{abs(pc['change']):.1%} "
+                   f"{'more' if more else 'less'}**.")
+            else:
+                md("Nothing material since then, so our view matches the broker's value.")
+            ask = f"{pc['ask_text']} (about {pc['ask_mid']:.0%})" if pc["ask_mid"] is not None else "not given"
+            md(f"We would pay **{pc['low']:.0%} to {pc['high']:.0%}** of the broker's value. The seller asks **{ask}**.")
+            if pc["vetoed"]:
+                st.error(esc(f"Too expensive: the ask is {pc['gap'] * 100:.0f} points above the most we would pay. "
+                             "Other bidders working from the old value would overpay. We let them."))
+            elif pc["view"] == "cheap":
+                st.success("The price looks right: the ask is inside what we would pay.")
+            else:
+                st.warning(esc(f"The price looks high: the ask is {pc['gap'] * 100:.0f} points above the most we "
+                               "would pay. Worth a look, but plan to bid below the ask."))
+            cap(f"Covers the funds we own only ({pc['share_owned']:.0%} of value). A first view, not a bid: a real bid "
+                "projects the cash flows after the NDA. Cash paid in or out since the broker's date is settled at "
+                "closing, so it is not counted here.")
+        with st.expander("A simplification a real investor would question"):
+            md("Other investors in the same funds hear the same news, so the edge is real but not unique. And the "
+               "range itself is a rule of thumb by fund type and age; a real desk calibrates it on its own past bids.")
+        if offer.code == "Cedar":
+            cap("Then try Hornbeam: it looks fine at the June values, but two write-downs since make it too expensive.")
+
+        # ---- 09:12
+        st.subheader("09:12. Check how a fund was identified")
         md("Pick a line. Inside one fund, every investor has the same **% called** (share of the commitment paid "
            "in), **DPI** (cash returned per dollar paid in) and **TVPI** (cash returned plus remaining value, per "
            "dollar paid in) at a given date. So if you own the fund, your own report shows the same ratios.")
@@ -308,44 +378,6 @@ with tab_ql:
             md("Ratios are fund-level, but not exactly the seller's. Late closers pay equalisation, fee offsets "
                "differ, and some investors report recallable distributions differently. The tolerance bands absorb "
                "some of this, not all.")
-
-        # ---- 09:15
-        st.subheader("09:15. Fix an open line")
-        still = ql.open_lines(r0)
-        if not still:
-            md("Every line is settled. Nothing to fix on this offer.")
-        else:
-            md("Code leaves a line open when it cannot be sure. You may know better, from a past deal. Pick the fund. "
-               "Code still sets the tier: a fund we own becomes \"same fund\", a fund we only track becomes \"same "
-               "manager\". Only funds that fit the line's description are offered.")
-            for g in still:
-                cands = ql.candidates_for(r0, g["line_no"])
-                opts = ["leave it open"] + [c["fund_id"] for c in cands]
-                cur = picks.get(g["line_no"], "leave it open")
-                lab = {c["fund_id"]: f"{c['fund_id']} {c['name']} ({'we own it' if c['owned'] else 'we track it'})"
-                       for c in cands}
-                line = next(l for l in offer.lines if l.line_no == g["line_no"])
-                pick = st.radio(esc(f"{g['label']}: {line.description}, {line.vintage}. Code says: {g['method']}."),
-                                opts, index=opts.index(cur) if cur in opts else 0, horizontal=True,
-                                format_func=lambda x: lab.get(x, x), key=f"ql_pick_{okey}_{g['line_no']}")
-                if pick == "leave it open":
-                    picks.pop(g["line_no"], None)
-                else:
-                    picks[g["line_no"]] = pick
-            r = ql.run(offer, rb, picks)
-            c1, c2 = st.columns(2)
-            with c1:
-                md("**Before your pick**")
-                verdict_box(r0.verdict)
-                cap(f"Data matched {r0.verdict.data_matched:.0%}.")
-            with c2:
-                md("**After your pick**")
-                verdict_box(r.verdict)
-                cap(f"Data matched {r.verdict.data_matched:.0%}. Recorded as layla's pick; the code's original "
-                    "answer is kept beside it.")
-            if offer.code == "Cedar":
-                cap("Try F012 Ostrova for Fund 9. Confidence stays medium: data matched is now 100%, but the score is "
-                    "only 0.15 above the threshold, under the 0.2 margin needed for high.")
 
         # ---- 09:20
         st.subheader("09:20. Decide")
@@ -383,18 +415,18 @@ with tab_ql:
 
         # ---- 09:25
         st.subheader("09:25. Tell your head of team")
-        md("One paragraph to paste. Every number comes from the run above. In the command line version, a "
-           "validator checks each number against its database row before the memo is shown.")
+        md("Ready to paste. Every number traces back to its source.")
         st.code(ql.memo(r, dec), language=None, wrap_lines=True)
         cap("Use the copy icon at the top right of the box.")
 
         # ---- rule changes
         st.subheader("Why rule changes are tested")
-        md("The team changed one rule. Rulebook v1 required a plan fit of 0.70. It passed Willow, a good offer, "
-           "because the fit score punishes any offer concentrated in one region. v2 lowered the bar to 0.55, and "
-           "agreed with all 14 tune offers. Then it met 14 offers it had never seen (the **holdout**):")
+        md("Each version is tested on labelled offers: the **tune** offers shaped the rules, and the **holdout** "
+           "offers were kept aside. v2 lowered one bar to fix Willow, and did worse on the holdout. v3 took price "
+           "out of the fit score and judged it with what our own fund reports say.")
         rows = []
-        books = [("Rulebook v1", ql.load_rulebook("v1")), ("Rulebook v2", ql.load_rulebook("v2"))]
+        books = [("Rulebook v1", ql.load_rulebook("v1")), ("Rulebook v2", ql.load_rulebook("v2")),
+                 ("Rulebook v3", ql.load_rulebook("v3"))]
         if rb.sha == "edited-in-demo":
             books.append(("Your rulebook", rb))
         results = {}
@@ -403,11 +435,15 @@ with tab_ql:
             results[name] = a
             rows.append({"rulebook": name, "tune offers agreed": f"{a['tune']['kept']} of {a['tune']['total']}",
                          "holdout offers agreed": f"{a['holdout']['kept']} of {a['holdout']['total']}",
+                         "good offers marked PASS (tune)": a["tune"]["good_passed"],
                          "good offers marked PASS (holdout)": a["holdout"]["good_passed"]})
         table(rows)
-        md("v2 fixed Willow and lost its grip on old, tail-end funds: all three tail-end holdout offers get LOOK "
-           "CLOSER against a PASS label. **That is overfitting.** The fix was tuned on 9 offers labelled by one "
-           "person, and it did not generalise. A target of 80% on the holdout is reported, not gated.")
+        md("v2 fixed Willow and lost its grip on old, tail-end funds: **that is overfitting.** v3 agrees with all 14 "
+           "holdout offers, but marks PASS on two tune offers labelled good. **Myrtle**: our reports show its funds "
+           "down 6% since June, and at par the seller asks 17 points over what we would pay; the label was written "
+           "before the price check existed. **Poplar**: v2 said LOOK CLOSER only because the price rule propped up "
+           "its score; we can identify managers behind just 22% of its value. Both are open questions for the team, "
+           "not tuned away.")
         which = st.radio("Show the holdout offers for", list(results), horizontal=True, key="ql_hold_which")
         table(results[which]["holdout"]["rows"])
         st.info("Here you can look at the holdout as often as you like. That is the trap. If you tune the rules "
@@ -422,6 +458,10 @@ with tab_ql:
              ["Its DPI is near 0 and TVPI near 1, like most young funds", "Brokers hide young funds",
               "Young funds have no NAV"], 0,
              "Young funds have returned little cash and are held near cost, so many funds look alike on the ratios."),
+            ("The broker values Hornbeam's funds at June. Our reports show two write-downs since. Who overpays?",
+             ["Every bidder equally", "Bidders working from the June value", "Nobody, the auction corrects it"], 1,
+             "Bidders who only have the June value price in companies that are already worth less. The winner of "
+             "an auction is often the one most wrong about value. Our data tells us when to step back."),
             ("Rulebook v2 agrees with 14 of 14 tune offers and 10 of 14 holdout offers. What do you trust?",
              ["The tune result", "The holdout result", "Their average"], 1,
              "The tune offers shaped the rule. Only the holdout says how it does on offers it has not seen."),

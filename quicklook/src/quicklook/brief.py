@@ -46,11 +46,14 @@ def fmt_money(v: float | None, cur: str | None) -> str:
     return "" if v is None else f"{sym}{v:,.1f}M"
 
 
-def span(display: str, table: str, row: str, metric: str, version: str) -> Markup:
+def span(display: str, table: str, row: str, metric: str, version: str, absolute: bool = False) -> Markup:
+    """A sourced number. absolute=True: the text shows the size and the words around it give the
+    direction ("5.5% more"), so the validator compares sizes."""
     if display in ("", None):
         return Markup('<span class="na">n/a</span>')
+    ab = ' data-abs="1"' if absolute else ""
     return Markup(f'<span class="n" data-table="{escape(table)}" data-row="{escape(row)}" '
-                  f'data-metric="{escape(metric)}" data-version="{escape(version)}">{escape(display)}</span>')
+                  f'data-metric="{escape(metric)}" data-version="{escape(version)}"{ab}>{escape(display)}</span>')
 
 
 TEMPLATE = r"""<!doctype html>
@@ -86,7 +89,7 @@ Reason: {{ override.reason }}. By {{ override.user_name }}, {{ override.at }}.</
 {% if kept %}<div class="override"><b>Team kept the verdict: {{ kept.verdict }}</b>. By {{ kept.user_name }}, {{ kept.at }}.</div>{% endif %}
 {% if picks %}<p class="mute">Matched by hand: {% for p in picks %}{{ p.label }} is {{ p.fund }} (by {{ p.user }}, {{ p.at }}){% if not loop.last %}; {% endif %}{% endfor %}.</p>{% endif %}
 <h1>{{ headline }}</h1>
-<p class="mute">Score {{ score }} against a threshold of {{ threshold }}. Data matched {{ data_matched }}.{% if margin %} Margin {{ margin }}.{% else %} A veto decides.{% endif %}
+<p class="mute">Fit score {{ score }} against a threshold of {{ threshold }}. Data matched {{ data_matched }}.{% if margin %} Margin {{ margin }}.{% else %} A veto decides.{% endif %}
 Total value {{ total }}.</p>
 
 <h2>Why</h2>
@@ -97,11 +100,16 @@ Total value {{ total }}.</p>
 <td>{{ r.value }}{% if r.extra %}<div class="mute">{{ r.extra }}</div>{% endif %}</td><td>{{ r.op }} {{ r.threshold }}</td></tr>
 {% endfor %}</table></div>
 
-<h2>Funds we own</h2>
-<p>{{ n_owned }} lines, {{ share_owned }} of value, priced from our own latest reports.
-{% if range_low %}Our range: {{ range_low }} to {{ range_high }} of value. Asking: {{ asking }}{% if asking_mid %} (midpoint {{ asking_mid }}){% endif %}.{% else %}No price: no fund we own in this offer.{% endif %}</p>
+<h2>Price check: what our own reports say</h2>
+<p><b>{{ price_head }}</b></p>
+<p>Funds we own: {{ n_owned }} lines, {{ share_owned }} of value. The broker prices them at their value on {{ refdate }}.
+{% if adjustments %}Since then, their managers told us:</p><ul>
+{% for a in adjustments %}<li>{{ a.label }}, {{ a.fund }}: {{ a.note }} Fund value {{ a.pct }}, so this stake {{ a.usd }}. <span class="mute">Told on {{ a.told }}.</span>
+<details><summary class="mute">source</summary><div class="lineage">{{ a.lineage }}</div></details></li>{% endfor %}</ul>
+<p>Worth today by our data: {{ worth }} ({{ worth_change }} against the broker's value).{% else %}Nothing material since then.{% endif %}
+{% if range_low %}Our range: {{ range_low }} to {{ range_high }} of the broker's value. Asking: {{ asking }}{% if asking_mid %} (midpoint {{ asking_mid }}){% endif %}.{% else %}No price: no fund we own in this offer.{% endif %}</p>
 {% if priced %}<ul>{% for p in priced %}<li>{{ p.label }}, {{ p.fund }}: {{ p.low }} to {{ p.high }}. <span class="mute">Method: {{ p.method }}</span></li>{% endfor %}</ul>{% endif %}
-<p class="mute">Other tiers show no price. Share of value with managers we know: {{ share_known }}. Largest five lines: {{ top5 }} of value.</p>
+<p class="mute">A first view, not a bid. Funds we don't own get no price. Share of value with managers we know: {{ share_known }}. Largest five lines: {{ top5 }} of value.</p>
 
 {% if unresolved %}<h2>Unmatched</h2><ul>
 {% for u in unresolved %}<li>{{ u.label }}: {{ u.desc }} {{ u.vintage }}, value {{ u.value }}. {{ u.method }}.
@@ -217,14 +225,35 @@ def render(con, offer_id: str) -> str:
                      + ("; " + "; ".join(json.loads(l["flags_json"])) if json.loads(l["flags_json"]) else ""))))
         if l["price_low"] is not None:
             priced.append(dict(label=l["label"], fund=l["fund_name"],
-                               low=S("gold_line_matches", lid, "price_low", f"{l['price_low']:.0%}", "price v1"),
-                               high=S("gold_line_matches", lid, "price_high", f"{l['price_high']:.0%}", "price v1"),
-                               method=S("gold_line_matches", lid, "price_method", l["price_method"], "price v1")))
+                               low=S("gold_line_matches", lid, "price_low", f"{l['price_low']:.0%}", "price v2"),
+                               high=S("gold_line_matches", lid, "price_high", f"{l['price_high']:.0%}", "price v2"),
+                               method=S("gold_line_matches", lid, "price_method", l["price_method"], "price v2")))
         if not l["resolved"]:
             unresolved.append(dict(label=l["label"], desc=desc, vintage=vint, value=value,
                                    method=l["method"].capitalize(),
                                    cands=", ".join(f"{c['fund_name']} ({c['manager_name']})" for c in cands) or "none"))
 
+    adjustments = []
+    for a in store.rows(con, "SELECT * FROM gold_price_adjustments WHERE offer_id = ? ORDER BY line_no, event_date",
+                        [offer_id]):
+        A = lambda col, disp: span(disp, "gold_price_adjustments", a["row_id"], col, a["version"])  # noqa: E731
+        up = a["line_change_usd"] >= 0
+        adjustments.append(dict(
+            label=a["label"], fund=a["fund_name"], note=A("note", a["note"]),
+            pct=Markup("up " if up else "down ") + span(f"{abs(a['fund_change_pct']):.1%}", "gold_price_adjustments",
+                                                         a["row_id"], "fund_change_pct", a["version"], absolute=True),
+            usd=Markup("gains " if up else "loses ") + span(fmt_money(abs(a["line_change_usd"]), "USD"),
+                                                            "gold_price_adjustments", a["row_id"], "line_change_usd",
+                                                            a["version"], absolute=True),
+            told=A("reported_at", a["reported_at"].isoformat()),
+            lineage=f"ref_fund_events row {a['event_id']}; gold_price_adjustments row {a['row_id']}; price {a['version']}"))
+    view = v["price_view"]
+    if v["veto_rule"] == "price_veto":
+        price_head = "Too expensive by our own data: the asking price is well above the top of our range."
+    else:
+        price_head = {"cheap": "The price looks right by our own data: the asking price is within our range.",
+                      "expensive": "The price looks high by our own data: the asking price is above the top of our range.",
+                      "no view": "No price view: we own none of these funds."}[view]
     exposure = [dict(name=e["manager_name"],
                      funds=span(str(e["funds_held"]), "gold_exposure", e["row_id"], "funds_held", e["version"]),
                      commit=span(fmt_money(e["our_commitment_usd"], "USD"), "gold_exposure", e["row_id"], "our_commitment_usd", e["version"]),
@@ -269,7 +298,12 @@ def render(con, offer_id: str) -> str:
         range_high=M("price_range_high"),
         asking=S("silver_offers", offer_id, "asking_price_text", o["asking_price_text"] or "") if o["asking_price_text"] else "not given",
         asking_mid=M("asking_price_mid") if mets["asking_price_mid"]["value"] is not None else None,
-        priced=priced, share_known=M("share_value_known_manager"), top5=M("top5_concentration"),
+        priced=priced, adjustments=adjustments, price_head=price_head,
+        worth=M("worth_today_owned_usd", fmt_money(mets["worth_today_owned_usd"]["value"], "USD"))
+        if mets["worth_today_owned_usd"]["value"] is not None else None,
+        worth_change=M("worth_change_owned", f"{mets['worth_change_owned']['value'] * 100:+.1f}%")
+        if mets["worth_change_owned"]["value"] is not None else None,
+        share_known=M("share_value_known_manager"), top5=M("top5_concentration"),
         unresolved=unresolved, lines=lines, exposure=exposure, rejects=rejects,
         metric_versions=", ".join(f"{k} {m['version']}" for k, m in sorted(mets.items())),
     )
@@ -343,11 +377,11 @@ class _Collector(HTMLParser):
             self.free_text.append(data)
 
 
-def _matches(display: str, value) -> bool:
+def _matches(display: str, value, absolute: bool = False) -> bool:
     if isinstance(value, dt.datetime):
         return display == value.strftime("%Y-%m-%d %H:%M")
     if isinstance(value, dt.date):
-        return display == value.isoformat()
+        return display in (value.isoformat(), f"{value.day} {value:%B}", f"{value.day} {value:%B %Y}")
     if isinstance(value, str):
         return display == value
     if isinstance(value, bool):
@@ -357,7 +391,8 @@ def _matches(display: str, value) -> bool:
     n = normalise(display)
     if n is None:
         return False
-    return abs(n - float(value)) <= _tolerance(display) + 1e-9
+    v = abs(float(value)) if absolute else float(value)
+    return abs(n - v) <= _tolerance(display) + 1e-9
 
 
 def validate(html: str, lookup: Callable[[str, str, str], object]) -> list[str]:
@@ -376,7 +411,7 @@ def validate(html: str, lookup: Callable[[str, str, str], object]) -> list[str]:
         except KeyError:
             problems.append(f"number '{text}' cites {a['data-table']}/{a['data-row']}/{a['data-metric']}, which does not exist")
             continue
-        if not _matches(text, value):
+        if not _matches(text, value, a.get("data-abs") == "1"):
             problems.append(f"number '{text}' does not match its source value {value!r} "
                             f"({a['data-table']}/{a['data-row']}/{a['data-metric']})")
             continue

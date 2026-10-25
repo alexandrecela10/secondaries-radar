@@ -14,7 +14,7 @@ from pathlib import Path
 
 import yaml
 
-from quicklook import match, metrics, pipeline, rulebook
+from quicklook import journey, match, metrics, pipeline, rulebook
 from quicklook.emailio import EmailContent, read_email
 from quicklook.models import ParsedLine, Tier
 from quicklook.parse import OfflineParser, ParseError
@@ -23,8 +23,11 @@ from quicklook.reference import Reference
 ROOT = Path(__file__).resolve().parents[1]
 SNAP = ROOT / "demo" / "data" / "quicklook"
 CONFIG = ROOT / "quicklook" / "config"
-RULEBOOKS = {"v1": CONFIG / "history" / "rulebook_v1.yaml", "v2": CONFIG / "rulebook.yaml"}
-JOURNEY_OFFERS = ["Cedar", "Alder", "Birch", "Hazel", "Juniper", "Maple", "Rowan", "Spruce", "Thistle", "Willow"]
+RULEBOOKS = {"v1": CONFIG / "history" / "rulebook_v1.yaml", "v2": CONFIG / "history" / "rulebook_v2.yaml",
+             "v3": CONFIG / "rulebook.yaml"}
+LIVE = "v3"
+JOURNEY_OFFERS = ["Cedar", "Hornbeam", "Alder", "Birch", "Hazel", "Juniper", "Maple", "Rowan", "Spruce", "Thistle",
+                  "Willow"]
 RATIO_NAMES = {"pct_called": "% called", "dpi": "DPI", "tvpi": "TVPI", "value_per_commitment": "value / commitment"}
 TIER_WORDS = {"same_fund": "a fund we own", "same_manager": "a manager we know, other fund", "unknown": "unknown"}
 PASTED_AT = dt.datetime(2026, 10, 23, 9, 0, tzinfo=dt.timezone.utc)
@@ -128,14 +131,19 @@ def email_text(o: Offer) -> str:
 
 # ------------------------------------------------------------------ rulebook
 
-def custom_rulebook(base: rulebook.Rulebook, threshold: float, rules: dict[str, dict]) -> rulebook.Rulebook:
-    """A copy of `base` with your threshold and your value, weight and veto per rule."""
+def custom_rulebook(base: rulebook.Rulebook, threshold: float, rules: dict[str, dict],
+                    veto_gap: float | None = None) -> rulebook.Rulebook:
+    """A copy of `base` with your threshold, your value, weight and veto per rule, and your price veto gap."""
     new_rules = []
     for r in base.quick_look:
         e = rules.get(r.id, {})
         new_rules.append(r.model_copy(update={k: e[k] for k in ("value", "weight", "veto") if k in e}))
-    changed = threshold != base.threshold or any(a != b for a, b in zip(new_rules, base.quick_look))
-    return base.model_copy(update={"threshold": threshold, "quick_look": new_rules,
+    price = base.price
+    if base.price is not None and veto_gap is not None:
+        price = base.price.model_copy(update={"veto_gap": veto_gap})
+    changed = (threshold != base.threshold or any(a != b for a, b in zip(new_rules, base.quick_look))
+               or price != base.price)
+    return base.model_copy(update={"threshold": threshold, "quick_look": new_rules, "price": price,
                                    "version": f"{base.version}-yours" if changed else base.version,
                                    "sha": "edited-in-demo" if changed else base.sha})
 
@@ -264,53 +272,42 @@ def match_view(r: Run, line_no: int) -> dict:
     return out
 
 
+def price_check(r: Run) -> dict:
+    """The price check for funds we own: what their managers told us after the broker's date."""
+    m, v = r.values, r.verdict
+    adj = []
+    for row in r.match_rows:
+        for a in json.loads(row["adjustments_json"]):
+            adj.append({"line": a["label"], "fund": a["fund_name"], "what happened": a["note"],
+                        "we were told": a["reported_at"],
+                        "fund value": f"{a['fund_change_pct']:+.1%}",
+                        "this stake (USD M)": f"{a['line_change_usd']:+.1f}", "source": f"ref_fund_events {a['event_id']}"})
+    owned_value = sum(x["value_usd"] for x in r.match_rows if x["tier"] == "same_fund" and x["worth_usd"] is not None)
+    return {"view": v.price_view, "vetoed": v.veto_rule == rulebook.PRICE_VETO, "adjustments": adj,
+            "n_owned": int(m["count_same_fund"] or 0), "share_owned": m["share_value_same_fund"],
+            "broker_value": owned_value, "worth": m["worth_today_owned_usd"], "change": m["worth_change_owned"],
+            "low": m["price_range_low"], "high": m["price_range_high"], "ask_text": r.offer.parsed.asking_price_text,
+            "ask_mid": m["asking_price_mid"], "gap": m["guidance_minus_range_top"]}
+
+
 def memo(r: Run, decision: dict | None) -> str:
-    """One paragraph for the head of team. Same wording as `radar memo`, every number from the run."""
+    """The message to the head of team. Same builder as `radar memo`; here numbers are plain text."""
     o, v, m = r.offer.parsed, r.verdict, r.values
-    broker = (r.offer.content.sender or "").split("<")[0].strip() or "the broker"
-    seller = (o.seller_type or "not given")
-    n = int(m["count_lines"] or 0)
-    s = (f"Project {o.code_name} ({broker}; seller: {seller}): {n} fund interest{'s' if n != 1 else ''}, total "
-         f"value ${m['total_value_usd']:.1f}M at {o.reference_date}")
-    if o.bid_deadline:
-        s += f", indicative bids due {o.bid_deadline}"
-    score = "n/a" if v.score is None else f"{v.score:.2f}"
-    s += (f". Our rulebook (version {v.rulebook_version}) says {v.verdict}, {v.band} confidence: score {score} "
-          f"against a threshold of {v.threshold:g}, data matched {v.data_matched:.0%}. ")
-    if m["count_same_fund"]:
-        s += f"We own {m['count_same_fund']:.0f} of the funds ({m['share_value_same_fund']:.0%} of value)"
-        if m["price_range_low"] is not None:
-            s += f"; our price range for them is {m['price_range_low']:.0%} to {m['price_range_high']:.0%} of value"
-        if o.asking_price_text:
-            s += f", against guidance of {o.asking_price_text}"
-        s += ". "
-    else:
-        s += "We own none of the funds, so we have no price of our own. "
-    s += (f"Managers we know hold {fmt_value('share_value_known_manager', m['share_value_known_manager'])} of value; "
-          f"venture is {fmt_value('share_value_venture', m['share_value_venture'])}. ")
-    for x in v.reasons:
-        if x.status == "not checked":
-            s += f"Not checked: {x.description.lower()} (no number). "
-        elif x.status == "not met":
-            thr = "0%" if x.metric == "guidance_minus_range_top" else fmt_value(x.metric, x.threshold)
-            s += f"Not met: {x.description.lower()} ({fmt_value(x.metric, x.value)} against {rulebook.OP_WORDS[x.op]} {thr}). "
-    still = open_lines(r)
-    if still:
-        s += (f"{len(still)} line{'s' if len(still) > 1 else ''} still unmatched "
-              f"({m['share_value_unresolved']:.0%} of value): {', '.join(l['label'] for l in still)}. ")
-    for line_no, fid in sorted(r.picks.items()):
-        s += f"Fund {line_no} was matched by hand to {reference().funds[fid]['name']} (layla). "
-    final = v.verdict
-    if decision and decision["kind"] == "override":
-        final = decision["verdict"]
-        s += f"I override this to {final}: {decision['reason']}. "
-    elif decision:
-        s += "I keep this verdict. "
-    else:
-        s += "No decision recorded yet. "
-    s += ("Proposal: sign the NDA and ask for the data room." if final == "LOOK CLOSER"
-          else "Proposal: decline the NDA and tell the broker.")
-    return s
+    ref = reference()
+    adj = [a for row in r.match_rows for a in json.loads(row["adjustments_json"])]
+    d = dict(code=o.code_name, seller=o.seller_type,
+             broker=(r.offer.content.sender or "").split("<")[0].strip() or "the broker",
+             n_lines=m["count_lines"] or 0, total=m["total_value_usd"], ref_date=o.reference_date,
+             deadline=o.bid_deadline, verdict=v.verdict, veto_rule=v.veto_rule, price_view=v.price_view, band=v.band,
+             close=v.margin is not None and v.margin < 0.2, n_owned=m["count_same_fund"] or 0,
+             share_owned=m["share_value_same_fund"], worth_change=m["worth_change_owned"],
+             adjustments=[dict(company=a["company"], kind=a["kind"]) for a in adj], ask_text=o.asking_price_text,
+             top=m["price_range_high"], share_known=m["share_value_known_manager"],
+             failed_rules=[x.description for x in v.reasons if x.status == "not met"],
+             unresolved=[l["label"] for l in open_lines(r)], share_unresolved=m["share_value_unresolved"],
+             picks=[dict(label=f"Fund {n}", fund=ref.funds[f]["name"], user="layla") for n, f in sorted(r.picks.items())],
+             decision=decision)
+    return "".join(journey.memo_parts(d, lambda key, disp: disp))
 
 
 # ------------------------------------------------------------------ tune and holdout
@@ -320,7 +317,7 @@ def labelled_values() -> dict[str, dict]:
     """Metric values for every labelled offer, computed once. A rulebook change re-scores them instantly."""
     out = {}
     for code in labels():
-        r = run(load_offer(code), load_rulebook("v2"))
+        r = run(load_offer(code), load_rulebook(LIVE))
         out[code] = r.values
     return out
 

@@ -77,7 +77,29 @@ def test_guidance_minus_range_top_offer_level():
     # range top = .85*.6 + .95*.4 = .89 ; asking mid .88 -> -0.01
     assert m["price_range_high"].value == pytest.approx(0.89)
     assert m["guidance_minus_range_top"].value == pytest.approx(-0.01)
-    assert all(v.version == "v1" for v in m.values())
+    assert m["price_range_high"].version == "v2" and m["fit_score"].version == "v1"
+
+
+def test_worth_factor_adds_our_share_of_each_change():
+    # fund worth 200 at the reference date; a company held at 30 sold for 48 (+18); another at 10 written to 4 (-6)
+    assert M.worth_factor([(30, 48), (10, 4)], 200) == pytest.approx(1.06)
+    assert M.worth_factor([], 200) == 1.0 and M.worth_factor([(1, 2)], 0) == 1.0
+
+
+def test_line_price_range_moves_with_worth():
+    lo, hi, method = M.line_price_range("buyout", 2016, dt.date(2026, 6, 30), 100.0, 100.0, worth=1.06)
+    assert (lo, hi) == (pytest.approx(0.72 * 1.06), pytest.approx(0.84 * 1.06))
+    assert "worth today / value at the broker's date = 1.060" in method
+
+
+def test_worth_metrics_on_owned_lines_only():
+    a, b = L(1, 60, lo=0.8, hi=0.85), L(2, 40, "credit", lo=0.9, hi=0.95)
+    a.worth_usd, b.worth_usd = 66.0, 40.0
+    m = M.offer_metrics([a, b], "high 80s", PLAN)
+    assert m["worth_today_owned_usd"].value == pytest.approx(106.0)
+    assert m["worth_change_owned"].value == pytest.approx(0.06)
+    none = M.offer_metrics([L(1, 10)], "high 80s", PLAN)
+    assert none["worth_change_owned"].value is None
 
 
 def test_offer_metrics_without_guidance_is_not_checked():

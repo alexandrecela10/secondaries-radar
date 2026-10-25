@@ -161,6 +161,15 @@ OFFERS: list[OfferSpec] = [
                LineSpec("tracked1", 15, "growth"),
                LineSpec("tracked1", 6, "venture"),
                LineSpec("owned", 20, "buyout", "north_america")]),
+    # Added with the price check. Appended last so the offers above draw the same random numbers.
+    OfferSpec("Hornbeam", "Harbourline Partners", "harbourline.example", "a European insurer",
+              _d("2026-10-22T10:15:00"), "high 80s", dt.date(2026, 11, 19), "body", "PASS",
+              "Looks fine at the June values. Our own reports show two write-downs since, so at high 80s "
+              "we would overpay.",
+              [LineSpec("owned", 60, "buyout", None, (2017, 2020)),
+               LineSpec("owned", 35, "buyout", None, (2016, 2020)),
+               LineSpec("tracked1", 25, "buyout"),
+               LineSpec("outside_none", 10, "credit")]),
 ]
 
 TEST_OFFERS = [o.code for o in OFFERS if o.code != "Cedar"]
