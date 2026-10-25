@@ -44,7 +44,7 @@ Same input for both paths: 928 real items (live Google News RSS pulls plus the f
 - **Single host:** the file log and the DuckDB sink are single-writer. A shared deployment would need a server database.
 - **Worked cases:** neither case gave 8 weeks of warning (WSIB 2022: 0 weeks; NYC 2025: 0 weeks). By PRD section 11, Seller Watch is shown as monitoring only. That finding doesn't depend on the collection path.
 
-## Where streaming would earn its place at a sovereign fund
+## Where streaming would earn its place at a large investor
 
 Streaming pays when a decision changes within seconds or minutes of an event.
 

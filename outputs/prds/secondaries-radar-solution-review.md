@@ -11,7 +11,7 @@
 
 ## 1. What we're building
 
-A working demo for a sovereign fund that buys private equity stakes from investors who want out early.
+A working demo for an investor that buys private equity stakes from investors who want out early.
 
 - **Offer Check (full build):** reads a broker's sale offer as it arrives by email, identifies which funds it contains from their numbers (names are hidden before an NDA), and gives a verdict with plain-language reasons in minutes. The verdict answers two questions: does this offer fit us, and is the price right, judged by what we know as an investor in the same funds.
 - **Seller Watch (thin build):** reads real news as it is published, flags pensions showing signs they may sell, and quotes the evidence. The promise is preparation: we know who may sell weeks before the offer arrives, so our first bid is our best one.
@@ -46,14 +46,14 @@ A working demo for a sovereign fund that buys private equity stakes from investo
 |---|---|---|---|
 | Serious offers per year | 150 | 300 | 400 |
 | Hours saved per offer | 2 | 7 | 7 |
-| Cost per analyst hour | AED 500 | AED 500 | AED 600 |
-| **Offer Check gross value** | AED 0.15M | AED 1.05M | AED 1.68M |
-| Run cost (model calls, hosting) | AED 0.05M | AED 0.05M | AED 0.05M |
-| Build and upkeep (0.5 engineer) | AED 0.45M | AED 0.45M | AED 0.45M |
-| **Offer Check net, year 1** | AED -0.35M | AED 0.55M | AED 1.18M |
+| Cost per analyst hour | $136 | $136 | $163 |
+| **Offer Check gross value** | $0.04M | $0.29M | $0.46M |
+| Run cost (model calls, hosting) | $0.01M | $0.01M | $0.01M |
+| Build and upkeep (0.5 engineer) | $0.12M | $0.12M | $0.12M |
+| **Offer Check net, year 1** | -$0.10M | $0.15M | $0.32M |
 
-- **Seller Watch is an option, not base value.** Break-even: a better-prepared bid that improves the price by 0.1% on one $200M deal pays AED 0.73M.
-- **Price check is an option, not base value,** until tested on our own past fund reports. Rough size: 2 deals a year × $200M × 40% in funds we own × 1% better price = $1.6M (AED 5.9M); low case 1 deal at 0.25%: $0.2M (AED 0.6M). It works both ways: better prices when cheap, fewer overpaid deals when expensive.
+- **Seller Watch is an option, not base value.** Break-even: a better-prepared bid that improves the price by 0.1% on one $200M deal pays $0.20M.
+- **Price check is an option, not base value,** until tested on our own past fund reports. Rough size: 2 deals a year × $200M × 40% in funds we own × 1% better price = $1.6M; low case 1 deal at 0.25%: $0.2M. It works both ways: better prices when cheap, fewer overpaid deals when expensive.
 - **Hours are capacity, not cash,** unless they go to more deals or deeper work on serious ones.
 
 ---
@@ -321,4 +321,4 @@ first_call:
 ```
 
 ---
-Sources: opportunity analysis; review synthesis; context-library/strategy/secondaries-radar-brief.md.
+Sources: opportunity analysis; review synthesis.

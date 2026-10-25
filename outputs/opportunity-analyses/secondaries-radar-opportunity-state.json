@@ -5,15 +5,15 @@
   "why": "Seller signals are public, the fund owns the overlap data, and a backtest on real reported pension sales can show lead time.",
   "decided": [
     "Target fund is assumed to buy LP-led secondaries.",
-    "Optimise for a data leader over an engineering lead.",
+    "Optimise for a data leader audience over an engineering audience.",
     "Demo-grade working prototype, not production.",
     "Public data allowed on the seller side; buyer portfolio synthetic; real seller names anonymised before publishing (CLAUDE.md amended).",
     "The system drafts outreach; a human sends. No agent contacts or negotiates with a seller.",
     "Streaming is a learning spike; batch ships unless measured otherwise.",
-    "Interviewer organisations stay out of all outputs.",
+    "Real buyer organisations stay out of all outputs.",
     "Both gates in scope: First Call (Gate 0) and Quick Look (Gate 1).",
     "Plain-language wording for readers outside private capital.",
-    "Rough value assessment: about AED 16M per year (Quick Look AED 1.05M, First Call AED 14.6M), all inputs assumed.",
+    "Rough value assessment: about $4.36M per year (Quick Look $0.29M, First Call $3.98M), all inputs assumed.",
     "Quick Look matching reports depth in three tiers, not a known/unknown flag: same fund (we get its reports), same manager but another fund, unknown. Carry into the PRD.",
     "Every verdict (First Call: call now or wait; Quick Look: look closer or pass) opens into a confidence level and reasons, each tied to a rule and a number.",
     "The team supplies its own plain-text rulebook (a skill-style blueprint) for what a good deal is; the AI applies it, not its own judgement.",
@@ -41,7 +41,7 @@
     "Exact first-signal dates for each backtest case; needs board minutes, not only press.",
     "Which other pensions publish fund-level holdings (CalSTRS, Oregon, others).",
     "Price range heuristic for a public-disclosure portfolio, where NAV lags about 2 quarters.",
-    "Replace value inputs (300 offers/yr, 7 h saved, AED 500/h, 1 direct deal of $200M, 2% price gain) with sourced or interview-based numbers.",
+    "Replace value inputs (300 offers/yr, 7 h saved, $136/h, 1 direct deal of $200M, 2% price gain) with sourced numbers or numbers from user research.",
     "How the rulebook's rules turn into a confidence number (weighted rules vs model judgement) needs a decision in the PRD."
   ],
   "would_change_the_call": [

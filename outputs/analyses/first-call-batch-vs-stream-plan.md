@@ -64,6 +64,6 @@ live poller (news index every 15 min)
 
 Choose stream only if a latency gain changes an alert's usefulness. That would need a decision window shorter than the source cadence. Otherwise choose batch and file `outputs/decisions/first-call-batch-vs-stream.md`.
 
-## Where streaming would earn its place at a sovereign fund
+## Where streaming would earn its place at a large investor
 
 Market data and intraday risk on public portfolios, treasury cash positions, trade surveillance. In each one, latency in seconds changes a decision.

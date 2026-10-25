@@ -674,7 +674,7 @@ with tab_fc:
     with st.expander("Play: test a headline"):
         md("Paste a headline. The offline rules say what kind of news it is and which pension it names, if any. Then you "
            "see what it alone would mean today, with your settings.")
-        hl = st.text_input("Headline", value="CalPERS hires Evercore to run secondary sale of private equity stakes",
+        hl = st.text_input("Headline", value="As philosophies change, Washington State gears up for first secondaries sale",
                            key="fc_headline")
         use_claude = False
         if live_key():
@@ -711,8 +711,8 @@ with tab_fc:
                            + f". Certainty: {fcd.certainty(res.confidence)}. {res.rationale}")
                     except ClassifierError as e:
                         st.error(esc(f"Claude did not return a valid label: {e}"))
-        cap("Try: \"PSERS board to review private equity allocation\", \"Blackstone acquires PE portfolio from NYC "
-            "pension\", or \"Pension Bros raises $20 million\".")
+        cap("The default is a real 2022 headline. Try made-up ones too, such as \"PSERS board to review private equity "
+            "allocation\" or \"Pension Bros raises $20 million\".")
     quiz("fc", [
         ("A pension's private equity sits at 14% when its plan says 10%. Why might it sell?",
          ["To get back to its plan", "Because private equity lost money", "Because rules forbid 14%"], 0,

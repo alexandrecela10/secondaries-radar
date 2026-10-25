@@ -5,7 +5,9 @@ No key, no network: everything here is offline code over the committed snapshot.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import time
 from pathlib import Path
 
@@ -13,6 +15,14 @@ import pytest
 
 import demo  # noqa: F401
 from demo import fcd, hood, ql
+
+# SHA-256 of lowercased words that must never appear in published data. Hashes, so the words never do.
+BANNED = {
+    "d3f062e624e813b94d06c8ecb1d6bffd8416a8eb74e23356418876d38fe9f259",
+    "c704bb1beb105d66cb625b05bbe1ba906fe50ef7b803c09b9c2b87b9d62392cb",
+    "d7feb900e6b02c9a74f9d06c7b6785847e0a84b0803c2bf59b5782886e29356d",
+    "18f219e4bb5ce2eeb8453734981c869395fa4a8ba0205559dd9567cfb0313bdf",
+}
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -133,8 +143,10 @@ def test_under_the_hood():
     assert hood.classifier_in_words()[0].startswith("Claude flagged 23 headlines as signs, and 21 were right")
     raw = hood.LANGFUSE.read_text()
     assert "sk-lf" not in raw and "pk-lf" not in raw and "sk-ant" not in raw   # never a key
-    for word in ("(names removed)"):   # real companies are fine; these two never
-        assert word.lower() not in raw.lower(), word
+    words = set(re.findall(r"[a-z]+", raw.lower()))
+    pairs = {f"{a} {b}" for a, b in zip(raw.lower().split(), raw.lower().split()[1:])}
+    for h in BANNED:   # two organisations that must never appear; stored as hashes, never as names
+        assert not any(hashlib.sha256(w.encode()).hexdigest() == h for w in words | pairs)
     for t in (hood.trace("quicklook"), hood.trace("firstcall")):   # what went in and came out, readable
         assert t["input"] and t["output"] and any(s["input"] and s["output"] for s in t["steps"])
     assert hood.score_words(hood.trace("quicklook"))[0] == "Every number in the brief has a source: yes"

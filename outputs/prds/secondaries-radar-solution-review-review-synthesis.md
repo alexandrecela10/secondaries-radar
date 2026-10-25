@@ -21,8 +21,8 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 
 ### 1. The value case rests on its weakest input
 **Flagged by:** Executive, Skeptic, UXR.
-**Issue:** about 91% of the AED 16M is one direct deal at a 2% better price. It's unattributed, gross not net, and analyst hours aren't cash unless redeployed.
-**Fix:** show low / base / high ranges net of build and run cost. Offer Check is the base value. Seller Watch is an option, shown as break-even: a $200M deal priced 0.1% better is worth AED 0.73M.
+**Issue:** about 91% of the $4.36M is one direct deal at a 2% better price. It's unattributed, gross not net, and analyst hours aren't cash unless redeployed.
+**Fix:** show low / base / high ranges net of build and run cost. Offer Check is the base value. Seller Watch is an option, shown as break-even: a $200M deal priced 0.1% better is worth $0.20M.
 
 ### 2. Seller Watch's backtest and premise don't hold as written
 **Flagged by:** Skeptic, Executive, UXR.
@@ -68,7 +68,6 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
   - Strip combinations that could re-identify a pseudonymised manager.
   - Add GDELT attribution and a disclaimer.
   - The public version shows only historical, already-reported cases, with current rankings as "Pension A/B".
-  - AED figures plus a sovereign fund could hint at the employer. Consider a neutral currency in the public version.
 
 ---
 
@@ -117,7 +116,7 @@ agents: [engineer, designer, executive, legal, uxr, skeptic, customer]
 | Skeptic | Backtest and confidence don't support the claims | n/a |
 | Customer | Associate: "I'd use it, but check its work." Partner: "Skeptical until the backtest" | Would use it |
 
-**Interview questions the executive reviewer would ask:**
+**Questions the executive reviewer would ask:**
 1. Drop Seller Watch. What is Offer Check's net annual value, and how would you measure it in production?
 2. Where does an NDA offer physically go when the parser reads it, and who signs off?
 3. Which component would a second team adopt first, and what would change for them?

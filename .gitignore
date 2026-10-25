@@ -13,3 +13,7 @@ build/
 
 # First Call: real pension names and links, local only
 demo/data/*.local.json
+
+# Private notes, kept off the public repo
+context-library/strategy/secondaries-radar-brief.md
+outputs/analyses/interview-framings.md

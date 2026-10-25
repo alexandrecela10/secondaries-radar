@@ -57,13 +57,13 @@ All inputs are assumptions, to replace with the team's real numbers.
 
 | Offer Check | Low | Base | High |
 |---|---|---|---|
-| Serious offers per year × hours saved × AED per hour | 150 × 2 × 500 | 300 × 7 × 500 | 400 × 7 × 600 |
-| Gross value per year | AED 0.15M | AED 1.05M | AED 1.68M |
-| Minus run cost and upkeep (0.5 engineer) | AED 0.5M | AED 0.5M | AED 0.5M |
-| **Net, year 1** | **AED -0.35M** | **AED 0.55M** | **AED 1.18M** |
+| Serious offers per year × hours saved × USD per hour | 150 × 2 × 136 | 300 × 7 × 136 | 400 × 7 × 163 |
+| Gross value per year | $0.04M | $0.29M | $0.46M |
+| Minus run cost and upkeep (0.5 engineer) | $0.14M | $0.14M | $0.14M |
+| **Net, year 1** | **-$0.10M** | **$0.15M** | **$0.32M** |
 
-- **Seller Watch is an option, not base value.** It breaks even if a better-prepared bid improves the price by 0.1% on one $200M deal (AED 0.73M).
-- **Price check is an option, not base value,** until it is tested on our own past fund reports. Rough size: 2 deals a year × $200M × 40% in funds we own × 1% better price = $1.6M (AED 5.9M). Low case, 1 deal and 0.25%: $0.2M (AED 0.6M). It works both ways: better prices on cheap offers, and fewer overpaid deals on expensive ones.
+- **Seller Watch is an option, not base value.** It breaks even if a better-prepared bid improves the price by 0.1% on one $200M deal ($0.20M).
+- **Price check is an option, not base value,** until it is tested on our own past fund reports. Rough size: 2 deals a year × $200M × 40% in funds we own × 1% better price = $1.6M. Low case, 1 deal and 0.25%: $0.2M. It works both ways: better prices on cheap offers, and fewer overpaid deals on expensive ones.
 - **Hours are capacity, not cash,** unless they go to more deals or deeper work on serious ones.
 
 ## How It Could Be Delivered
@@ -106,4 +106,4 @@ Fund 9 (9% of value): not identified. Ostrova or Brennick? [pick]
 **Go.** Signals are public, the fund owns the data that gives it an edge on price, and both gates can be shown working on public and synthetic data. Proceed to `/prd-draft`, scoped as a demo.
 
 ---
-Sources: context-library/strategy/secondaries-radar-brief.md; calpers.ca.gov PEP fund performance page; sib.wa.gov reports; secondariesinvestor.com (Washington State 2022/2023); Bloomberg (NYSTRS, June 2023); dakota.com (PSERS, 2024); ai-cio.com (NYC pensions). "Today" values and value inputs are assumptions. No user interviews yet.
+Sources: calpers.ca.gov PEP fund performance page; sib.wa.gov reports; secondariesinvestor.com (Washington State 2022/2023); Bloomberg (NYSTRS, June 2023); dakota.com (PSERS, 2024); ai-cio.com (NYC pensions). "Today" values and value inputs are assumptions. No user interviews yet.

@@ -22,7 +22,7 @@ source ──> bronze ──> silver ──> gold ──> verdict ──> brief 
 
 ## How Offer Check identifies funds without names
 
-Pre-NDA offers hide fund names. Inside one fund, every investor's ratios are the same at a given date: share of commitment paid in, cash returned per dollar paid in (DPI), total value per dollar paid in (TVPI). Code filters our funds by vintage, strategy and region, then scores candidates by distance on those ratios at the offer's reference date. Tolerances absorb late joiners and fee differences. Result: 96% of labelled lines matched correctly, 0 false matches under noise.
+Pre-NDA offers hide fund names. Inside one fund, every investor's ratios are the same at a given date: share of commitment paid in, cash returned per dollar paid in (DPI), total value per dollar paid in (TVPI). Code filters our funds by vintage, strategy and region, then scores candidates by distance on those ratios at the offer's reference date. Tolerances absorb late joiners and fee differences. Result: 94% of labelled lines (144 of 153) matched correctly, 0 false matches under noise.
 
 ## Collection: measured, then chosen
 
