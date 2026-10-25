@@ -470,35 +470,48 @@ with tab_ql:
 # ================================================================== FIRST CALL
 
 with tab_fc:
-    st.header("You are Omar, a partner planning the week")
-    md("You own relationships with large US public pensions. On Monday at 08:00 you have 10 minutes to see which "
-       "pensions show signs they may sell fund stakes, with the evidence, so the team is ready before a broker "
-       "calls. **PREPARE and WATCH describe your own preparation. They never say a pension is selling.**")
+    try:
+        _fc_secret = str(st.secrets.get("FIRSTCALL_SHOW_SOURCES", "") or "")
+    except Exception:  # no secrets file: the public default
+        _fc_secret = ""
+    show, sources_note = fcd.show_sources(fcd.sources_requested(_fc_secret))
+    fname = lambda label: fcd.pension_name(label, show)  # noqa: E731
 
-    with st.expander("Play: change the signal weights and the PREPARE line", expanded=False):
+    st.header("You are Omar, a partner planning the week")
+    md("You look after our relationships with large US public pensions. On Monday at 08:00 you have 10 minutes. "
+       "You want to know which pensions are in the news in ways that often come before a sale of fund stakes, so "
+       "the team is ready before a broker calls. **\"Worth preparing for\" and \"keep an eye on\" describe what we "
+       "do. They never say a pension plans to sell.**")
+    cap(fcd.DISCLAIMER)
+
+    with st.expander("Play: change how much each kind of news counts", expanded=False):
         b = fcd.base_rulebook()
-        md("Score = 1 - exp(-S), where S adds weight x confidence x decay for every signal in the last "
-           f"{b.window_days} days. A signal loses half its weight every {b.half_life_days:.0f} days. PREPARE at the "
-           "threshold or more. A sale that already closed is shown as evidence and adds nothing (rulebook v2).")
-        thr = st.slider("PREPARE threshold", 0.1, 0.9, float(b.prepare_threshold), 0.05, key="fc_thr")
+        md("Each news item adds to a pension's total. Some kinds count more than others: move the sliders. Older news "
+           f"counts less: an item counts half as much after {b.half_life_days:.0f} days, and not at all after a year. "
+           "When the total reaches the line, the pension moves to \"worth preparing for\". A sale that already "
+           "happened is shown but adds nothing, because there is nothing left to prepare for.")
+        thr = st.slider("Where the line sits (higher means fewer pensions to prepare for)", 0.1, 0.9,
+                        float(b.prepare_threshold), 0.05, key="fc_thr")
         cols = st.columns(len(b.weights))
         weights = {k: col.slider(fcd.SIGNAL_WORDS[k], 0.0, 2.0, float(v), 0.1, key=f"fc_w_{k}")
                    for col, (k, v) in zip(cols, b.weights.items())}
         frb = fcd.custom_rulebook(weights, thr)
         if not fcd.is_default(frb):
-            st.info("You are using your own weights. Every score below, and both worked cases, use them.")
-        cap("Try: set the threshold to 0.35. Pension A crosses PREPARE on one open sale report. Then look at the "
-            "NYC case below: does it now give early warning, and on what evidence?")
+            st.info("You are using your own settings. Everything below, including the two past cases, uses them.")
+        cap("Try: move the line down to 0.35. Pension A becomes worth preparing for on one sale report. Then look at "
+            "the New York City case below: does it now warn early, and on what evidence?")
+        cap(f"Exact rule: total = 1 - exp(-S), where S adds weight x certainty x 0.5^(age / {b.half_life_days:.0f} "
+            f"days) for each item in the last {b.window_days} days. The line is at {b.prepare_threshold:g} by default "
+            f"(rules version {b.version}).")
 
     snap = fcd.snapshot()
     st.subheader("Overnight. Collect")
-    md(f"A batch job fetched public news (Google News RSS and GDELT), linked each headline to at most one of 61 "
-       f"public pensions, classified it, and updated the scores. This is a snapshot of one real run, as of "
-       f"**{fcd.as_of().date()}**, classified by `{', '.join(snap['classifiers'])}`.")
-    cap("Pension names are replaced by letters, and by [Pension] inside quotes. People's names and amounts are "
-        "masked too. Links are withheld here because an article's address often names the pension. "
-        "The local run keeps them. We store headline, outlet, date and a quote of 300 characters or less, never "
-        "article text.")
+    md(f"Overnight, a batch job read public news (Google News and GDELT). It matched each headline to one of 61 US "
+       f"public pensions, or to none, sorted it by kind and updated each pension's total. What you see is one real "
+       f"run, as of **{fcd.nice_date(fcd.as_of().date())}**. We keep only the headline, outlet, date and a short "
+       "quote, never the article.")
+    (st.info if show else st.caption)(esc(sources_note))
+    cap(f"Headlines were sorted by: {', '.join(snap['classifiers'])}.")
 
     st.subheader("08:00. Read the list")
     rows = fcd.weekly(frb)
@@ -506,143 +519,188 @@ with tab_fc:
     notes = {}
     for d in ss.fc_decisions:
         notes[d["pension"]] = (f"prepare: {d['owner']}" if d["action"] == "prepare" else f"dismissed: {d['reason'][:30]}")
-    md(f"**{n_prep} on PREPARE, {len(rows) - n_prep} on WATCH.**" if n_prep
-       else f"**No pension crossed PREPARE. {len(rows)} on WATCH.**")
-    table([{"verdict": r["verdict"], "pension": r["pension"], "score": r["score"], "signals": r["signals"],
-            "strongest evidence": r["top_quote"], "type": r["top_type"], "outlet": r["outlet"], "date": r["date"],
-            "your decision": notes.get(r["pension"], "")} for r in rows],
-          column_config={"score": st.column_config.ProgressColumn("score", min_value=0.0, max_value=1.0, format="%.2f")})
+    md(f"**{n_prep} worth preparing for, {len(rows) - n_prep} to keep an eye on.**" if n_prep
+       else f"**No pension is worth preparing for this week. {len(rows)} to keep an eye on.**")
+    if rows:
+        md("Top of the list. " + fcd.verdict_sentence(fcd.why(rows[0]["pension"], frb), show))
+    list_rows = []
+    for r in rows:
+        src = fcd.source(r["top"], show)
+        row = {"our call": fcd.VERDICT_WORDS[r["verdict"]], "pension": fname(r["pension"]),
+               "in short": f"{fcd.count_words(r['signals'])}, " + ("" if r["signals"] == 1 else "the strongest ")
+               + fcd.ago(r["age_days"]),
+               "how close to the line": fcd.distance(r["score"], frb.prepare_threshold).split(" the line")[0]
+               .replace(" way to", " way").replace("close to", "close").replace("far from", "far"),
+               "strongest news": src["headline"], "outlet": src["outlet"], "date": src["date"]}
+        if show:
+            row["link"] = src["link"]
+        row["your decision"] = notes.get(r["pension"], "")
+        list_rows.append(row)
+    table(list_rows, column_config={"link": st.column_config.LinkColumn("link", display_text="open")} if show else None)
+    if not show:
+        cap(fcd.HIDDEN_LINK.replace("Link", "Links").replace("it names", "they name"))
+    with st.expander("Exact numbers"):
+        table([{"pension": fname(r["pension"]), "verdict": r["verdict"], "total": r["score"],
+                "line": frb.prepare_threshold, "items counted": r["signals"]} for r in rows])
     closed = fcd.closed_sales()
     if closed:
-        md("**Closed sales in the last 90 days** (evidence only, not scored):")
+        md("**Sales already completed in the last 90 days.** Shown for context. They add nothing to the list: once a "
+           "sale is done, there is nothing left to prepare for.")
         for s in closed:
-            md(f"- {s['published'].date()}: \"{s['quote']}\" ({s['outlet']})")
+            who = fname(s["pension"]) if s["pension"] else ("" if not show else
+                                                             (fcd.local_sources() or {}).get("sources", {}).get(s.get("id"), {}).get("pension") or "")
+            md(f"- {who + ': ' if who else ''}{fcd.source_md(fcd.source(s, show))}")
 
     st.subheader("08:03. Check the evidence")
-    pension = st.selectbox("Open a pension", [r["pension"] for r in rows], key="fc_pension")
+    pension = st.selectbox("Open a pension", [r["pension"] for r in rows], format_func=fname, key="fc_pension")
     w = fcd.why(pension, frb)
-    md(f"**{w['verdict']}: {pension}, score {w['score']:.2f}.** S = {w['S']:.3f}; score = 1 - exp(-S); PREPARE at "
-       f"{w['threshold']:g}; half-life {w['half_life']:.0f} days.")
+    md(fcd.verdict_sentence(w, show))
     for p in w["parts"]:
+        src = fcd.source(p, show)
         with st.container(border=True):
-            md(f"> {p['quote']}")
-            md(f"{p['outlet']}, {p['date']}, copies {p['copies']}. Link withheld in this public demo.")
-            cap(f"{p['type']}: weight {p['weight']:.1f} x confidence {p['confidence']:.2f} x decay {p['decay']:.2f} "
-                f"(age {p['age_days']} days) = {p['value']:.3f}")
+            md(f"**{p['type']}.** {fcd.source_md(src)}")
+            if src["quote"] and src["quote"] != src["headline"]:
+                md(f"> {src['quote']}")
+            cap(f"From {fcd.ago(p['age_days'])}, so it {fcd.counts_words(p['decay'])}."
+                + (f" Seen in {p['copies']} outlets, counted once." if p["copies"] > 1 else ""))
     for s in w["closed"]:
-        cap(f"Closed sale, evidence only: \"{s['quote']}\" ({s['outlet']}, {s['published'].date()})")
+        cap("Sale already completed, shown for context only: " + fcd.source_md(fcd.source(s, show)))
     if w["outside"]:
-        cap(f"{w['outside']} older signal(s) outside the {w['window']}-day window are not counted.")
+        cap(f"{fcd.count_words(w['outside'], 'older news item')} from more than a year ago no longer count.")
+    with st.expander("Exact numbers"):
+        md(f"Total {w['score']:.2f} (S = {w['S']:.3f}, total = 1 - exp(-S)). Line at {w['threshold']:g}. An item "
+           f"counts half after {w['half_life']:.0f} days and is dropped after {w['window']} days.")
+        table([{"kind": p["type"], "date": p["date"], "weight": p["weight"], "certainty": p["confidence"],
+                "age (days)": p["age_days"], "fade": p["decay"], "adds": p["value"]} for p in w["parts"]])
     with st.expander("How a buyer thinks about this"):
-        md("A pension that cuts its private equity target, or sits above it, may sell stakes to get back in line. "
-           "One that needs cash may sell too. A new CIO often reviews the portfolio. None of these means a sale. "
-           "Together, and recent, they are a reason to call. The weights say how much each counts. The confidence "
-           "is the classifier's own estimate. Decay means old news fades.")
+        md("A pension that holds more private equity than its plan allows may sell some to get back in line. One that "
+           "needs cash may sell too. A new head of investments often reviews the whole portfolio. None of these means "
+           "a sale. Several of them, recent, are a reason to call.\n\n"
+           "Worked example: a pension has USD 100 billion, plans 10% in private equity and holds 14% after a fall in "
+           "stocks. To get back to 10% it must shed about USD 4 billion of private equity. Most pensions do that by "
+           "slowing new commitments. Some sell fund stakes. That is the moment a buyer wants to be the first call.\n\n"
+           "A real investor would push back on one thing: a news monitor sees only what is reported. Many sales are "
+           "run quietly by an adviser and surface only when they close.")
 
-    st.subheader("08:06. See the history")
+    st.subheader("08:06. See how it built up")
     tl = fcd.timeline(pension, frb)
     df = pd.DataFrame(tl["rows"])
     df["week"] = pd.to_datetime(df["week"])
-    line = alt.Chart(df).mark_line(point=True).encode(x=alt.X("week:T", title=None),
-                                                      y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1]), title="score"),
-                                                      tooltip=["week:T", "score:Q"])
+    line = alt.Chart(df).mark_line(point=True).encode(
+        x=alt.X("week:T", title=None),
+        y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1]), title="how strong the signs are"),
+        tooltip=[alt.Tooltip("week:T", title="week"), alt.Tooltip("score:Q", title="total", format=".2f")])
     rule = alt.Chart(pd.DataFrame({"y": [tl["threshold"]]})).mark_rule(strokeDash=[6, 4], color="#c2410c").encode(y="y:Q")
-    label = alt.Chart(pd.DataFrame({"y": [tl["threshold"]], "t": ["PREPARE"]})).mark_text(
+    label = alt.Chart(pd.DataFrame({"y": [tl["threshold"]], "t": ["start preparing"]})).mark_text(
         align="left", dx=4, dy=-6, color="#c2410c").encode(y="y:Q", text="t:N", x=alt.value(0))
     layers = [line, rule, label]
     if tl["signals"]:
-        sdf = pd.DataFrame(tl["signals"])
+        sdf = pd.DataFrame([{"date": m["date"], "kind": m["type"] + (" (already completed)" if m["closed"] else ""),
+                             "headline": fcd.source(m, show)["headline"], "outlet": m["outlet"]} for m in tl["signals"]])
         sdf["date"] = pd.to_datetime(sdf["date"])
         layers.append(alt.Chart(sdf).mark_rule(color="#64748b", opacity=0.5).encode(
-            x="date:T", tooltip=["date:T", "type:N", "quote:N", "outlet:N"]))
+            x="date:T", tooltip=["date:T", "kind:N", "headline:N", "outlet:N"]))
     st.altair_chart(alt.layer(*layers).properties(height=260), width="stretch")
-    cap("One point per week, the score at the end of the week. Grey lines mark the week a signal was published; "
-        "hover for the quote. The dashed line is PREPARE.")
+    cap("Each point is the pension's total at the end of a week. The dashed line is where we start preparing. Grey "
+        "lines mark news items: hover to read them.")
 
     st.subheader("08:08. Decide")
-    md("Prepare (assign an analyst) or dismiss with a reason. Each decision is stored with who, when, the "
-       "rulebook version and the score at that moment. Dismissals feed the rule review.")
+    md("**Prepare** means you assign an analyst to get ready. **Dismiss** means you think it is noise: say why, so we "
+       "can improve the rules. Each decision is saved with who, when, the rules version and the total at that moment.")
     c1, c2 = st.columns(2)
+    _rules = f"v{frb.version}" + ("" if fcd.is_default(frb) else " (your settings)")
     with c1:
-        owner = st.selectbox("Owner", TEAM, key="fc_owner")
-        if st.button(f"Prepare {pension}", type="primary"):
+        owner = st.selectbox("Analyst", TEAM, key="fc_owner")
+        if st.button(f"Prepare for {fname(pension)}", type="primary"):
             ss.fc_decisions.append({"pension": pension, "action": "prepare", "owner": owner, "reason": "",
                                     "at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "score": round(w["score"], 2),
-                                    "verdict": w["verdict"], "rulebook": f"v{frb.version}"
-                                    + ("" if fcd.is_default(frb) else " (your weights)")})
+                                    "verdict": w["verdict"], "rulebook": _rules})
             st.rerun()
     with c2:
         reason = st.text_input("Dismiss, because...", key="fc_reason",
-                               placeholder="Liquidity talk is about benefit payments, not a PE sale")
-        if st.button(f"Dismiss {pension}"):
+                               placeholder="The cash talk is about paying pensions, not a sale")
+        if st.button(f"Dismiss {fname(pension)}"):
             if len(reason.strip()) < 5:
-                st.warning("A dismissal needs a reason, so the rule review can use it.")
+                st.warning("Please give a reason. It is how the rules get better.")
             else:
                 ss.fc_decisions.append({"pension": pension, "action": "dismiss", "owner": "", "reason": reason.strip(),
                                         "at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                                        "score": round(w["score"], 2), "verdict": w["verdict"],
-                                        "rulebook": f"v{frb.version}" + ("" if fcd.is_default(frb) else " (your weights)")})
+                                        "score": round(w["score"], 2), "verdict": w["verdict"], "rulebook": _rules})
                 st.rerun()
     if ss.fc_decisions:
-        table([{**d, "by": "omar"} for d in reversed(ss.fc_decisions)])
-        cap("In this demo, decisions live in your browser session only.")
+        table([{"pension": fname(d["pension"]), "decision": d["action"], "analyst": d["owner"], "reason": d["reason"],
+                "when": d["at"], "by": "omar", "our call then": fcd.VERDICT_WORDS[d["verdict"]], "total then": d["score"],
+                "rules": d["rulebook"]} for d in reversed(ss.fc_decisions)])
+        cap("In this demo, decisions stay in your browser session.")
 
-    st.subheader("Did it give early warning? Two real cases")
-    md("Real names are used here because both sales were publicly reported. Each case replays the news point in "
-       "time: the score on a day uses only what was published by that day. **Neither case gave early warning "
-       "under the live rulebook.** So First Call is presented as monitoring, not prediction. n = 2 is an "
-       "illustration, not a statistic.")
-    clf = st.radio("Classifier that labelled the stored headlines", ["keyword", "claude"], horizontal=True,
-                   format_func=lambda c: {"keyword": "Keyword rules (offline)", "claude": "Claude (stored run)"}[c],
+    st.subheader("Did it warn early? Two real past sales")
+    md("**No. In both cases the tool flagged the pension only once the sale was reported.** So treat First Call as a "
+       "news monitor that shows its evidence, not a forecast. Two cases are an example, not proof. Real names are "
+       "used here because both sales were publicly reported. Each replay uses only the news published by that day.")
+    clf = st.radio("Who sorted the stored headlines", ["keyword", "claude"], horizontal=True,
+                   format_func=lambda c: {"keyword": "Keyword rules (offline)", "claude": "Claude (saved run)"}[c],
                    key="fc_case_clf")
     for case in fcd.cases(clf):
         rep = fcd.case_replay(case, frb)
         with st.container(border=True):
             gt = case["ground_truth"]
             md(f"#### {case['name']}, {case['case'][-4:]}")
-            md(f"Ground truth, set by hand: \"{gt['headline']}\" ({gt['outlet']}, {gt['date']}). "
-               f"[Source]({fcd.CASE_LINKS[case['case']]})")
+            md(f"The sale was first reported on {fcd.nice_date(gt['date'])}: "
+               f"[{gt['headline']}]({fcd.CASE_LINKS[case['case']]}), {gt['outlet']}.")
             m1, m2, m3 = st.columns(3)
-            m1.metric("First PREPARE", rep["first_prepare"] or "never")
-            m2.metric("Sale reported", rep["sale_day"])
-            m3.metric("Weeks of warning", f"{rep['weeks_of_warning']:g}")
+            m1.metric("First flagged as worth preparing for",
+                      fcd.nice_date(rep["first_prepare"]) if rep["first_prepare"] else "never")
+            m2.metric("Sale first reported", fcd.nice_date(rep["sale_day"]))
+            m3.metric("Weeks of early warning", f"{rep['weeks_of_warning']:g}")
             cdf = pd.DataFrame(rep["rows"])
             cdf["week"] = pd.to_datetime(cdf["week"])
             ch = alt.Chart(cdf).mark_line().encode(x=alt.X("week:T", title=None),
-                                                   y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1])),
-                                                   tooltip=["week:T", "score:Q"])
+                                                   y=alt.Y("score:Q", scale=alt.Scale(domain=[0, 1]),
+                                                           title="how strong the signs are"),
+                                                   tooltip=["week:T", alt.Tooltip("score:Q", format=".2f")])
             thr_rule = alt.Chart(pd.DataFrame({"y": [frb.prepare_threshold]})).mark_rule(
                 strokeDash=[6, 4], color="#c2410c").encode(y="y:Q")
             sale = alt.Chart(pd.DataFrame({"x": [pd.to_datetime(rep["sale_day"])]})).mark_rule(
                 color="#15803d").encode(x="x:T")
             st.altair_chart(alt.layer(ch, thr_rule, sale).properties(height=200), width="stretch")
-            cap("Dashed: PREPARE. Green: the day the sale was first reported.")
-            table([{"date": s["date"], "type": fcd.SIGNAL_WORDS[s["type"]],
-                    "status": "closed, evidence only" if s["completed"] else "", "confidence": s["confidence"],
+            cap("Dashed: where we start preparing. Green: the day the sale was first reported.")
+            table([{"date": fcd.nice_date(s["date"]), "kind": fcd.SIGNAL_WORDS[s["type"]],
+                    "note": "already completed, context only" if s["completed"] else "",
                     "headline": s["headline"], "outlet": s["outlet"], "link": s["link"]} for s in case["signals"]],
                   column_config={"link": st.column_config.LinkColumn("link", display_text="open")})
-    md("Why no warning: one open sale report alone scores 1 - e^-0.85 = 0.57, just under 0.6. In the NYC case that "
-       "kept a correct report 12 weeks before the close below the line. With Claude's labels, NYC crosses 12 weeks "
-       "early, but only with help from two stories about fossil-fuel exclusions labelled as policy reviews. A buyer "
-       "would not count those. A proposal, not applied: make an open sale report with confidence 0.8 or more "
-       "PREPARE on its own, as an explicit rule.")
+    md("Why no early warning: one report of a sale, on its own, lands just under the line. In the New York City case, "
+       "a correct report 12 weeks before the sale stayed just below it. With Claude's labels, New York City crosses "
+       "the line 12 weeks early, but only because two stories about dropping fossil-fuel investments were counted as "
+       "private equity reviews. A buyer would not count those. Proposed fix, not applied yet: let one confident sale "
+       "report be enough on its own.")
+    with st.expander("Exact numbers"):
+        md("Example: one fresh sale report with certainty 0.85 gives S = 1.0 x 0.85 = 0.85 and a total of "
+           "1 - e^-0.85 = 0.57, under the line at 0.6. The proposed rule: a sale report with certainty 0.8 or more puts the pension past the line on its own.")
 
-    st.subheader("Play: classify a headline")
-    md("Paste a headline. The offline keyword classifier labels it, and the linker finds which pension it names, "
-       "if any. Then you see what it alone would add to a score today, under your weights.")
+    st.subheader("Play: test a headline")
+    md("Paste a headline. The offline rules say what kind of news it is and which pension it names, if any. Then you "
+       "see what it alone would mean today, with your settings.")
     hl = st.text_input("Headline", value="CalPERS hires Evercore to run secondary sale of private equity stakes",
                        key="fc_headline")
     use_claude = False
     if live_key():
-        use_claude = st.checkbox("Also ask Claude (live, counts against your cap)", key="fc_claude")
+        use_claude = st.checkbox("Also ask Claude (live, counts against your limit)", key="fc_claude")
     if hl.strip():
         c = fcd.classify(hl, frb)
-        md(f"**{c['type']}**" + (" (closed sale, evidence only)" if c["completed"] else "")
-           + f", confidence {c['confidence']:.2f}. Linked pension: **{c['pension'] or 'none'}** ({c['link_reason']}).")
-        cap(f"{c['classifier']}: {c['rationale']}")
-        if c["signal_type"] != "none":
-            md(f"Alone, today: weight {c['weight']:.1f} x confidence {c['confidence']:.2f} x decay 1.00 = "
-               f"{c['value']:.3f}, score {c['score_alone']:.2f}: **{c['verdict_alone']}**.")
+        md(f"**{c['type']}**" + (" (a sale that already happened: context only)" if c["completed"] else "")
+           + f". About: **{c['pension'] or 'no pension we follow'}**. Certainty: {fcd.certainty(c['confidence'])}.")
+        if c["signal_type"] == "none" or c["weight"] == 0:
+            md("On its own, it adds nothing.")
+        elif c["verdict_alone"] == "PREPARE":
+            md("On its own, today, it would make that pension **worth preparing for**.")
+        else:
+            md("On its own, today, it would put that pension on the **keep an eye on** list. More news would be needed "
+               "to reach the line.")
+        with st.expander("Exact numbers"):
+            md(f"{c['classifier']}: {c['rationale']} Pension match: {c['link_reason']}.")
+            if c["signal_type"] != "none":
+                md(f"Weight {c['weight']:.1f} x certainty {c['confidence']:.2f} x fade 1.00 = {c['value']:.3f}, "
+                   f"total {c['score_alone']:.2f}, line {frb.prepare_threshold:g}: {c['verdict_alone']}.")
         if use_claude:
             ok, why_not = live_available()
             if not ok:
@@ -655,23 +713,24 @@ with tab_fc:
                 try:
                     with st.spinner("Asking Claude..."):
                         res = ClaudeClassifier(client=anthropic_client()).classify(hl.strip()[:400], c["pension"])
-                    md(f"Claude: **{fcd.SIGNAL_WORDS[res.signal_type]}**"
-                       + (" (closed)" if res.completed else "") + f", confidence {res.confidence:.2f}. {res.rationale}")
+                    md(f"Claude says: **{fcd.SIGNAL_WORDS[res.signal_type]}**"
+                       + (" (already completed)" if res.completed else "")
+                       + f". Certainty: {fcd.certainty(res.confidence)}. {res.rationale}")
                 except ClassifierError as e:
                     st.error(esc(f"Claude did not return a valid label: {e}"))
     cap("Try: \"PSERS board to review private equity allocation\", \"Blackstone acquires PE portfolio from NYC "
         "pension\", or \"Pension Bros raises $20 million\".")
     quiz("fc", [
-        ("A pension's private equity sits at 14% against a 10% target. Why might it sell?",
-         ["To get back to its target allocation", "Because private equity lost money", "Because rules forbid 14%"], 0,
-         "Over target is the classic denominator effect: public markets fall, private stakes look larger, and the "
-         "pension sells some to rebalance."),
-        ("A headline says a sale already closed. Why does it add nothing to the score?",
+        ("A pension's private equity sits at 14% when its plan says 10%. Why might it sell?",
+         ["To get back to its plan", "Because private equity lost money", "Because rules forbid 14%"], 0,
+         "This is the denominator effect: stocks fall, so private stakes look larger as a share, and the pension "
+         "sells some to get back in line."),
+        ("A headline says a sale already happened. Why does it add nothing?",
          ["It is old news", "The stakes are gone: there is nothing left for us to prepare for", "It is not public"], 1,
-         "Rulebook v2 shows it as evidence only. Preparing is about a sale still ahead."),
-        ("Neither worked case gave early warning. What should the product claim?",
-         ["It predicts sales", "It monitors public signals, with evidence", "It is useless"], 1,
-         "Two cases cannot prove or disprove prediction. The honest claim is monitoring."),
+         "It stays on screen as context. Preparing is about a sale still ahead."),
+        ("Neither past case gave early warning. What should the product claim?",
+         ["It predicts sales", "It monitors public news and shows the evidence", "It is useless"], 1,
+         "Two cases cannot prove or disprove a forecast. The honest claim is monitoring."),
     ])
 
 # ================================================================== UNDER THE HOOD
@@ -679,57 +738,114 @@ with tab_fc:
 with tab_hood:
     st.header("Under the hood")
     st.subheader("The model reads; code decides")
-    md("The language model only turns text into fixed fields: offer lines for Quick Look, a signal type for "
-       "First Call. Matching, metrics, scores and verdicts are plain, tested functions. That makes every verdict "
-       "reproducible and auditable, and it means this demo runs without a model at all.")
+    md("The AI model has one job: turn text into fixed fields, the fund lines of an offer for Quick Look and the kind "
+       "of news for First Call. Matching, numbers and verdicts are plain, tested code. So every verdict can be "
+       "rerun and checked, and this demo works with no model at all.")
     st.graphviz_chart(hood.DIAGRAM, width="stretch")
-    md("1. **Source**: an email or a news headline, stored as received (bronze).\n"
-       "2. **Read**: the model, or the offline rules, fill a fixed schema. Pydantic checks each row; a bad row is "
-       "blocked and logged (silver).\n"
-       "3. **Compute**: code matches funds by ratios, computes versioned metrics, point in time (gold).\n"
-       "4. **Decide**: the team's rulebook, in plain English YAML, gives the verdict.\n"
-       "5. **Show**: every number carries its table, row, metric and version. A validator fails any brief with an "
-       "unsourced number.")
+    md("1. **Receive**: an email or a news headline, stored exactly as it came in.\n"
+       "2. **Read**: the model, or the offline rules, fill a fixed form. Any row that does not fit is blocked and "
+       "logged.\n"
+       "3. **Compute**: code matches funds, computes the numbers, using only what was known on that day.\n"
+       "4. **Decide**: the team's rules, written in plain English, give the verdict.\n"
+       "5. **Show**: every number says where it came from. A checker rejects any brief with a number it cannot "
+       "trace.")
 
-    st.subheader("Collection: stream or batch, measured")
-    md("Both features built a real-time path and a batch path over the same processing code, then applied one "
-       "rule: the simplest path that meets freshness, parity and recovery wins. Batch won both times.")
-    for title, path in hood.DECISIONS:
-        md(f"**{title}**")
-        st.markdown(esc(hood.measured_table(path)))
-        cap(f"From {path.relative_to(hood.ROOT)}.")
+    st.subheader("Tracing: a record of every run")
+    md("Every run leaves a record of what the model read, what it returned, how long it took and what it cost. "
+       "That record is a trace. When a verdict looks wrong, you open its trace and see which step went wrong, "
+       "instead of guessing. We send traces to Langfuse, a tool built for this.")
+    lf = hood.langfuse_examples()
+    if lf.get("traces"):
+        cap(f"Rendered from the Langfuse API (exported {lf['exported_at'][:10]}). Two real runs. First Call headlines "
+            "are left out because they name pensions. This demo itself sends nothing to Langfuse.")
+        for feature, title in (("quicklook", "Quick Look: one offer email, Project Cedar"),
+                               ("firstcall", "First Call: one overnight news run")):
+            t = hood.trace(feature)
+            if not t:
+                continue
+            sm = hood.trace_summary(t)
+            with st.container(border=True):
+                md(f"**{title}**")
+                calls = "once" if sm["model_calls"] == 1 else f"{sm['model_calls']} times"
+                rest = sm["seconds"] - sm["model_seconds"]
+                md(f"{sm['steps']} steps in {sm['seconds']:.1f} seconds, run on {sm['when']}. The model ({sm['model']}) "
+                   f"was called {calls}, took {sm['model_seconds']:.1f} of those seconds and used {sm['tokens']:,} "
+                   f"tokens, for USD {sm['cost']:.3f}. The other {rest:.1f} seconds are "
+                   + (f"mostly {sm['fetches']} news searches." if sm["fetches"] else "plain code."))
+                srows = hood.trace_steps(t)
+                gdf = pd.DataFrame(srows)
+                gantt = alt.Chart(gdf).mark_bar(cornerRadius=2).encode(
+                    y=alt.Y("order:O", axis=alt.Axis(labelExpr="''", ticks=False, title=None)),
+                    x=alt.X("start_s:Q", title="seconds from the start"), x2="end_s:Q",
+                    color=alt.Color("kind:N", title="kind of step",
+                                    scale=alt.Scale(domain=["span", "generation", "retriever", "guardrail"],
+                                                    range=["#64748b", "#c2410c", "#2563eb", "#15803d"])),
+                    tooltip=["step:N", "what it does:N", "took:N", "tokens:N", "cost (USD):N", "result:N"])
+                labels = alt.Chart(gdf).mark_text(align="left", dx=4, fontSize=11).encode(
+                    y=alt.Y("order:O"), x="end_s:Q", text="name:N")
+                st.altair_chart(alt.layer(gantt, labels).properties(height=max(160, 18 * len(srows))), width="stretch")
+                cap("Like the Langfuse timeline: one bar per step, in order. Orange bars are model calls.")
+                with st.expander("The trace as a tree"):
+                    table([{k: r[k] for k in ("step", "what it does", "kind", "took", "model", "tokens", "cost (USD)",
+                                              "result")} for r in srows], height=min(600, 38 + 35 * len(srows)))
+    else:
+        md("No exported traces in this copy. Run `python demo/export_langfuse.py` with Langfuse keys to add two.")
 
-    st.subheader("Evals")
-    md("**Quick Look**")
+    st.subheader("Evals: is the model right?")
+    n, pos = hood.holdout_size()
+    md(f"An eval runs the model on examples where we already know the answer and counts how often it is right. "
+       f"Example from First Call: **{n} real headlines were set aside for testing**, never used to tune anything. "
+       f"{pos} of them are real signs that can come before a sale. On those:")
+    for line in hood.classifier_in_words():
+        md(f"- {line}")
+    md("So Claude caught 2 more real signs than the rules, at about the same accuracy. With only 23 real signs, one "
+       "headline moves the result by about 4 points, so treat the two as close.")
+    cap("Simplification a real investor would flag: the answers were labelled by an AI agent and are still to be "
+        "checked by a person. A real test needs 2 or 3 analysts labelling on their own.")
+    ex = hood.experiment_rows()
+    if ex["firstcall"]:
+        with st.expander("The same comparison in Langfuse, every run side by side"):
+            md("Each run of a dataset in Langfuse is an experiment. A change to the prompt or the model is compared on "
+               "the same items. Precision: of the headlines flagged, the share that were right. Recall: of the real "
+               "signs, the share that were caught. Dev is the set we tuned on; holdout is the fair test.")
+            table(ex["firstcall"])
+            if ex["quicklook"]:
+                md("Quick Look, Claude against the offline rules on the same offers:")
+                table(ex["quicklook"])
+            cap("Rendered from the Langfuse API (experiments list with scores).")
+
+    md("**Quick Look tests**")
     table(hood.quicklook_evals())
-    md("**Quick Look verdicts against labels**, recomputed now from the snapshot:")
+    md("**Quick Look verdicts against the answers we set**, recomputed now from the snapshot:")
     table(hood.verdict_evals())
-    md("**First Call classifier**, 130 labelled real headlines, dev and holdout:")
-    table(fcd.classifier_evals())
-    cap("The keyword rules were tuned on dev, so holdout is the fair comparison. With 23 positives per split, one "
-        "item moves recall by 4 points: treat these as close.")
+    cap("Version 2 agrees on every offer used to write it, but on fewer new offers than version 1. That is "
+        "overfitting: the rules learnt the examples, not the job.")
     pc = hood.parser_comparison()
     if pc:
-        md(f"**Claude parser vs offline parser** on 29 offers: the same match accuracy ({pc['match']:.0%}), field "
-           f"accuracy ({pc['fields']:.0%}) and verdicts. Claude took {pc['claude_s']:.1f} s per offer against "
-           f"{pc['offline_s']:.2f} s, and {pc['tokens']:,} tokens. A real investor would discount the tie: the offline "
-           "parser was written against this generator's formats. The next useful eval is hand-written emails in "
-           "formats it has never seen.")
+        md(f"**Claude against the offline rules, reading 29 offers.** Same result: {pc['match']:.0%} of lines matched "
+           f"right and {pc['fields']:.0%} of fields read right, with the same verdicts. Claude took {pc['claude_s']:.1f} "
+           f"seconds per offer against {pc['offline_s']:.2f}, and used {pc['tokens']:,} tokens. A real investor would "
+           "discount the tie: the offline rules were written for these generated emails. The next useful test is "
+           "emails written by hand, in formats the rules have never seen.")
 
-    st.subheader("Tracing")
-    md("Both features send traces to Langfuse when keys are set: one trace per offer or batch run, model calls "
-       "as generations with tokens and cost, and team decisions (keep, override, prepare, dismiss) as feedback "
-       "scores. Labelled datasets run as experiments, so a model or prompt change is compared on the same items. "
-       "**This demo holds no Langfuse keys and sends nothing.**")
+    st.subheader("Collecting: live stream or batch, measured")
+    md("**Batch won both times.** Each tool was built two ways, a live stream and a scheduled batch, over the same "
+       "processing code. We picked the simpler one that is fresh enough, gives the same answers and recovers "
+       "from a crash.")
+    for title, path in hood.DECISIONS:
+        with st.expander(title):
+            st.markdown(esc(hood.measured_table(path)))
+            cap(f"From {path.relative_to(hood.ROOT)}.")
 
     st.subheader("What a real investor would question")
-    md("- **Price range is a heuristic**: a band by strategy and age, times our value over the broker's. A real "
-       "desk rolls the NAV forward, adds cash flows since the reference date, and calibrates on its own past bids.\n"
+    md("- **Price range is a rule of thumb**: a band by strategy and fund age. A real desk rolls the reported value "
+       "forward, adds cash flows since that date, and checks against its own past bids.\n"
        "- **One asking price** for the whole portfolio is compared with a range built only from funds we own.\n"
-       "- **Labels** were written by the builder. A real test needs 2 or 3 analysts labelling on their own.\n"
-       "- **First Call** links a headline to a pension by name rules; \"New York pensions\" stays unlinked.\n"
-       "- **Live mode**, when on, sends pasted text to Anthropic. A real desk would use an in-region model with no "
-       "data retention, under its NDA and data processing agreement.")
+       "- **The answers** in the tests were written by the builder or an AI agent. A real test needs 2 or 3 analysts "
+       "labelling on their own.\n"
+       "- **First Call** matches a headline to a pension by its name. \"New York pensions\" stays unmatched.\n"
+       "- **Live mode**, when on, sends pasted text to Anthropic. A real desk would use a model in its own region "
+       "that keeps no data, under its confidentiality and data processing agreements.")
     md("Code and docs: [github.com/alexandrecela10/secondaries-radar](https://github.com/alexandrecela10/secondaries-radar). "
        "Rebuild the snapshot with `python demo/build_snapshot.py`.")
 
