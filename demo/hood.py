@@ -104,9 +104,9 @@ def quicklook_evals() -> list[dict]:
 
 def verdict_evals() -> list[dict]:
     rows = []
-    for name in ("v1", "v2"):
+    for name in ("v1", "v2", "v3"):
         a = ql.agreement(ql.load_rulebook(name))
-        rows.append({"rules version": name + (" (in use)" if name == "v2" else ""),
+        rows.append({"rules version": name + (" (in use)" if name == ql.LIVE else ""),
                      "offers used to set the rules": f"{a['tune']['kept']} of {a['tune']['total']} agree",
                      "new offers (the fair test)": f"{a['holdout']['kept']} of {a['holdout']['total']} agree",
                      "good new offers wrongly passed": a["holdout"]["good_passed"], "target on new offers": "80%"})
@@ -137,7 +137,7 @@ STEP_WORDS = {
 
 
 def langfuse_examples() -> dict:
-    """Two real traces and the latest experiments, exported by demo/export_langfuse.py (no headlines kept)."""
+    """Two real traces and the latest experiments, exported by demo/export_langfuse.py."""
     return _json("demo/data/langfuse_examples.json")
 
 
@@ -156,6 +156,33 @@ def trace_steps(t: dict) -> list[dict]:
                      "took": f"{s['duration_ms'] / 1000:.2f} s", "model": s.get("model") or "", "tokens": tokens,
                      "cost (USD)": f"{s['cost_usd']:.4f}" if s.get("cost_usd") else "", "result": s["summary"]})
     return rows
+
+
+def step_label(s: dict) -> str:
+    """'parse: model reads the email (Claude, 12.19 s, USD 0.0297)' for the step picker."""
+    bits = [f"{s['duration_ms'] / 1000:.2f} s"]
+    if s.get("cost_usd"):
+        bits.append(f"USD {s['cost_usd']:.4f}")
+    what = STEP_WORDS.get(s["name"], s["name"])
+    return f"{'↳ ' * s['depth']}{s['name']}: {what} ({', '.join(bits)})"
+
+
+def score_words(t: dict) -> list[str]:
+    """The checks (Langfuse scores) recorded on a run, in plain words."""
+    out = []
+    for sc in t.get("scores") or []:
+        n, v, label, note = sc["name"], sc.get("value"), sc.get("label"), sc.get("comment")
+        if n == "validator_pass":
+            out.append("Every number in the brief has a source: " + ("yes" if v else "no"))
+        elif n == "data_matched":
+            out.append(f"Share of the offer's value matched to a fund we know: {v:.0%}")
+        elif n == "verdict_band":
+            out.append(f"Confidence in the verdict: {label}")
+        elif n == "partner_decision":
+            out.append(f"A partner's decision, saved on the run: {label}" + (f" ({note})" if note else ""))
+        else:
+            out.append(f"{n}: {label or v}" + (f" ({note})" if note else ""))
+    return out
 
 
 def trace_summary(t: dict) -> dict:
@@ -206,6 +233,22 @@ def classifier_in_words() -> list[str]:
         out.append(f"{name} flagged {h['flagged']} headlines as signs, and {right} were right. Of the "
                    f"{h['labelled_signals']} real signs, {caught} were caught.")
     return out
+
+
+def headline_results() -> list[str]:
+    """One plain line per thing we test, each on cases held back from tuning."""
+    e = _json("quicklook/measurements/evals.json")
+    m, pc = e["match_accuracy_labelled"], e["price_check_vs_next_value"]
+    a = ql.agreement(ql.load_rulebook(ql.LIVE))["holdout"]
+    claude = classifier_in_words()[:1]
+    return ([f"**Offer Check, identifying funds:** {m['correct']} of {m['total']} offer lines matched to the right "
+             f"fund. With messy broker wording, no outside fund was taken for one of ours.",
+             f"**Offer Check, verdicts:** the rules in use agree with the answer on {a['kept']} of {a['total']} "
+             f"offers they never saw.",
+             f"**Offer Check, price check:** for {pc['ours_closer']} of {pc['funds_with_news']} funds with news since "
+             f"the broker's date, our estimate was closer to the next reported value than the broker's. Synthetic "
+             f"data, so this shows the method, not real-world accuracy."]
+            + [f"**Seller Watch, sorting headlines:** {c}" for c in claude])
 
 
 def holdout_size() -> tuple[int, int]:

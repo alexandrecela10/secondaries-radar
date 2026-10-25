@@ -6,9 +6,9 @@ Reads LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY and LANGFUSE_BASE_URL (or LANGFUS
 shell or the repo .env. Key values are never printed or written.
 
 What is kept: the tree of steps (name, kind, parent, start offset, duration), model name, tokens and
-cost, plus a short summary per step. Seller Watch headlines name real pensions, so for Seller Watch only
-the label the model returned is kept, never the headline, the pension or the link. Offer Check data is
-synthetic. Output: demo/data/langfuse_examples.json (committed; safe to publish).
+cost, a short summary, and what went in and came out of each step as short readable text, plus the
+scores (checks) recorded on the run. Offer Check data is synthetic; Seller Watch headlines are public
+news. Key values are never kept. Output: demo/data/langfuse_examples.json (committed).
 """
 from __future__ import annotations
 
@@ -62,7 +62,7 @@ def _summary(o: dict, feature: str) -> str:
         if name == "dedupe-items":
             return f"{inp.get('items')} headlines, {out.get('unique_links')} unique"
         if name == "classify-headline":
-            return f"label: {out.get('signal_type')}"   # never the headline: it names a real pension
+            return f"{out.get('signal_type')}: {inp.get('headline')}"
         if name == "score-pensions":
             v = Counter(x["verdict"] for x in out.get("verdicts", []))
             return ", ".join(f"{n} {k}" for k, n in v.items())
@@ -84,6 +84,33 @@ def _summary(o: dict, feature: str) -> str:
     return ""
 
 
+TEXT_MAX = 1500
+
+
+def _pretty(x, limit: int = TEXT_MAX) -> str:
+    """What a step read or returned, as short readable text. A model call shows the email, not the prompt."""
+    import yaml
+
+    if x is None or x == {} or x == []:
+        return ""
+    if isinstance(x, list) and x and isinstance(x[0], dict) and "role" in x[0]:
+        system = next((m["content"] for m in x if m["role"] == "system"), "")
+        user = "\n".join(m["content"] for m in x if m["role"] == "user" and isinstance(m["content"], str))
+        user = user.replace("<email>", "").replace("</email>", "").strip()
+        text = f"[Instructions to the model: {len(system):,} characters]\n\n{user}"
+    elif isinstance(x, str):
+        text = x
+    else:
+        text = yaml.safe_dump(x, sort_keys=False, allow_unicode=True, width=90, default_flow_style=False)
+    text = text.strip()
+    return text if len(text) <= limit else text[:limit].rstrip() + "\n..."
+
+
+def _scores(t: dict) -> list[dict]:
+    return [{"name": s["name"], "value": s.get("value"), "label": s.get("stringValue"), "comment": s.get("comment")}
+            for s in t.get("scores") or []]
+
+
 def export_trace(get, trace_id: str, feature: str) -> dict:
     t = get(f"traces/{trace_id}")
     obs = sorted(t["observations"], key=lambda o: o["startTime"])
@@ -99,9 +126,11 @@ def export_trace(get, trace_id: str, feature: str) -> dict:
                       "duration_ms": round((o.get("latency") or 0) * 1000),
                       "model": o.get("model"), "tokens_in": u.get("input"), "tokens_out": u.get("output"),
                       "cost_usd": o.get("calculatedTotalCost"), "prompt_version": (o.get("metadata") or {}).get("prompt_version"),
-                      "summary": _summary(o, feature)})
+                      "summary": _summary(o, feature), "input": _pretty(o.get("input")),
+                      "output": _pretty(o.get("output"))})
     return {"feature": feature, "name": t["name"], "id": t["id"], "timestamp": t["timestamp"],
             "environment": t.get("environment"), "latency_s": t.get("latency"), "cost_usd": t.get("totalCost"),
+            "input": _pretty(t.get("input")), "output": _pretty(t.get("output")), "scores": _scores(t),
             "steps": steps}
 
 

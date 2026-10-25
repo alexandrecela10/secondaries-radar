@@ -132,11 +132,12 @@ def test_under_the_hood():
     assert ex["firstcall"] and ex["quicklook"]
     assert hood.classifier_in_words()[0].startswith("Claude flagged 23 headlines as signs, and 21 were right")
     raw = hood.LANGFUSE.read_text()
-    from fc import pensions
-
-    assert "sk-lf" not in raw and "pk-lf" not in raw and "@" not in raw
-    for p in pensions.ALL.values():   # trace exports keep no headline and no pension
-        assert p.name not in raw and p.id not in raw.replace("_", " ").split(), p.name
+    assert "sk-lf" not in raw and "pk-lf" not in raw and "sk-ant" not in raw   # never a key
+    for word in ("(names removed)"):   # real companies are fine; these two never
+        assert word.lower() not in raw.lower(), word
+    for t in (hood.trace("quicklook"), hood.trace("firstcall")):   # what went in and came out, readable
+        assert t["input"] and t["output"] and any(s["input"] and s["output"] for s in t["steps"])
+    assert hood.score_words(hood.trace("quicklook"))[0] == "Every number in the brief has a source: yes"
 
 
 def _render(monkeypatch):
@@ -152,8 +153,8 @@ def test_app_renders_headless(monkeypatch):
     at = _render(monkeypatch)
     assert len(at.tabs) == 3
     heads = [s.value for s in at.subheader]
-    for h in ("09:02. Read the verdict", "08:00. Read the list", "Tracing: a record of every run",
-              "Evals: is the model right?"):
+    for h in ("09:02. Read the verdict", "08:00. Read the list", "Tracing: open a real run",
+              "Evals: is it right?"):
         assert h in heads
     assert time.time() - t < 60
 
