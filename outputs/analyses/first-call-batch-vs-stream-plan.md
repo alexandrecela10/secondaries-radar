@@ -1,4 +1,4 @@
-# First Call: batch vs stream learning spike
+# Seller Watch: batch vs stream learning spike
 
 **Date:** 2026-10-24
 **Owner:** Alexandre Cela
@@ -8,7 +8,7 @@
 ## Why
 
 - **Learning goal:** the PM builds a working stream pipeline and can explain its moving parts.
-- **Decision goal:** measure what streaming buys First Call, then record batch vs stream as a decision with numbers.
+- **Decision goal:** measure what streaming buys Seller Watch, then record batch vs stream as a decision with numbers.
 
 ## Hypothesis
 

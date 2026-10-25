@@ -1,4 +1,4 @@
-# Journey: First Call, partner plans the week
+# Journey: Seller Watch, partner plans the week
 
 **Persona:** Omar, partner, owns relationships with large US public pensions. Plans the week on Monday at 08:00.
 **Job to be done:** When I plan my week, I want to know which pensions show signs they may sell, with the evidence, so I can get the team ready before an offer arrives.

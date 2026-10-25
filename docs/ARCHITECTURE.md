@@ -1,6 +1,6 @@
 # Architecture
 
-Two features, one pattern. **Quick Look** turns a broker's sale offer into a sourced verdict. **First Call** turns public news into a weekly list of pensions to prepare for.
+Two features, one pattern (renamed 2026-10-25; the code folders keep the old names, `quicklook/` and `firstcall/`). **Offer Check** turns a broker's sale offer into a sourced verdict. **Seller Watch** turns public news into a weekly list of pensions to prepare for.
 
 ## The pattern
 
@@ -20,7 +20,7 @@ source ──> bronze ──> silver ──> gold ──> verdict ──> brief 
 6. **Overrides are data.** Every keep, override or dismiss is stored with its reason and rulebook version, and sent to tracing as a feedback score. Over time this is the labelled set that improves the rules.
 7. **Idempotent loads.** Re-ingesting the same email (Message-ID) or article (canonical link) changes nothing.
 
-## How Quick Look identifies funds without names
+## How Offer Check identifies funds without names
 
 Pre-NDA offers hide fund names. Inside one fund, every investor's ratios are the same at a given date: share of commitment paid in, cash returned per dollar paid in (DPI), total value per dollar paid in (TVPI). Code filters our funds by vintage, strategy and region, then scores candidates by distance on those ratios at the offer's reference date. Tolerances absorb late joiners and fee differences. Result: 96% of labelled lines matched correctly, 0 false matches under noise.
 
@@ -28,7 +28,7 @@ Pre-NDA offers hide fund names. Inside one fund, every investor's ratios are the
 
 Both features built a real-time and a batch path over the same processing code, then applied one rule: the simplest path that meets freshness, parity and recovery wins.
 
-| | Quick Look | First Call |
+| | Offer Check | Seller Watch |
 |---|---|---|
 | Real-time path | Local SMTP listener | Poller to Redpanda, consumer group, dead-letter topic |
 | Batch path | Mailbox scan every minute | Fetch and classify every 15 minutes |
@@ -45,7 +45,7 @@ Freshness is capped by the source: GDELT refreshes every 15 minutes, and pension
 
 ## What a real deployment adds
 
-- **Data path:** offers arrive under NDA. Use an in-region hosted model with no data retention, review the NDA and the data processing agreement, and keep offer data apart from First Call.
+- **Data path:** offers arrive under NDA. Use an in-region hosted model with no data retention, review the NDA and the data processing agreement, and keep offer data apart from Seller Watch.
 - **Mailbox:** Microsoft Graph delta query or IMAP search on the same one-minute schedule.
 - **Storage:** DuckDB is single-writer. A shared deployment needs a server database.
 - **Shared core:** the two features duplicate small pieces (lineage, layers, rulebook loader). Extract them into one package once a third user appears.

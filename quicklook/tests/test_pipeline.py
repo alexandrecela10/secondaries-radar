@@ -81,7 +81,7 @@ def test_override_needs_reason_and_records_rulebook(env, fresh_ws):
         pipeline.record_override(fresh_ws, "cedar", "pass", "", "alex")
     r = pipeline.record_override(fresh_ws, "cedar", "pass", "Seller will not move on price", "alex")
     assert r["original_verdict"] == "LOOK CLOSER" and r["new_verdict"] == "PASS"
-    assert r["rulebook_version"] == "2" and r["rulebook_sha"]
+    assert r["rulebook_version"] == "3" and r["rulebook_sha"]
     html = r["brief_path"].read_text()
     assert "Team override: PASS" in html
     con = store.connect(fresh_ws, read_only=True)

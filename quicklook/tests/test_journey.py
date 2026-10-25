@@ -37,7 +37,7 @@ def test_resolve_recomputes_and_records_who(env, fresh_ws):
         pipeline.record_resolve(fresh_ws, "cedar", 9, "F999", "layla", Tracer(None))
     r = pipeline.record_resolve(fresh_ws, "cedar", 9, "F012", "layla", Tracer(None))
     assert r["before"]["data_matched"] < 0.95 and r["after"]["data_matched"] == pytest.approx(1.0)
-    assert "every line identified" in r["after"]["headline"] and r["user_name"] == "layla"
+    assert "not identified" not in r["after"]["headline"] and r["user_name"] == "layla"
     con = store.connect(fresh_ws, read_only=True)
     g = store.one(con, "SELECT * FROM gold_line_matches WHERE label = 'Fund 9'")
     assert g["tier"] == "same_manager" and g["resolved"] and g["method"] == "analyst pick by layla"
@@ -54,13 +54,15 @@ def test_resolve_recomputes_and_records_who(env, fresh_ws):
 def test_keep_then_memo_passes_validator(env, fresh_ws):
     _cedar(env, fresh_ws)
     k = pipeline.record_keep(fresh_ws, "cedar", "layla", Tracer(None))
-    assert k["verdict"] == "LOOK CLOSER" and k["rulebook_version"] == "2"
+    assert k["verdict"] == "LOOK CLOSER" and k["rulebook_version"] == "3"
     assert "Team kept the verdict" in k["brief_path"].read_text()
     con = store.connect(fresh_ws, read_only=True)
     text, html, problems, n = journey.memo(con, "cedar")
     con.close()
     assert problems == [] and n >= 10
-    assert "I keep this verdict" in text and "sign the NDA" in text and "—" not in text
+    assert text.startswith("Project Cedar: worth a closer look. I suggest we sign the NDA")
+    assert "Nordhavn Logistics and Kestrel Testing were sold" in text and "the price looks right" in text
+    assert "score" not in text.lower() and "rulebook" not in text.lower() and "—" not in text
 
 
 def test_memo_after_override_proposes_decline(env, fresh_ws):
@@ -69,7 +71,7 @@ def test_memo_after_override_proposes_decline(env, fresh_ws):
     con = store.connect(fresh_ws, read_only=True)
     text, _, problems, _ = journey.memo(con, "cedar")
     con.close()
-    assert problems == [] and "override this to PASS" in text and "decline the NDA" in text
+    assert problems == [] and "I disagree: Seller will not move on price" in text and "decline the NDA" in text
 
 
 # ---------------------------------------------------------------- tracing with a fake client
@@ -120,7 +122,7 @@ def test_one_trace_per_offer_with_steps_and_scores(env, fresh_ws):
     assert starts == [("quick-look-offer", "span"), ("intake", "span"), ("parse", "span"), ("match", "retriever"),
                       ("metrics", "span"), ("verdict", "span"), ("brief", "span"), ("validator", "guardrail")]
     scores = {e[1]: e[2] for e in fake.log if e[0] == "score"}
-    assert scores["validator_pass"] == 1 and scores["verdict_band"] == "medium" and 0.9 < scores["data_matched"] < 0.92
+    assert scores["validator_pass"] == 1 and scores["verdict_band"] == "high" and 0.9 < scores["data_matched"] < 0.92
     # team feedback lands on the stored trace
     pipeline.record_override(fresh_ws, "cedar", "pass", "Seller will not move on price", "layla", tr)
     got = {s["name"]: s["value"] for s in fake.scores}

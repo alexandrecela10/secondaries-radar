@@ -8,3 +8,8 @@ __pycache__/
 .claude/agents
 .env.*
 *.env
+.streamlit/secrets.toml
+build/
+
+# First Call: real pension names and links, local only
+demo/data/*.local.json

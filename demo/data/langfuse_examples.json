@@ -1,0 +1,737 @@
+{
+ "exported_at": "2026-10-25T14:13:41+00:00",
+ "source": "Langfuse public API",
+ "traces": [
+  {
+   "feature": "quicklook",
+   "name": "quick-look-offer",
+   "id": "1ddd6e5f0bcacfc7b81624e7010271d1",
+   "timestamp": "2026-10-25T11:39:35.932Z",
+   "environment": "demo",
+   "latency_s": 12.642,
+   "cost_usd": 0.029724,
+   "input": "subject: 'Project Cedar: LP portfolio sale, indicative bids due 13 November 2026'\nsender: Harbourline Partners <deals@harbourline.example>\nreceived: '2026-10-23T09:00:00+00:00'\nmessage_id: cedar-20261023@harbourline.example",
+   "output": "status: done\noffer_id: cedar-6e74bb\nverdict: LOOK CLOSER\nheadline: 'LOOK CLOSER, medium confidence: 1 fund unmatched (9% of value), close to the line.'",
+   "scores": [
+    {
+     "name": "validator_pass",
+     "value": 1,
+     "label": "True",
+     "comment": null
+    },
+    {
+     "name": "data_matched",
+     "value": 0.9091275334486404,
+     "label": null,
+     "comment": null
+    },
+    {
+     "name": "verdict_band",
+     "value": 0,
+     "label": "medium",
+     "comment": "LOOK CLOSER: LOOK CLOSER, medium confidence: 1 fund unmatched (9% of value), close to the line."
+    }
+   ],
+   "steps": [
+    {
+     "name": "quick-look-offer",
+     "type": "SPAN",
+     "depth": 0,
+     "start_ms": 0,
+     "duration_ms": 12642,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "Project Cedar: LOOK CLOSER",
+     "input": "subject: 'Project Cedar: LP portfolio sale, indicative bids due 13 November 2026'\nsender: Harbourline Partners <deals@harbourline.example>\nreceived: '2026-10-23T09:00:00+00:00'\nmessage_id: cedar-20261023@harbourline.example",
+     "output": "status: done\noffer_id: cedar-6e74bb\nverdict: LOOK CLOSER\nheadline: 'LOOK CLOSER, medium confidence: 1 fund unmatched (9% of value), close to the line.'"
+    },
+    {
+     "name": "intake",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 45,
+     "duration_ms": 5,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "",
+     "input": "channel: maildir\nmessage_id: cedar-20261023@harbourline.example\nbytes: 2319",
+     "output": "status: new\nattachments: []"
+    },
+    {
+     "name": "parse",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 51,
+     "duration_ms": 12193,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 3397,
+     "tokens_out": 2293,
+     "cost_usd": 0.029724,
+     "prompt_version": "parse-v2",
+     "summary": "12 fund lines read from the email",
+     "input": "[Instructions to the model: 1,108 characters]\n\nSubject: Project Cedar: LP portfolio sale, indicative bids due 13 November 2026\n\nDear all,\n\nHarbourline Partners is pleased to introduce Project Cedar, the sale of a portfolio of 12 fund interests by a North American public pension (the Seller).\n\nReference date: 30 June 2026.\nTotal NAV: approx. USD 330M. Total unfunded: approx. USD 49M.\nPricing guidance: high 80s % of NAV.\nIndicative bids due: 13 November 2026.\n\nPortfolio summary (fund names withheld until NDA):\nFund 1: North American mid-market buyout, 2014, commitment $119M, 96% called, DPI 1.93x, TVPI 2.37x, value $50.0M\nFund 2: Western European growth equity, 2019, commitment \u20ac37M, 97% called, DPI 0.31x, TVPI 2.06x, NAV \u20ac62.8M\nFund 3 (\"...ttering Capital\"): US large-cap buyout, 2016, commitment $78M, 99% funded, DPI 0.99x, TVPI 1.38x, value $29.9M, unfunded $1.1M\nFund 4: European mid-market buyout, 2016, commitment \u20ac20M, 92% called, DPI 0.84x, TVPI 1.71x, NAV \u20ac16.1M\nFund 5: Western European venture capital, 2019, commitment \u20ac15.5M, 80% called, DPI 0.33x, TVPI 2.39x, NAV \u20ac25.6M, unfunded \u20ac3.1M\nFund 6: European direct lending, 2023, commitment \u20ac51.5M, 85% called, DPI 0.3x, TVPI 1.0x, NAV \u20ac31.6M, unfunded \u20ac7.2M\nFund 7: Western European mid-market buyout, 2024, fund size $1-2.5bn, commitment \u00a331.5M, 71% called, DPI 0.02x, TVPI 1.07x, NAV \u00a323.5M\nFund 8: North American venture capital, 2024, commitment $33M, 58% called, DPI 0.0x, TVPI 1.14x, NAV $22.0M\nFund 9: US growth, 2019, NAV\n...",
+     "output": "code_name: Cedar\nreference_date: '2026-06-30'\ncurrency: USD\nasking_price_text: high 80s % of NAV\nlines:\n- line_no: 1\n  label: Fund 1\n  description: North American mid-market buyout, 2014, commitment $119M, 96% called, DPI 1.93x,\n    TVPI 2.37x, value $50.0M\n  strategy: buyout\n  region: north_america\n  vintage: 2014\n  size_band: null\n  currency: USD\n  commitment: 119\n  pct_called: 0.96\n  dpi: 1.93\n  tvpi: 2.37\n  value: 50\n  unfunded: null\n  name_fragment: null\n- line_no: 2\n  label: Fund 2\n  description: Western European growth equity, 2019, commitment \u20ac37M, 97% called, DPI 0.31x,\n    TVPI 2.06x, NAV \u20ac62.8M\n  strategy: growth\n  region: europe\n  vintage: 2019\n  size_band: null\n  currency: EUR\n  commitment: 37\n  pct_called: 0.97\n  dpi: 0.31\n  tvpi: 2.06\n  value: 62.8\n  unfunded: null\n  name_fragment: null\n- line_no: 3\n  label: Fund 3\n  description: US large-cap buyout, 2016, commitment $78M, 99% funded, DPI 0.99x, TVPI 1.38x,\n    value $29.9M, unfunded $1.1M\n  strategy: buyout\n  region: north_america\n  vintage: 2016\n  size_band: null\n  currency: USD\n  commitment: 78\n  pct_called: 0.99\n  dpi: 0.99\n  tvpi: 1.38\n  value: 29.9\n  unfunded: 1.1\n  name_fragment: '...ttering Capital'\n- line_no: 4\n  label: Fund 4\n  description: European mid-market buyout, 2016, commitment \u20ac20M, 92% called, DPI 0.84x, TVPI\n    1.71x, NAV \u20ac16.1M\n  strategy: buyout\n  region: europe\n  vintage: 2016\n  size_band: null\n  currency: EUR\n  commitment: 20\n  pct_called: 0.92\n  dpi: 0.84\n  tvpi: 1.71\n  value: 16.1\n  u\n..."
+    },
+    {
+     "name": "match",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 12295,
+     "duration_ms": 1,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "11 of 12 lines matched to a fund",
+     "input": "reference_date: '2026-06-30'\nknown_at: '2026-10-23 09:00:00+00:00'\nlines: 12\nanalyst_picks: {}",
+     "output": "- line: Fund 1\n  tier: same_fund\n  fund_id: F067\n  manager_id: M24\n  confidence: 0.9927\n  resolved: true\n  method: ratios at reference date\n- line: Fund 2\n  tier: same_fund\n  fund_id: F093\n  manager_id: M32\n  confidence: 0.9863\n  resolved: true\n  method: ratios at reference date\n- line: Fund 3\n  tier: same_manager\n  fund_id: null\n  manager_id: M26\n  confidence: null\n  resolved: true\n  method: description and name fragment\n- line: Fund 4\n  tier: same_fund\n  fund_id: F003\n  manager_id: M01\n  confidence: 0.9849\n  resolved: true\n  method: ratios at reference date\n- line: Fund 5\n  tier: same_manager\n  fund_id: null\n  manager_id: M08\n  confidence: null\n  resolved: true\n  method: description points to one manager\n- line: Fund 6\n  tier: same_manager\n  fund_id: null\n  manager_id: M15\n  confidence: null\n  resolved: true\n  method: description points to one manager\n- line: Fund 7\n  tier: same_manager\n  fund_id: null\n  manager_id: M29\n  confidence: null\n  resolved: true\n  method: description points to one manager\n- line: Fund 8\n  tier: unknown\n  fund_id: null\n  manager_id: null\n  confidence: null\n  resolved: true\n  method: nothing in our universe fits\n- line: Fund 9\n  tier: unknown\n  fund_id: null\n  manager_id: null\n  confidence: null\n  resolved: false\n  method: description fits several managers\n- line: Fund 10\n  tier: unknown\n  fund_id: null\n  manager_id: null\n  confidence: null\n  resolved: true\n  method: nothing in our universe fits\n- line: Fund 11\n  tier: unknown\n  fund_id: null\n  mana\n..."
+    },
+    {
+     "name": "metrics",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 12296,
+     "duration_ms": 1,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "",
+     "input": "lines: 12\nasking_price_text: high 80s % of NAV",
+     "output": "total_value_usd: 330.133\ncount_lines: 12\ncount_same_fund: 3\ncount_unresolved: 1\nshare_value_same_fund: 0.40956826491141446\nshare_value_same_manager: 0.3680971002595924\nshare_value_unknown: 0.22233463482899318\nshare_value_known_manager: 0.7776653651710069\nshare_value_unresolved: 0.09087246655135961\ndata_matched: 0.9091275334486404\nshare_value_venture: 0.1503878739780634\ntop5_concentration: 0.6417171261279545\nfit_score: 0.795499571384866\nprice_range_low: 0.7604858676601524\nprice_range_high: 0.85042484950849\nasking_price_mid: 0.88\nguidance_minus_range_top: 0.02957515049151005"
+    },
+    {
+     "name": "verdict",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 12297,
+     "duration_ms": 0,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "LOOK CLOSER",
+     "input": "rulebook_version: '2'\nrulebook_sha: 69e590bdc27f",
+     "output": "verdict: LOOK CLOSER\nband: medium\nscore: 0.75\nthreshold: 0.6\nveto_rule: null\nheadline: 'LOOK CLOSER, medium confidence: 1 fund unmatched (9% of value), close to the line.'\nrules:\n- rule: no_venture_heavy\n  status: met\n  value: 0.1503878739780634\n- rule: known_managers\n  status: met\n  value: 0.7776653651710069\n- rule: max_price\n  status: not met\n  value: 0.02957515049151005\n- rule: plan_fit\n  status: met\n  value: 0.795499571384866"
+    },
+    {
+     "name": "brief",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 12376,
+     "duration_ms": 16,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "31905 bytes of HTML",
+     "input": "offer_id: cedar-6e74bb",
+     "output": "bytes: 31905"
+    },
+    {
+     "name": "validator",
+     "type": "GUARDRAIL",
+     "depth": 1,
+     "start_ms": 12392,
+     "duration_ms": 223,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "every number sourced",
+     "input": "offer_id: cedar-6e74bb",
+     "output": "passed: true\nproblems: []"
+    }
+   ]
+  },
+  {
+   "feature": "firstcall",
+   "name": "run-batch",
+   "id": "c3a5604007e9948e80af45f228e783ee",
+   "timestamp": "2026-10-24T23:04:47.223Z",
+   "environment": "development",
+   "latency_s": 42.371,
+   "cost_usd": 0.032137999999,
+   "input": "as_of: '2026-10-24T23:04:47.000145+00:00'\ngdelt: false\nqueries:\n  google_news:\n  - pension private equity allocation over target\n  - pension secondary sale private equity\n  - pension overallocated private equity\n  - pension liquidity private markets\n  - pension board private equity review\n  - pension sells private equity stakes\n  - pension denominator effect private equity\n  - pension hires adviser secondary sale\n  - retirement system private equity pacing\n  - pension private equity allocation cut\n  - pension chief investment officer named\n  - state investment board private equity\n  gdelt:\n  - '\"pension\" \"private equity\" (secondary OR overallocated OR \"over target\" OR liquidity)'\n  - '\"retirement system\" \"private equity\" (sale OR allocation)'\n  - '\"investment board\" \"private equity\" (secondary OR allocation)'",
+   "output": "fetched:\n  google_news: 758\n  gdelt: 0\n  errors: []\ncached: 131\nunlinked: 515\nclassified: 12\npensions_rebuilt: 43\nverdicts:\n  WATCH: 44",
+   "scores": [
+    {
+     "name": "partner_decision",
+     "value": 0,
+     "label": "dismiss",
+     "comment": "Liquidity talk is about benefit payments, not a PE sale"
+    },
+    {
+     "name": "partner_decision",
+     "value": 0,
+     "label": "prepare",
+     "comment": "owner layla"
+    }
+   ],
+   "steps": [
+    {
+     "name": "run-batch",
+     "type": "SPAN",
+     "depth": 0,
+     "start_ms": 0,
+     "duration_ms": 42371,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "758 fetched, 12 classified",
+     "input": "as_of: '2026-10-24T23:04:47.000145+00:00'\ngdelt: false\nqueries:\n  google_news:\n  - pension private equity allocation over target\n  - pension secondary sale private equity\n  - pension overallocated private equity\n  - pension liquidity private markets\n  - pension board private equity review\n  - pension sells private equity stakes\n  - pension denominator effect private equity\n  - pension hires adviser secondary sale\n  - retirement system private equity pacing\n  - pension private equity allocation cut\n  - pension chief investment officer named\n  - state investment board private equity\n  gdelt:\n  - '\"pension\" \"private equity\" (secondary OR overallocated OR \"over target\" OR liquidity)'\n  - '\"retirement system\" \"private equity\" (sale OR allocation)'\n  - '\"investment board\" \"private equity\" (secondary OR allocation)'",
+     "output": "fetched:\n  google_news: 758\n  gdelt: 0\n  errors: []\ncached: 131\nunlinked: 515\nclassified: 12\npensions_rebuilt: 43\nverdicts:\n  WATCH: 44"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 2,
+     "duration_ms": 615,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension private equity allocation over target\": 76 headlines",
+     "input": "source: google_news\nquery: pension private equity allocation over target",
+     "output": "items: 76"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 617,
+     "duration_ms": 941,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension secondary sale private equity\": 81 headlines",
+     "input": "source: google_news\nquery: pension secondary sale private equity",
+     "output": "items: 81"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 1559,
+     "duration_ms": 827,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension overallocated private equity\": 33 headlines",
+     "input": "source: google_news\nquery: pension overallocated private equity",
+     "output": "items: 33"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 2386,
+     "duration_ms": 969,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension liquidity private markets\": 27 headlines",
+     "input": "source: google_news\nquery: pension liquidity private markets",
+     "output": "items: 27"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 3355,
+     "duration_ms": 1249,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension board private equity review\": 80 headlines",
+     "input": "source: google_news\nquery: pension board private equity review",
+     "output": "items: 80"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 4605,
+     "duration_ms": 1082,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension sells private equity stakes\": 77 headlines",
+     "input": "source: google_news\nquery: pension sells private equity stakes",
+     "output": "items: 77"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 5687,
+     "duration_ms": 941,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension denominator effect private equity\": 50 headlines",
+     "input": "source: google_news\nquery: pension denominator effect private equity",
+     "output": "items: 50"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 6628,
+     "duration_ms": 1098,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension hires adviser secondary sale\": 22 headlines",
+     "input": "source: google_news\nquery: pension hires adviser secondary sale",
+     "output": "items: 22"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 7727,
+     "duration_ms": 785,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"retirement system private equity pacing\": 38 headlines",
+     "input": "source: google_news\nquery: retirement system private equity pacing",
+     "output": "items: 38"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 8512,
+     "duration_ms": 1204,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension private equity allocation cut\": 74 headlines",
+     "input": "source: google_news\nquery: pension private equity allocation cut",
+     "output": "items: 74"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 9716,
+     "duration_ms": 951,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"pension chief investment officer named\": 100 headlines",
+     "input": "source: google_news\nquery: pension chief investment officer named",
+     "output": "items: 100"
+    },
+    {
+     "name": "fetch-source",
+     "type": "RETRIEVER",
+     "depth": 1,
+     "start_ms": 10667,
+     "duration_ms": 1099,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "query \"state investment board private equity\": 100 headlines",
+     "input": "source: google_news\nquery: state investment board private equity",
+     "output": "items: 100"
+    },
+    {
+     "name": "dedupe-items",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 11775,
+     "duration_ms": 8,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "758 headlines, 658 unique",
+     "input": "items: 758",
+     "output": "unique_links: 658\ndropped: 100"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 12976,
+     "duration_ms": 2115,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 842,
+     "tokens_out": 106,
+     "cost_usd": 0.002744,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: LAFPP bullish toward buyout opportunities within private equity",
+     "input": "headline: LAFPP bullish toward buyout opportunities within private equity\npension: Los Angeles Fire and Police Pensions",
+     "output": "signal_type: none\nconfidence: 0.93\nquote: LAFPP bullish toward buyout opportunities within private equity\nrationale: The headline only describes a positive outlook on buyout opportunities, not a sale,\n  over-allocation, liquidity need, policy change, or leadership change.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 15350,
+     "duration_ms": 2905,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 847,
+     "tokens_out": 111,
+     "cost_usd": 0.002804,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: Ohio SERS joins pension funds tracking AI exposure as data center risks mount",
+     "input": "headline: Ohio SERS joins pension funds tracking AI exposure as data center risks mount\npension: School Employees Retirement System of Ohio",
+     "output": "signal_type: none\nconfidence: 0.9\nquote: Ohio SERS joins pension funds tracking AI exposure as data center risks mount\nrationale: The headline describes monitoring of AI exposure, not a sale, allocation breach,\n  liquidity need, private markets policy review, or leadership change.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 18362,
+     "duration_ms": 1472,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 844,
+     "tokens_out": 102,
+     "cost_usd": 0.002708,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: San Diego city pension fund reports ESG \u2018strides\u2019 made by managers",
+     "input": "headline: San Diego city pension fund reports ESG \u2018strides\u2019 made by managers\npension: San Diego City Employees' Retirement System",
+     "output": "signal_type: none\nconfidence: 0.96\nquote: San Diego city pension fund reports ESG \u2018strides\u2019 made by managers\nrationale: The headline covers ESG progress by managers and states no sale, over-allocation,\n  liquidity need, policy review or leadership change.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 19895,
+     "duration_ms": 1585,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 845,
+     "tokens_out": 80,
+     "cost_usd": 0.00249,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: CalPERS just had one of its best years in a decade. Why it matters to taxpayers",
+     "input": "headline: CalPERS just had one of its best years in a decade. Why it matters to taxpayers\npension: California Public Employees' Retirement System",
+     "output": "signal_type: none\nconfidence: 0.96\nquote: CalPERS just had one of its best years in a decade.\nrationale: The headline reports investment returns, which falls under none rather than any of\n  the defined signals.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 21525,
+     "duration_ms": 1658,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 841,
+     "tokens_out": 92,
+     "cost_usd": 0.002602,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: How Nevada PERS is charting a smooth path to alpha",
+     "input": "headline: How Nevada PERS is charting a smooth path to alpha\npension: Public Employees' Retirement System of Nevada",
+     "output": "signal_type: none\nconfidence: 0.93\nquote: How Nevada PERS is charting a smooth path to alpha\nrationale: The headline is generic and does not state any sale, allocation overage, liquidity\n  need, policy review or leadership change.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 23207,
+     "duration_ms": 1998,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 848,
+     "tokens_out": 118,
+     "cost_usd": 0.002876,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: Former CalPERS board member launches GoFundMe for probe into nation\u2019s largest pension fund",
+     "input": "headline: Former CalPERS board member launches GoFundMe for probe into nation\u2019s largest pension\n  fund\npension: California Public Employees' Retirement System",
+     "output": "signal_type: none\nconfidence: 0.93\nquote: Former CalPERS board member launches GoFundMe for probe into nation\u2019s largest pension\n  fund\nrationale: The headline reports a former board member's fundraiser for a probe, which is not\n  a sale, allocation, liquidity, policy review, or leadership change at the pension.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 25231,
+     "duration_ms": 1902,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 838,
+     "tokens_out": 88,
+     "cost_usd": 0.002556,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: CalPERS and CalSTRS to boost private credit allocations",
+     "input": "headline: CalPERS and CalSTRS to boost private credit allocations\npension: California Public Employees' Retirement System",
+     "output": "signal_type: none\nconfidence: 0.93\nquote: CalPERS and CalSTRS to boost private credit allocations\nrationale: Increasing a private markets allocation is not a policy cut or any listed signal,\n  so it is none.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 27152,
+     "duration_ms": 2951,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 851,
+     "tokens_out": 100,
+     "cost_usd": 0.002702,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: DiNapoli: State Pension Fund Valued at $309.7 Billion at End of First Quarter",
+     "input": "headline: 'DiNapoli: State Pension Fund Valued at $309.7 Billion at End of First Quarter'\npension: New York State Common Retirement Fund",
+     "output": "signal_type: none\nconfidence: 0.97\nquote: State Pension Fund Valued at $309.7 Billion at End of First Quarter\nrationale: The headline only reports the fund's total value, with no sale, allocation, liquidity,\n  policy or leadership signal.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 30135,
+     "duration_ms": 1433,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 841,
+     "tokens_out": 110,
+     "cost_usd": 0.002781999999,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: California retiree group wants to investigate CalPERS. It\u2019s not the first time",
+     "input": "headline: California retiree group wants to investigate CalPERS. It\u2019s not the first time\npension: California Public Employees' Retirement System",
+     "output": "signal_type: none\nconfidence: 0.9\nquote: California retiree group wants to investigate CalPERS. It\u2019s not the first time\nrationale: The headline reports a retiree group seeking an investigation, with no stated secondary\n  sale, over-allocation, liquidity need, policy review or leadership change.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 31595,
+     "duration_ms": 2461,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 844,
+     "tokens_out": 91,
+     "cost_usd": 0.002598,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: San Francisco Pension System Commits More than $900 Million to Private Markets",
+     "input": "headline: San Francisco Pension System Commits More than $900 Million to Private Markets\npension: San Francisco Employees' Retirement System",
+     "output": "signal_type: none\nconfidence: 0.95\nquote: San Francisco Pension System Commits More than $900 Million to Private Markets\nrationale: The pension is committing capital to private markets, which counts as none rather\n  than any of the listed signals.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 34616,
+     "duration_ms": 2607,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 840,
+     "tokens_out": 111,
+     "cost_usd": 0.00279,
+     "prompt_version": "fc-classify-v3",
+     "summary": "none: Virginia\u2019s Pension System Aims to Hold the Course With Private Equity",
+     "input": "headline: Virginia\u2019s Pension System Aims to Hold the Course With Private Equity\npension: Virginia Retirement System",
+     "output": "signal_type: none\nconfidence: 0.85\nquote: Virginia\u2019s Pension System Aims to Hold the Course With Private Equity\nrationale: The headline says the pension plans to stay the course on private equity, which signals\n  no sale, over-allocation, liquidity need, policy cut or leadership change.\ncompleted: false"
+    },
+    {
+     "name": "classify-headline",
+     "type": "GENERATION",
+     "depth": 1,
+     "start_ms": 38642,
+     "duration_ms": 1474,
+     "model": "claude-sonnet-5-5",
+     "tokens_in": 833,
+     "tokens_out": 82,
+     "cost_usd": 0.002486,
+     "prompt_version": "fc-classify-v3",
+     "summary": "leadership_change: Side Letter: CalPERS' new alts head",
+     "input": "headline: 'Side Letter: CalPERS'' new alts head'\npension: California Public Employees' Retirement System",
+     "output": "signal_type: leadership_change\nconfidence: 0.8\nquote: CalPERS' new alts head\nrationale: The headline states CalPERS has a new head of alternatives, which is a leadership\n  change in private markets.\ncompleted: false"
+    },
+    {
+     "name": "score-pensions",
+     "type": "SPAN",
+     "depth": 1,
+     "start_ms": 40595,
+     "duration_ms": 460,
+     "model": null,
+     "tokens_in": null,
+     "tokens_out": null,
+     "cost_usd": null,
+     "prompt_version": null,
+     "summary": "43 WATCH",
+     "input": "pensions:\n- asrs\n- calpers\n- calstrs\n- colorado_pera\n- connecticut\n- cook_county\n- ctpf\n- hawaii_ers\n- imrf\n- inprs\n- ipers\n- isbi\n- kppa\n- lacera\n- lacers\n- lafpp\n- massprim\n- minnesota\n- nc_rs\n- nj_doi\n- nm_erb\n- nvpers\n- nyc_funds\n- nyscrf\n- nystrs\n- ocers\n- ohio_sers\n- ohio_strs\n- oregon\n- pa_sers\n- psers\n- psrs_missouri\n- sdcers\n- sfers\n- swib\n- texas_ers\n- tmrs\n- trs_illinois\n- trs_oklahoma\n- trs_texas\n- trsl\n- vrs\n- wsib\nas_of: '2026-10-24T23:04:47.000145+00:00'",
+     "output": "verdicts:\n- pension_id: asrs\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: calpers\n  score: 0.097\n  verdict: WATCH\n  n_signals: 2\n- pension_id: calstrs\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: colorado_pera\n  score: 0.121\n  verdict: WATCH\n  n_signals: 1\n- pension_id: connecticut\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: cook_county\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: ctpf\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: hawaii_ers\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: imrf\n  score: 0.055\n  verdict: WATCH\n  n_signals: 1\n- pension_id: inprs\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: ipers\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: isbi\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: kppa\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: lacera\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: lacers\n  score: 0.021\n  verdict: WATCH\n  n_signals: 1\n- pension_id: lafpp\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: massprim\n  score: 0.015\n  verdict: WATCH\n  n_signals: 1\n- pension_id: minnesota\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: nc_rs\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: nj_doi\n  score: 0.085\n  verdict: WATCH\n  n_signals: 1\n- pension_id: nm_erb\n  score: 0.072\n  verdict: WATCH\n  n_signals: 1\n- pension_id: nvpers\n  score: 0\n  verdict: WATCH\n  n_signals: 0\n- pension_id: nyc_funds\n  score: 0.357\n..."
+    }
+   ]
+  }
+ ],
+ "experiments": [
+  {
+   "name": "claude-20261024-235848",
+   "dataset_id": "cmvn029hm01ryad0jpflcpto6",
+   "started": "2026-10-24T23:03:32.271Z",
+   "metadata": {
+    "parser": "claude:claude-sonnet-5-5",
+    "prompt_version": "parse-v2"
+   },
+   "scores": {
+    "verdict_agreement_holdout": 0.7142857142857143,
+    "good_offers_passed": 1,
+    "verdict_agreement_tune": 1
+   }
+  },
+  {
+   "name": "claude-20261024-235848",
+   "dataset_id": "cmvn00uzm033iad0o4i18q517",
+   "started": "2026-10-24T23:00:27.926Z",
+   "metadata": {
+    "parser": "claude:claude-sonnet-5-5",
+    "prompt_version": "parse-v2"
+   },
+   "scores": {
+    "field_accuracy_mean": 1,
+    "match_accuracy": 0.9395973154362416
+   }
+  },
+  {
+   "name": "offline-20261024-235704",
+   "dataset_id": "cmvn029hm01ryad0jpflcpto6",
+   "started": "2026-10-24T22:58:37.259Z",
+   "metadata": {
+    "parser": "offline-regex",
+    "prompt_version": "offline-v1"
+   },
+   "scores": {
+    "good_offers_passed": 1,
+    "verdict_agreement_tune": 1,
+    "verdict_agreement_holdout": 0.7142857142857143
+   }
+  },
+  {
+   "name": "offline-20261024-235704",
+   "dataset_id": "cmvn00uzm033iad0o4i18q517",
+   "started": "2026-10-24T22:58:13.035Z",
+   "metadata": {
+    "parser": "offline-regex",
+    "prompt_version": "offline-v1"
+   },
+   "scores": {
+    "field_accuracy_mean": 1,
+    "match_accuracy": 0.9395973154362416
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v3 holdout 2026-10-24 21:36",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:40:20.345Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v3",
+    "split": "holdout"
+   },
+   "scores": {
+    "recall": 0.9130434782608695,
+    "precision": 0.9130434782608695,
+    "link_accuracy": 0.9846153846153847
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v3 dev 2026-10-24 21:36",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:37:53.674Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v3",
+    "split": "dev"
+   },
+   "scores": {
+    "recall": 0.9473684210526315,
+    "precision": 0.8571428571428571,
+    "link_accuracy": 1
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v2 holdout 2026-10-24 21:29",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:32:45.763Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v2",
+    "split": "holdout"
+   },
+   "scores": {
+    "link_accuracy": 0.9846153846153847,
+    "recall": 0.8695652173913043,
+    "precision": 0.9090909090909091
+   }
+  },
+  {
+   "name": "claude claude-sonnet-5-5/fc-classify-v2 dev 2026-10-24 21:29",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:29:59.938Z",
+   "metadata": {
+    "classifier": "claude",
+    "version": "claude-sonnet-5-5/fc-classify-v2",
+    "split": "dev"
+   },
+   "scores": {
+    "precision": 0.95,
+    "recall": 1,
+    "link_accuracy": 1
+   }
+  },
+  {
+   "name": "keyword kw-3 holdout 2026-10-24 21:27",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:28:58.636Z",
+   "metadata": {
+    "classifier": "keyword",
+    "version": "kw-3",
+    "split": "holdout"
+   },
+   "scores": {
+    "recall": 0.8260869565217391,
+    "link_accuracy": 0.9846153846153847,
+    "precision": 0.9047619047619048
+   }
+  },
+  {
+   "name": "keyword kw-3 dev 2026-10-24 21:27",
+   "dataset_id": "cmvmwu5bh0100ad0j7us1j12b",
+   "started": "2026-10-24T21:28:56.092Z",
+   "metadata": {
+    "classifier": "keyword",
+    "version": "kw-3",
+    "split": "dev"
+   },
+   "scores": {
+    "precision": 0.95,
+    "link_accuracy": 1,
+    "recall": 1
+   }
+  }
+ ]
+}

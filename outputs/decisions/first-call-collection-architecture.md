@@ -1,4 +1,4 @@
-# Decision: First Call collects news in batch
+# Decision: Seller Watch collects news in batch
 
 **Date:** 2026-10-24
 **Owner:** Alexandre Cela
@@ -9,7 +9,7 @@
 
 ## Decision
 
-First Call runs as a scheduled batch job every 15 minutes. The stream path (Redpanda, consumer group, dead-letter topic) stays in the repo as a tested, measured alternative. It is not the default.
+Seller Watch runs as a scheduled batch job every 15 minutes. The stream path (Redpanda, consumer group, dead-letter topic) stays in the repo as a tested, measured alternative. It is not the default.
 
 ## Why
 
@@ -42,7 +42,7 @@ Same input for both paths: 928 real items (live Google News RSS pulls plus the f
 
 - **Classifier:** all runs used the keyword adapter. A Claude run will add about 1 s per linked item to both paths. It doesn't change the ranking.
 - **Single host:** the file log and the DuckDB sink are single-writer. A shared deployment would need a server database.
-- **Worked cases:** neither case gave 8 weeks of warning (WSIB 2022: 0 weeks; NYC 2025: 0 weeks). By PRD section 11, First Call is shown as monitoring only. That finding doesn't depend on the collection path.
+- **Worked cases:** neither case gave 8 weeks of warning (WSIB 2022: 0 weeks; NYC 2025: 0 weeks). By PRD section 11, Seller Watch is shown as monitoring only. That finding doesn't depend on the collection path.
 
 ## Where streaming would earn its place at a sovereign fund
 
@@ -52,9 +52,9 @@ Streaming pays when a decision changes within seconds or minutes of an event.
 - **Treasury cash positions:** payment and settlement events move liquidity buffers within hours.
 - **Trade surveillance:** a pattern has to be flagged before the next order goes out, not at the end of the day.
 
-In each case the source emits events continuously and the decision window is shorter than any batch schedule. First Call has the opposite profile: a source that refreshes every 15 minutes and a decision window of weeks.
+In each case the source emits events continuously and the decision window is shorter than any batch schedule. Seller Watch has the opposite profile: a source that refreshes every 15 minutes and a decision window of weeks.
 
 ## Revisit when
 
 - A source starts pushing events (for example a paid news wire with a webhook) **and** a use case needs action within an hour.
-- First Call feeds an alert that someone must act on the same day.
+- Seller Watch feeds an alert that someone must act on the same day.

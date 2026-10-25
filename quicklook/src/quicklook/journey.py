@@ -12,7 +12,6 @@ from markupsafe import Markup, escape
 
 from . import brief as brief_mod
 from . import match, store
-from .rulebook import OP_WORDS
 from .config import Workspace
 from .reference import Reference
 
@@ -107,84 +106,138 @@ def match_lines(con, ref: Reference, offer: str, line_no: int) -> list[str]:
 
 # ---------------------------------------------------------------- memo
 
-def memo_segments(con, offer_id: str) -> list:
-    """The memo as text pieces and sourced spans (Markup)."""
+def day(d) -> str:
+    """30 June, the way people write dates in a message."""
+    return f"{d.day} {d:%B}"
+
+
+def memo_parts(d: dict, N) -> list:
+    """The message to the head of team, as text pieces. Decision and ask first, then a few plain facts.
+
+    `d` holds plain values (see memo_facts and demo.ql.memo). `N(key, display)` returns the piece to show
+    for a number or date: a sourced span in the command line version, plain text in the demo."""
+    final = d["verdict"]
+    dec = d.get("decision")
+    if dec and dec["kind"] == "override":
+        final = dec["verdict"]
+    code = d["code"]
+    if final == "LOOK CLOSER":
+        head = f"Project {code}: worth a closer look. I suggest we sign the NDA and ask for the data room."
+    elif d.get("veto_rule") == "price_veto" and final == d["verdict"]:
+        head = f"Project {code}: too expensive by our own data. I suggest we decline the NDA."
+    else:
+        head = f"Project {code}: not for us. I suggest we decline the NDA."
+    seller = (d.get("seller") or "the seller").strip()
+    if not re.match(r"(?i)(a|an|the)\s", seller):
+        seller = ("an " if seller[0].lower() in "aeiou" else "a ") + seller
+    seller = seller[0].upper() + seller[1:]
+    n = d["n_lines"]
+    out: list = [head, "\n\n", f"{seller} is selling its stakes in ", N("count_lines", f"{n:.0f}"),
+                 f" fund{'s' if n != 1 else ''}, worth ", N("total_value_usd", f"${d['total']:,.1f}M"), " at ",
+                 N("reference_date", day(d["ref_date"])), f", through {d['broker']}."]
+    if d.get("deadline"):
+        out += [" First bids are due ", N("bid_deadline", day(d["deadline"])), "."]
+    out.append("\n")
+    bullets: list[list] = []
+    if d["n_owned"]:
+        k = d["n_owned"]
+        bullets.append(["We already own ", N("count_same_fund", f"{k:.0f}"),
+                        f" of these funds (", N("share_value_same_fund", f"{d['share_owned']:.0%}"),
+                        " of the value), so we know them well."])
+        ups = [a["company"] for a in d.get("adjustments", []) if a["kind"] == "exit"]
+        downs = [a["company"] for a in d.get("adjustments", []) if a["kind"] != "exit"]
+        if ups or downs:
+            what = []
+            if ups:
+                what.append(f"{_and(ups)} {'was' if len(ups) == 1 else 'were'} sold for more than "
+                            f"{'its' if len(ups) == 1 else 'their'} value then")
+            if downs:
+                what.append(f"{_and(downs)} {'was' if len(downs) == 1 else 'were'} written down")
+            more = d["worth_change"] >= 0
+            bullets.append(["Since ", N("reference_date", day(d["ref_date"])), ", our own reports show ",
+                            "; ".join(what), ". So these funds are worth about ",
+                            N("worth_change_owned", f"{abs(d['worth_change']) * 100:.1f}%"),
+                            f" {'more' if more else 'less'} than the seller's figure."])
+        if d.get("ask_text") and d.get("top") is not None:
+            ok = d["price_view"] == "cheap"
+            bullets.append(["The seller wants ", N("asking_price_text", d["ask_text"]),
+                            " (% of value). By our own data we would pay up to ",
+                            N("price_range_high", f"{d['top']:.0%}"),
+                            ", so the price looks right." if ok else ", so the price looks too high."])
+    else:
+        bullets.append(["We own none of these funds, so we have no price view of our own."])
+    if d.get("share_known") is not None:
+        bullets.append(["We know the managers behind ", N("share_value_known_manager", f"{d['share_known']:.0%}"),
+                        " of the value."])
+    for desc in d.get("failed_rules", []):
+        bullets.append([f"It fails one of our rules: {desc[0].lower() + desc[1:]}."])
+    for p in d.get("picks", []):
+        bullets.append([f"{p['label']} was identified by hand as {p['fund']} ({p['user']})."])
+    if d.get("unresolved"):
+        u = len(d["unresolved"])
+        bullets.append(["We can't yet identify ", N("count_unresolved", f"{u}"),
+                        f" fund{'s' if u > 1 else ''} (", N("share_value_unresolved", f"{d['share_unresolved']:.0%}"),
+                        " of the value)."])
+    for b in bullets:
+        out += ["\n- "] + b
+    why = []
+    if d.get("close"):
+        why.append("it " + ("passes" if d["verdict"] == "LOOK CLOSER" else "misses") + " our rules, but not by much")
+    if d.get("unresolved"):
+        why.append("some of the offer is not identified yet")
+    why = why if d["band"] != "high" else []
+    out += ["\n\n", f"Confidence is {d['band']}" + (": " + " and ".join(why) if why else "") + "."]
+    if dec and dec["kind"] == "override":
+        out += [f" The system said {d['verdict']}; I disagree: ", N("override_reason", dec["reason"]), "."]
+    out.append("\n\nInternal: uses information from our own fund reports.")
+    return out
+
+
+def _and(xs: list[str]) -> str:
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+
+def memo_facts(con, offer_id: str) -> tuple[dict, dict]:
+    """Plain values for memo_parts from gold rows, and where each number comes from."""
     o = store.one(con, "SELECT * FROM silver_offers WHERE offer_id = ?", [offer_id])
     v = store.one(con, "SELECT * FROM gold_verdicts WHERE offer_id = ?", [offer_id])
     mets = {m["metric"]: m for m in store.rows(con, "SELECT * FROM gold_offer_metrics WHERE offer_id = ?", [offer_id])}
-
-    def M(metric: str) -> Markup:
-        m = mets[metric]
-        return brief_mod.span(brief_mod.fmt_metric(metric, m["value"]), "gold_offer_metrics", m["row_id"], metric,
-                              m["version"])
-
-    def S(table: str, row: str, col: str, disp: str, version: str) -> Markup:
-        return brief_mod.span(disp, table, row, col, version)
-
-    rbv = f"rulebook v{v['rulebook_version']}"
-    broker = re.sub(r"\s*<.*>$", "", o["sender"] or "").strip() or "the broker"
-    seller = re.sub(r"(?i)^(a|an|the)\s+", "", o["seller_type"] or "not given")
-    n = mets["count_lines"]["value"] or 0
-    segs: list = [f"Project {o['code_name']} ({broker}; seller: {seller}): ", M("count_lines"),
-                  f" fund interest{'s' if n != 1 else ''}, total value ", M("total_value_usd"), " at ",
-                  S("silver_offers", offer_id, "reference_date", o["reference_date"].isoformat(), o["parser_version"])]
-    if o["bid_deadline"]:
-        segs += [", indicative bids due ",
-                 S("silver_offers", offer_id, "bid_deadline", o["bid_deadline"].isoformat(), o["parser_version"])]
-    segs += [". Our rulebook (version ", S("gold_verdicts", offer_id, "rulebook_version", v["rulebook_version"], rbv),
-             f") says {v['verdict']}, {v['band']} confidence: score ",
-             S("gold_verdicts", offer_id, "score", f"{v['score']:.2f}", rbv) if v["score"] is not None else "n/a",
-             " against a threshold of ", S("gold_verdicts", offer_id, "threshold", f"{v['threshold']:g}", rbv),
-             ", data matched ", S("gold_verdicts", offer_id, "data_matched", f"{v['data_matched']:.0%}", rbv), ". "]
-    if mets["count_same_fund"]["value"]:
-        segs += ["We own ", M("count_same_fund"), " of the funds (", M("share_value_same_fund"), " of value)"]
-        if mets["price_range_low"]["value"] is not None:
-            segs += ["; our price range for them is ", M("price_range_low"), " to ", M("price_range_high"),
-                     " of value"]
-        if o["asking_price_text"]:
-            segs += [", against guidance of ",
-                     S("silver_offers", offer_id, "asking_price_text", o["asking_price_text"], o["parser_version"])]
-        segs.append(". ")
-    else:
-        segs.append("We own none of the funds, so we have no price of our own. ")
-    segs += ["Managers we know hold ", M("share_value_known_manager"), " of value; venture is ",
-             M("share_value_venture"), ". "]
-    failed = store.rows(con, "SELECT * FROM gold_rule_results WHERE offer_id = ? AND status != 'met' ORDER BY rank",
+    val = lambda k: mets[k]["value"]  # noqa: E731
+    failed = store.rows(con, "SELECT * FROM gold_rule_results WHERE offer_id = ? AND status = 'not met' ORDER BY rank",
                         [offer_id])
-    for r in failed:
-        thr = (f"{r['threshold']:.0%}" if r["metric"] in brief_mod.PCT else
-               brief_mod.fmt_metric(r["metric"], r["threshold"]) if r["metric"] == "guidance_minus_range_top"
-               else f"{r['threshold']:g}")
-        if r["status"] == "not checked":
-            segs += [f"Not checked: {r['description'].lower()} (no number). "]
-        else:
-            segs += [f"Not met: {r['description'].lower()} (", M(r["metric"]), f" against {OP_WORDS[r['op']]} ",
-                     S("gold_rule_results", r["row_id"], "threshold", thr, rbv), "). "]
-    open_lines = store.rows(con, "SELECT label FROM gold_line_matches WHERE offer_id = ? AND NOT resolved ORDER BY line_no",
+    unresolved = store.rows(con, "SELECT label FROM gold_line_matches WHERE offer_id = ? AND NOT resolved ORDER BY line_no",
                             [offer_id])
-    if open_lines:
-        segs += [M("count_unresolved"), f" line{'s' if len(open_lines) > 1 else ''} still unmatched (",
-                 M("share_value_unresolved"), " of value): ", ", ".join(l["label"] for l in open_lines), ". "]
+    adj = store.rows(con, "SELECT * FROM gold_price_adjustments WHERE offer_id = ? ORDER BY line_no, event_date",
+                     [offer_id])
     last: dict = {}
     for r in store.rows(con, "SELECT * FROM line_resolutions WHERE offer_id = ? ORDER BY created_at", [offer_id]):
         last[r["line_no"]] = r
-    for r in sorted(last.values(), key=lambda r: r["line_no"]):
-        segs += [f"{r['label']} was matched by hand to ",
-                 S("line_resolutions", r["resolution_id"], "fund_name", r["fund_name"], "resolution"), " (",
-                 S("line_resolutions", r["resolution_id"], "user_name", r["user_name"], "resolution"), "). "]
     dec = store.team_decision(con, offer_id)
-    final = v["verdict"]
+    decision = None
     if dec and dec["kind"] == "override":
-        final = dec["new_verdict"]
-        segs += [f"I override this to {final}: ",
-                 S("overrides", dec["override_id"], "reason", dec["reason"], "override"), ". "]
+        decision = dict(kind="override", verdict=dec["new_verdict"], reason=dec["reason"])
     elif dec:
-        segs += ["I keep this verdict. "]
-    else:
-        segs += ["No decision recorded yet. "]
-    segs.append("Proposal: sign the NDA and ask for the data room." if final == "LOOK CLOSER"
-                else "Proposal: decline the NDA and tell the broker.")
-    return segs
+        decision = dict(kind="keep")
+    rb_close = v["margin"] is not None and v["margin"] < 0.2
+    d = dict(code=o["code_name"], seller=o["seller_type"], broker=re.sub(r"\s*<.*>$", "", o["sender"] or "").strip()
+             or "the broker", n_lines=val("count_lines") or 0, total=val("total_value_usd"),
+             ref_date=o["reference_date"], deadline=o["bid_deadline"], verdict=v["verdict"], veto_rule=v["veto_rule"],
+             price_view=v["price_view"], band=v["band"], close=rb_close, n_owned=val("count_same_fund") or 0,
+             share_owned=val("share_value_same_fund"), worth_change=val("worth_change_owned"),
+             adjustments=[dict(company=a["company"], kind=a["kind"]) for a in adj], ask_text=o["asking_price_text"],
+             top=val("price_range_high"), share_known=val("share_value_known_manager"),
+             failed_rules=[r["description"] for r in failed], unresolved=[u["label"] for u in unresolved],
+             share_unresolved=val("share_value_unresolved"),
+             picks=[dict(label=r["label"], fund=r["fund_name"], user=r["user_name"]) for r in sorted(last.values(), key=lambda r: r["line_no"])],
+             decision=decision)
+    pv = o["parser_version"]
+    src = {k: ("gold_offer_metrics", m["row_id"], k, m["version"]) for k, m in mets.items()}
+    src.update(reference_date=("silver_offers", offer_id, "reference_date", pv),
+               bid_deadline=("silver_offers", offer_id, "bid_deadline", pv),
+               asking_price_text=("silver_offers", offer_id, "asking_price_text", pv))
+    if decision and decision["kind"] == "override":
+        src["override_reason"] = ("overrides", dec["override_id"], "reason", "override")
+    return d, src
 
 
 def memo(con, offer: str) -> tuple[str, str, list[str], int]:
@@ -192,9 +245,10 @@ def memo(con, offer: str) -> tuple[str, str, list[str], int]:
     o = store.resolve_offer(con, offer)
     if not o:
         raise KeyError(f"No offer called {offer}.")
-    segs = memo_segments(con, o["offer_id"])
+    d, src = memo_facts(con, o["offer_id"])
+    segs = memo_parts(d, lambda key, disp: brief_mod.span(disp, *src[key], absolute=key == "worth_change_owned"))
     html = "<p>" + "".join(str(escape(s)) if isinstance(s, str) and not isinstance(s, Markup) else str(s)
-                           for s in segs) + "</p>"
+                           for s in segs).replace("\n", "<br>") + "</p>"
     problems = brief_mod.validate(html, lambda t, r, m: store.lookup(con, t, r, m))
     text = "".join(re.sub(r"<[^>]+>", "", str(s)) if isinstance(s, Markup) else s for s in segs)
     text = text.replace("&amp;", "&").replace("&#39;", "'").replace("&#34;", '"')

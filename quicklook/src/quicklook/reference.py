@@ -28,6 +28,21 @@ def _as_dt(d: dt.date | dt.datetime) -> dt.datetime:
 
 
 @dataclass
+class EventRow:
+    """Something a fund told us after a quarter end: a company sold, or written down."""
+    event_id: str
+    fund_id: str
+    kind: str  # exit | write_down
+    company: str
+    event_date: dt.date
+    reported_at: dt.date
+    value_before: float  # fund level, fund currency, at the reference date
+    value_after: float
+    fund_value_ref: float
+    note: str
+
+
+@dataclass
 class SeriesRow:
     row_id: str
     fund_id: str
@@ -53,6 +68,12 @@ class Reference:
         for r in _rows(con, reference_dir / "fx_rates.parquet"):
             fx[r["currency"]].append((r["rate_date"], r["usd_per_unit"], r["row_id"]))
         self.fx = {k: sorted(v) for k, v in fx.items()}
+        self.events: dict[str, list[EventRow]] = defaultdict(list)
+        if (reference_dir / "fund_events.parquet").exists():
+            for r in _rows(con, reference_dir / "fund_events.parquet"):
+                self.events[r["fund_id"]].append(EventRow(
+                    r["event_id"], r["fund_id"], r["kind"], r["company"], r["event_date"], r["reported_at"],
+                    r["value_before"], r["value_after"], r["fund_value_ref"], r["note"]))
         con.close()
         self.by_key: dict[tuple, list[dict]] = defaultdict(list)
         for f in self.funds.values():
@@ -84,6 +105,12 @@ class Reference:
         k = _as_dt(known_at)
         rows = [r for r in self.series.get(fund_id, []) if _as_dt(r.reported_at) <= k]
         return max(rows, key=lambda r: (r.as_of_date, r.reported_at)) if rows else None
+
+    def events_since(self, fund_id: str, after: dt.date, known_at: dt.datetime) -> list[EventRow]:
+        """Events dated after `after` that we had been told about by `known_at`."""
+        k = _as_dt(known_at)
+        return sorted((e for e in self.events.get(fund_id, [])
+                       if e.event_date > after and _as_dt(e.reported_at) <= k), key=lambda e: e.event_date)
 
     def fx_rate(self, currency: str, on: dt.date) -> tuple[float, str]:
         rows = self.fx[currency]
